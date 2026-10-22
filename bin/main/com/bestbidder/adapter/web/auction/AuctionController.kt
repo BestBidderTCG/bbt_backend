@@ -4,7 +4,7 @@ import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
-import com.bestbidder.usecase.auction.GetAuctionUseCase
+import com.bestbidder.usecase.auction.FindAuctionUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/auction")
 class AuctionController(
     private val createAuctionUseCase: CreateAuctionUseCase,
-    private val getAuctionUseCase: GetAuctionUseCase,
+    private val getAuctionUseCase: FindAuctionUseCase,
 ) {
     @PostMapping("/create")
     fun create(

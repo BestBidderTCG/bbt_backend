@@ -1,0 +1,26 @@
+
+openapi: 3.0.3
+
+info:
+  title: BestBidder TCG API
+  version: 0.1.0
+  description: Contrato inicial de ejemplo para la API de BestBidder TCG.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/health:
+    get:
+      summary: Comprobar el estado del servidor
+      responses:
+        '200':
+          description: El servidor funciona correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK

@@ -10,5 +10,5 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
 
     fun findByCard(card: String): List<AuctionEntity>
 
-    fun existsByCreatorAndCard(creator: String, card: String): Boolean // <-- Añadir este método
+    fun existsByCreatorAndCard(creator: String, card: String): Boolean 
 }

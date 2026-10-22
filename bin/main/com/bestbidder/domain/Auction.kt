@@ -9,7 +9,7 @@ data class Auction(
     val id: UUID,
     val creator: String,
     // Más adelante se usará la entidad Card para enlazar la subasta con el prodcuto
-    val cart: String,
+    val card: String,
     val collection: String,
     val min_prize: Double,
 )

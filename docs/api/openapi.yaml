@@ -1,10 +1,9 @@
-
 openapi: 3.0.3
 
 info:
   title: BestBidder TCG API
   version: 0.1.0
-  description: Contrato inicial de ejemplo para la API de BestBidder TCG.
+  description: Contrato inicial para la API de BestBidder TCG.
 
 servers:
   - url: http://localhost:8080
@@ -13,6 +12,7 @@ paths:
   /api/health:
     get:
       summary: Comprobar el estado del servidor
+      description: Verifica que la API esté arriba y respondiendo correctamente.
       responses:
         '200':
           description: El servidor funciona correctamente
@@ -24,3 +24,183 @@ paths:
                   status:
                     type: string
                     example: OK
+
+  /api/auth/register:
+    post:
+      summary: Registrar un nuevo usuario
+      description: Crea una cuenta de usuario si el nombre de usuario no existe previamente y los datos son válidos.
+      operationId: registerUser
+      requestBody:
+        description: Objeto AuthRequest con el usuario y contraseña.
+        required: true
+        content:
+          application/json:
+            schema:
+              title: AuthRequest
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Nombre de usuario único.
+                  example: "johndoe"
+                password:
+                  type: string
+                  format: password
+                  description: Contraseña del usuario.
+                  example: "secret123"
+      responses:
+        '200':
+          description: Usuario registrado exitosamente. Devuelve UserResponse.
+          content:
+            application/json:
+              schema:
+                title: UserResponse
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  username:
+                    type: string
+                    example: "johndoe"
+        '400':
+          description: Datos de entrada inválidos o campos obligatorios faltantes. Devuelve ErrorResponse.
+          content:
+            application/json:
+              schema:
+                title: ErrorResponse
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-10-22T15:00:00Z"
+                  status:
+                    type: integer
+                    example: 400
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "El campo 'username' no puede estar vacío"
+                  path:
+                    type: string
+                    example: "/api/auth/register"
+        '409':
+          description: El usuario ya existe en el sistema. Devuelve ErrorResponse.
+          content:
+            application/json:
+              schema:
+                title: ErrorResponse
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-10-22T15:00:00Z"
+                  status:
+                    type: integer
+                    example: 409
+                  error:
+                    type: string
+                    example: "Conflict"
+                  message:
+                    type: string
+                    example: "El nombre de usuario 'johndoe' ya existe"
+                  path:
+                    type: string
+                    example: "/api/auth/register"
+
+  /api/auth/login:
+    post:
+      summary: Iniciar sesión
+      description: Valida las credenciales e inicia sesión.
+      operationId: loginUser
+      requestBody:
+        description: Objeto AuthRequest con las credenciales.
+        required: true
+        content:
+          application/json:
+            schema:
+              title: AuthRequest
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "johndoe"
+                password:
+                  type: string
+                  format: password
+                  example: "secret123"
+      responses:
+        '200':
+          description: Autenticación exitosa. Devuelve UserResponse.
+          content:
+            application/json:
+              schema:
+                title: UserResponse
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  username:
+                    type: string
+                    example: "johndoe"
+        '400':
+          description: Estructura del JSON o parámetros incorrectos. Devuelve ErrorResponse.
+          content:
+            application/json:
+              schema:
+                title: ErrorResponse
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-10-22T15:00:00Z"
+                  status:
+                    type: integer
+                    example: 400
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "El cuerpo de la petición no es válido"
+                  path:
+                    type: string
+                    example: "/api/auth/login"
+        '401':
+          description: Usuario inexistente o contraseña incorrecta. Devuelve ErrorResponse.
+          content:
+            application/json:
+              schema:
+                title: ErrorResponse
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-10-22T15:00:00Z"
+                  status:
+                    type: integer
+                    example: 401
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Credenciales de acceso no válidas"
+                  path:
+                    type: string
+                    example: "/api/auth/login"

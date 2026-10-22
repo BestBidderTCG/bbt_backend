@@ -7,9 +7,15 @@ interface AuctionRepository {
 
     fun findByCreator(creator: String): List<Auction>
 
-    fun findByCollection(cart: String): List<Auction>
+    fun findByCollection(collection: String): List<Auction>
 
-    fun findByCart(cart: String): List<Auction>
+    fun findByCard(card: String): List<Auction>
+
+    // Retorna true si ya existe al menos una subasta de este creador para esa carta
+    fun existsByCreatorAndCard(
+        creator: String,
+        card: String,
+    ): Boolean
 
     fun save(auction: Auction): Auction
 }

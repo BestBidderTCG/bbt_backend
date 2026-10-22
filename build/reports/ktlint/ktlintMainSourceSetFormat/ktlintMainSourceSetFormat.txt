@@ -1,4 +1,0 @@
-[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/web/user/[0mUserController.kt[90m:[0m1[90m:1:[0m File must end with a newline (\n) [90m(standard:final-newline)[0m
-
-Summary error count (descending) by rule:
-  standard:final-newline: 1

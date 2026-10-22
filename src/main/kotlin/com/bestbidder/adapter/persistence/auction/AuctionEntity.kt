@@ -17,8 +17,8 @@ class AuctionEntity(
     val id: UUID,
     @Column(name = "creator", nullable = false)
     val creator: String,
-    @Column(name = "cart", nullable = false)
-    val cart: String,
+    @Column(name = "card", nullable = false)
+    val card: String,
     @Column(name = "collection", updatable = false)
     val collection: String,
     @Column(name = "min_prize", nullable = false)

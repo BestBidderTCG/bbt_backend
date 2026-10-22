@@ -19,10 +19,13 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() } // Deshabilitado para APIs REST
+            .csrf { it.disable() }
+            // Deshabilitado para APIs REST
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/auth/**").permitAll() // Público para registro/login
-                    .anyRequest().authenticated()
+                auth.anyRequest().permitAll()
+                // auth.requestMatchers("/api/auth/**").permitAll()
+                // Público para registro/login
+                // .anyRequest().authenticated()
             }
         return http.build()
     }

@@ -12,35 +12,43 @@ import java.util.UUID
 @Service
 class AuthUseCase(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
 ) {
-    fun register(username: String, password: String): User {
+    fun register(
+        username: String,
+        password: String,
+    ): User {
         // 1. Comprobar si ya existe
         if (userRepository.findByUsername(username) != null) {
             throw IllegalArgumentException("El nombre de usuario ya está en uso")
         }
-        
+
         // 2. Crear usuario con contraseña encriptada
-        val newUser = User(
-            id = UUID.randomUUID(),
-            username = username,
-            passwordHash = passwordEncoder.encode(password)!!
-        )
-        
+        val newUser =
+            User(
+                id = UUID.randomUUID(),
+                username = username,
+                passwordHash = passwordEncoder.encode(password)!!,
+            )
+
         // 3. Guardar
         return userRepository.save(newUser)
     }
 
-    fun login(username: String, password: String): User {
+    fun login(
+        username: String,
+        password: String,
+    ): User {
         // 1. Buscar usuario
-        val user = userRepository.findByUsername(username) 
-            ?: throw IllegalArgumentException("Usuario o contraseña incorrectos")
-        
+        val user =
+            userRepository.findByUsername(username)
+                ?: throw IllegalArgumentException("Usuario o contraseña incorrectos")
+
         // 2. Comprobar contraseña
         if (!passwordEncoder.matches(password, user.passwordHash)) {
             throw IllegalArgumentException("Usuario o contraseña incorrectos")
         }
-        
+
         return user
     }
 }

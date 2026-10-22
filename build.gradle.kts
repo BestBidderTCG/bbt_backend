@@ -4,6 +4,9 @@ plugins {
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.spring") version "1.9.23"
     kotlin("plugin.jpa") version "1.9.23"
+
+    // Plugin oficial para formateo y linter de Kotlin
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
 group = "com.bestbidder"
@@ -22,7 +25,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
     runtimeOnly("org.postgresql:postgresql")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

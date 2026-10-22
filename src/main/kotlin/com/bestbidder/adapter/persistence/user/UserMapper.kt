@@ -10,10 +10,9 @@ import org.springframework.stereotype.Component
  * También actúa como "Traductor" (Mapper) entre [UserEntity] (DB) y [User] (Dominio).
  */
 @Component
-class UserPersistenceAdapter(
-    private val jpaUserRepository: JpaUserRepository
+class UserMapper(
+    private val jpaUserRepository: JpaUserRepository,
 ) : UserRepository {
-
     override fun findByUsername(username: String): User? {
         return jpaUserRepository.findByUsername(username)?.toDomain()
     }
@@ -25,5 +24,6 @@ class UserPersistenceAdapter(
 
     // Mappers
     private fun UserEntity.toDomain() = User(id, username, passwordHash)
+
     private fun User.toEntity() = UserEntity(id, username, passwordHash)
 }

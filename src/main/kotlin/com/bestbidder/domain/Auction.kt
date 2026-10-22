@@ -1,7 +1,6 @@
 package com.bestbidder.domain.auction
 
 import java.util.UUID
-import com.bestbidder.domain.cart.Cart
 
 /**
  * Representa la entidad de negocio de una Subasta.
@@ -9,8 +8,8 @@ import com.bestbidder.domain.cart.Cart
 data class Auction(
     val id: UUID,
     val creator: String,
-    val cart: Cart,
+    // Más adelante se usará la entidad Card para enlazar la subasta con el prodcuto
+    val cart: String,
     val collection: String,
     val min_prize: Double,
-    
 )

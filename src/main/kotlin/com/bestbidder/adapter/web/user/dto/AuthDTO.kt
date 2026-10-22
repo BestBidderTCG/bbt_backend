@@ -8,10 +8,10 @@ import java.util.UUID
  */
 data class AuthRequest(
     val username: String,
-    val password: String
+    val password: String,
 )
 
 data class UserResponse(
     val id: UUID,
-    val username: String
+    val username: String,
 )

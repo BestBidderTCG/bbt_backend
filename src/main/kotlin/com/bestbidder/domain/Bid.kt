@@ -9,5 +9,4 @@ data class Bid(
     val id: String,
     val bidder: String,
     val auction: Auction,
-    
 )

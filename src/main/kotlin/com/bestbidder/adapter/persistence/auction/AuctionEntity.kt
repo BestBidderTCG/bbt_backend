@@ -1,26 +1,38 @@
 package com.bestbidder.adapter.persistence.auction
 
-import jakarta.persistence.Column
+import com.bestbidder.domain.auction.Auction
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.util.UUID
 
-/**
- * Representación de la tabla "auction" en PostgreSQL.
- * Para que JPA gestione la persistencia automáticamente.
- */
 @Entity
-@Table(name = "aution")
+@Table(name = "auctions")
 class AuctionEntity(
     @Id
-    val id: UUID,
-    @Column(name = "creator", nullable = false)
+    val id: UUID = UUID.randomUUID(),
     val creator: String,
-    @Column(name = "card", nullable = false)
     val card: String,
-    @Column(name = "collection", updatable = false)
     val collection: String,
-    @Column(name = "min_prize", nullable = false)
-    val min_prize: Double,
-)
+    val minPrize: Double,
+) {
+    fun toDomain(): Auction =
+        Auction(
+            id = id,
+            creator = creator,
+            card = card,
+            collection = collection,
+            min_prize = minPrize,
+        )
+
+    companion object {
+        fun fromDomain(auction: Auction): AuctionEntity =
+            AuctionEntity(
+                id = auction.id,
+                creator = auction.creator,
+                card = auction.card,
+                collection = auction.collection,
+                minPrize = auction.min_prize,
+            )
+    }
+}

@@ -2,29 +2,33 @@ package com.bestbidder.adapter.persistence.auction
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.usecase.port.AuctionRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
+import java.util.UUID
 
-@Component
+@Repository
 class AuctionMapper(
     private val jpaAuctionRepository: JpaAuctionRepository,
 ) : AuctionRepository {
     override fun findById(id: String): Auction? {
-        TODO("Not yet implemented")
+        return jpaAuctionRepository.findById(UUID.fromString(id))
+            .map { it.toDomain() }
+            .orElse(null)
+    }
+
+    override fun findAll(): List<Auction> {
+        return jpaAuctionRepository.findAll().map { it.toDomain() }
     }
 
     override fun findByCreator(creator: String): List<Auction> {
-        return jpaAuctionRepository.findByCreator(creator)
-            .map { it.toDomain() }
+        return jpaAuctionRepository.findByCreator(creator).map { it.toDomain() }
     }
 
     override fun findByCollection(collection: String): List<Auction> {
-        return jpaAuctionRepository.findByCollection(collection)
-            .map { it.toDomain() }
+        return jpaAuctionRepository.findByCollection(collection).map { it.toDomain() }
     }
 
     override fun findByCard(card: String): List<Auction> {
-        return jpaAuctionRepository.findByCard(card)
-            .map { it.toDomain() }
+        return jpaAuctionRepository.findByCard(card).map { it.toDomain() }
     }
 
     override fun existsByCreatorAndCard(
@@ -35,25 +39,7 @@ class AuctionMapper(
     }
 
     override fun save(auction: Auction): Auction {
-        val entity = jpaAuctionRepository.save(auction.toEntity())
-        return entity.toDomain()
+        val entity = AuctionEntity.fromDomain(auction)
+        return jpaAuctionRepository.save(entity).toDomain()
     }
-
-    private fun AuctionEntity.toDomain() =
-        Auction(
-            id = id,
-            creator = creator,
-            card = card,
-            collection = collection,
-            min_prize = min_prize,
-        )
-
-    private fun Auction.toEntity() =
-        AuctionEntity(
-            id = id,
-            creator = creator,
-            card = card,
-            collection = collection,
-            min_prize = min_prize,
-        )
 }

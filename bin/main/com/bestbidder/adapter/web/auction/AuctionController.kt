@@ -2,9 +2,12 @@ package com.bestbidder.adapter.web.auction
 
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
+import com.bestbidder.domain.auction.Auction
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
+import com.bestbidder.usecase.auction.GetAuctionUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/auction")
 class AuctionController(
     private val createAuctionUseCase: CreateAuctionUseCase,
+    private val getAuctionUseCase: GetAuctionUseCase,
 ) {
     @PostMapping("/create")
     fun create(
@@ -30,5 +34,13 @@ class AuctionController(
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(AuctionResponse.fromDomain(auction))
+    }
+
+    @GetMapping
+    fun getAll(): ResponseEntity<List<AuctionResponse>> {
+        val auctions = getAuctionUseCase.getAll()
+        val response = auctions.map { auction: Auction -> AuctionResponse.fromDomain(auction) }
+
+        return ResponseEntity.ok(response)
     }
 }

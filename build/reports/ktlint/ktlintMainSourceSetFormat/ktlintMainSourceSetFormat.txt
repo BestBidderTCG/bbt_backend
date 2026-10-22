@@ -1,0 +1,14 @@
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionEntity.kt[90m:[0m1[90m:1:[0m File must end with a newline (\n) [90m(standard:final-newline)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m1[90m:1:[0m File must end with a newline (\n) [90m(standard:final-newline)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m12[90m:1:[0m Class body should not start with blank line [90m(standard:no-empty-first-line-in-class-body)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m35[90m:40:[0m Newline expected after opening parenthesis [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m35[90m:66:[0m Parameter should start on a newline [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m36[90m:4:[0m Newline expected before closing parenthesis [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mAuctionMapper.kt[90m:[0m36[90m:4:[0m Missing trailing comma before ")" [90m(standard:trailing-comma-on-declaration-site)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/web/auction/[0mAuctionController.kt[90m:[0m1[90m:1:[0m File must end with a newline (\n) [90m(standard:final-newline)[0m
+
+Summary error count (descending) by rule:
+  standard:final-newline: 3
+  standard:function-signature: 3
+  standard:no-empty-first-line-in-class-body: 1
+  standard:trailing-comma-on-declaration-site: 1

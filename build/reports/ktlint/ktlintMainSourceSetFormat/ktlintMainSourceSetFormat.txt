@@ -1,0 +1,10 @@
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mJpaAuctionRepository.kt[90m:[0m1[90m:1:[0m Newline expected before closing parenthesis [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mJpaAuctionRepository.kt[90m:[0m1[90m:1:[0m Missing trailing comma before ")" [90m(standard:trailing-comma-on-declaration-site)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mJpaAuctionRepository.kt[90m:[0m13[90m:32:[0m Newline expected after opening parenthesis [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mJpaAuctionRepository.kt[90m:[0m13[90m:58:[0m Parameter should start on a newline [90m(standard:function-signature)[0m
+[90m/home/paula/Escritorio/UNI/bbt_backend/src/main/kotlin/com/bestbidder/adapter/persistence/auction/[0mJpaAuctionRepository.kt[90m:[0m13[90m:71:[0m Trailing space(s) [90m(standard:no-trailing-spaces)[0m
+
+Summary error count (descending) by rule:
+  standard:function-signature: 3
+  standard:no-trailing-spaces: 1
+  standard:trailing-comma-on-declaration-site: 1

@@ -10,5 +10,8 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
 
     fun findByCard(card: String): List<AuctionEntity>
 
-    fun existsByCreatorAndCard(creator: String, card: String): Boolean 
+    fun existsByCreatorAndCard(
+        creator: String,
+        card: String,
+    ): Boolean
 }

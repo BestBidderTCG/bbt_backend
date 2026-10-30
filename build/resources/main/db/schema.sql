@@ -7,7 +7,13 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS auction (
     id UUID PRIMARY KEY,
-    creator VARCHAR(50) UNIQUE NOT NULL,
-    cart VARCHAR(255)
-    min_prize DOUBLE PRECISION
+    creator_id UUID NOT NULL,
+    creator_username VARCHAR(255) NOT NULL,
+    card VARCHAR(255) NOT NULL,
+    collection VARCHAR(255) NOT NULL,
+    min_prize DOUBLE PRECISION NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    duration_in_days INT NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
 );

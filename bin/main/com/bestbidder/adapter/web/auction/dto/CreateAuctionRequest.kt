@@ -1,12 +1,17 @@
 package com.bestbidder.adapter.web.auction.dto
 
+import java.time.Instant
+import java.util.UUID
+
 /**
- * DTO  de entrada.
+ * DTO de entrada para la creación de subastas.
  */
 data class CreateAuctionRequest(
-    val creator: String,
+    val creator_id: UUID,
+    val creator_username: String,
     val card: String,
     val collection: String,
     val min_prize: Double,
-    // Habría que añadir un campo con fecha para marcar cuando termina la subasta
+    val started_at: Instant,
+    val duration_in_days: Int,
 )

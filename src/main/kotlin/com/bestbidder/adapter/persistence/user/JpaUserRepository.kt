@@ -10,4 +10,6 @@ import java.util.UUID
 interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
     // Spring deberia generar automaticamente el SQL: SELECT * FROM users WHERE username = ?
     fun findByUsername(username: String): UserEntity?
+
+    fun existsByUsername(username: String): Boolean
 }

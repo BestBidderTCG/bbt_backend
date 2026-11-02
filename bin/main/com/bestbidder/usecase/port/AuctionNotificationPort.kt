@@ -6,4 +6,6 @@ interface AuctionNotificationPort {
     fun notifyAuctionStarted(auctionId: UUID)
 
     fun notifyAuctionExpired(auctionId: UUID)
+
+    fun notifyAuctionCancelled(auctionId: UUID)
 }

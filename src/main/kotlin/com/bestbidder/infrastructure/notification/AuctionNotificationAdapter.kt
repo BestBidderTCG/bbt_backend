@@ -37,6 +37,15 @@ class AuctionNotificationAdapter : AuctionNotificationPort {
         sendToFrontend(message)
     }
 
+    override fun notifyAuctionCancelled(auctionId: UUID) {
+        val message =
+            AuctionNotificationMessage(
+                status = "CANCELLED",
+                auctionId = auctionId,
+            )
+        sendToFrontend(message)
+    }
+
     private fun sendToFrontend(message: AuctionNotificationMessage) {
         val deadEmitters = mutableListOf<SseEmitter>()
 

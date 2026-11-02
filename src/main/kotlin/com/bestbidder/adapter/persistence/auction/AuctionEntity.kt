@@ -6,6 +6,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @Entity
@@ -55,9 +56,9 @@ class AuctionEntity(
                 card = domain.card,
                 collection = domain.collection,
                 minPrize = domain.min_prize,
-                startedAt = domain.startedAt,
+                startedAt = domain.startedAt.truncatedTo(ChronoUnit.MINUTES),
                 durationInDays = domain.durationInDays,
-                endsAt = domain.endsAt,
+                endsAt = domain.endsAt.truncatedTo(ChronoUnit.MINUTES),
                 isCancelled = domain.isCancelled,
             )
         }

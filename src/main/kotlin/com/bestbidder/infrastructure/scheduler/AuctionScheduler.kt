@@ -13,6 +13,7 @@ class AuctionScheduler(
     private val closeExpiredAuctionsUseCase: CloseExpiredAuctionsUseCase,
 ) {
     @Scheduled(cron = "0 0,15,30,45 * * * *") // Se despierta a las :00, :15, :30, :45
+    // @Scheduled(cron = "*/10 * * * * *")
     fun processAuctionTransitions() {
         val cleanNow = Instant.now().truncatedTo(ChronoUnit.MINUTES)
 

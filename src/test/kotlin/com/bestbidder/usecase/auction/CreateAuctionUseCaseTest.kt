@@ -14,20 +14,37 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class CreateAuctionUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val useCase = CreateAuctionUseCase(auctionRepository)
-    private val now = Instant.now()
+
+    /**
+     * Genera una fecha futura válida alineada al próximo bloque de 15 minutos en UTC.
+     */
+    private fun getValidFutureStart(): Instant {
+        val nowUtc = ZonedDateTime.now(ZoneOffset.UTC)
+        // Redondea al siguiente bloque de 15 minutos
+        val currentMinute = nowUtc.minute
+        val minutesToAdd = 15 - (currentMinute % 15)
+
+        return nowUtc.plusMinutes(minutesToAdd.toLong())
+            .truncatedTo(ChronoUnit.MINUTES)
+            .toInstant()
+    }
 
     @Test
-    @DisplayName("Debe crear y guardar la subasta si no existe ninguna previa activa")
+    @DisplayName("Debe crear y guardar la subasta si cumple todas las validaciones de tiempo y unicidad")
     fun `should create auction successfully when non exists`() {
         // Arrange
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
         val card = "Pikachu Illustrator"
+        val validStart = getValidFutureStart()
 
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card)).thenReturn(false)
         `when`(auctionRepository.save(any())).thenAnswer { invocation -> invocation.getArgument(0) as Auction }
@@ -40,7 +57,7 @@ class CreateAuctionUseCaseTest {
                 card = card,
                 collection = "Promo",
                 minPrize = 500.0,
-                startedAt = now,
+                startedAt = validStart,
                 durationInDays = 3,
             )
 
@@ -61,6 +78,7 @@ class CreateAuctionUseCaseTest {
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
         val card = "Charizard 1st Edition"
+        val validStart = getValidFutureStart()
 
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card)).thenReturn(true)
 
@@ -73,7 +91,7 @@ class CreateAuctionUseCaseTest {
                     card = card,
                     collection = "Base Set",
                     minPrize = 150.0,
-                    startedAt = now,
+                    startedAt = validStart,
                     durationInDays = 2,
                 )
             }
@@ -84,6 +102,93 @@ class CreateAuctionUseCaseTest {
         )
 
         verify(auctionRepository, times(1)).existsByCreatorAndCard(creatorUsername, card)
+        verify(auctionRepository, never()).save(any())
+    }
+
+    @Test
+    @DisplayName("Debe lanzar IllegalArgumentException si la fecha de inicio es en el pasado")
+    fun `should throw exception when startedAt is in the past`() {
+        // Arrange
+        val pastStart = Instant.now().minus(10, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES)
+
+        // Act & Assert
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.create(
+                    creator_id = UUID.randomUUID(),
+                    creator_username = "paula",
+                    card = "Blastoise",
+                    collection = "Base Set",
+                    minPrize = 100.0,
+                    startedAt = pastStart,
+                    durationInDays = 1,
+                )
+            }
+
+        assertEquals(
+            "La fecha de inicio de la subasta no puede ser anterior al instante actual",
+            exception.message,
+        )
+        verify(auctionRepository, never()).save(any())
+    }
+
+    @Test
+    @DisplayName("Debe lanzar IllegalArgumentException si los minutos no estan alineados a bloques de 15")
+    fun `should throw exception when startedAt minute is not aligned to 15m intervals`() {
+        // Arrange: minuto 10 (inválido)
+        val unalignedStart =
+            ZonedDateTime.now(ZoneOffset.UTC)
+                .plusHours(1)
+                .withMinute(10)
+                .withSecond(0)
+                .withNano(0)
+                .toInstant()
+
+        // Act & Assert
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.create(
+                    creator_id = UUID.randomUUID(),
+                    creator_username = "paula",
+                    card = "Venusaur",
+                    collection = "Base Set",
+                    minPrize = 80.0,
+                    startedAt = unalignedStart,
+                    durationInDays = 1,
+                )
+            }
+
+        assertEquals(
+            "La hora de activación debe estar alineada a bloques de 15 minutos exactos (ej. :00, :15, :30, :45)",
+            exception.message,
+        )
+        verify(auctionRepository, never()).save(any())
+    }
+
+    @Test
+    @DisplayName("Debe lanzar IllegalArgumentException si la duracion es menor a 1 dia")
+    fun `should throw exception when durationInDays is less than 1`() {
+        // Arrange
+        val validStart = getValidFutureStart()
+
+        // Act & Assert
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.create(
+                    creator_id = UUID.randomUUID(),
+                    creator_username = "paula",
+                    card = "Mewtwo",
+                    collection = "Promo",
+                    minPrize = 90.0,
+                    startedAt = validStart,
+                    durationInDays = 0,
+                )
+            }
+
+        assertEquals(
+            "La duración de la subasta debe ser de al menos 1 día",
+            exception.message,
+        )
         verify(auctionRepository, never()).save(any())
     }
 }

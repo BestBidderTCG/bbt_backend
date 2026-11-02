@@ -77,6 +77,20 @@ class AuctionController(
     }
 
     /**
+     * Endpoint para obtener una subasta específica por su ID
+     */
+    @GetMapping("/{id}")
+    fun getById(
+        @PathVariable id: UUID,
+    ): ResponseEntity<AuctionResponse> {
+        val auction =
+            getAuctionUseCase.getById(id)
+                ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(AuctionResponse.fromDomain(auction))
+    }
+
+    /**
      * Endpoint de Búsquedas por Filtros (Carta, Colección, Creador)
      */
     @GetMapping("/search")

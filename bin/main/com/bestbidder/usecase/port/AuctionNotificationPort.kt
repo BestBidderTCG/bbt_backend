@@ -8,4 +8,10 @@ interface AuctionNotificationPort {
     fun notifyAuctionExpired(auctionId: UUID)
 
     fun notifyAuctionCancelled(auctionId: UUID)
+
+    fun notifyNewBidPlaced(
+        auctionId: UUID,
+        newAmount: Double,
+        bidderUsername: String,
+    )
 }

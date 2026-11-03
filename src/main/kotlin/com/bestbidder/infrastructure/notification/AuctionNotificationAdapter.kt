@@ -46,17 +46,32 @@ class AuctionNotificationAdapter : AuctionNotificationPort {
         sendToFrontend(message)
     }
 
+    override fun notifyNewBidPlaced(
+        auctionId: UUID,
+        newAmount: Double,
+        bidderUsername: String,
+    ) {
+        val message =
+            AuctionNotificationMessage(
+                status = "BID_PLACED",
+                auctionId = auctionId,
+                amount = newAmount,
+                bidderUsername = bidderUsername,
+            )
+        sendToFrontend(message)
+    }
+
     private fun sendToFrontend(message: AuctionNotificationMessage) {
         val deadEmitters = mutableListOf<SseEmitter>()
 
         emitters.forEach { emitter ->
-            try {
+            runCatching {
                 emitter.send(
                     SseEmitter.event()
                         .name("auction-status-change")
                         .data(message),
                 )
-            } catch (e: Exception) {
+            }.onFailure {
                 deadEmitters.add(emitter)
             }
         }

@@ -56,6 +56,7 @@ class AuctionControllerTest {
                     creator_username = "paula",
                     card = "Pikachu Illustrator",
                     collection = "Promo",
+                    description = "Estado impecable",
                     min_prize = 500.0,
                     started_at = now,
                     duration_in_days = 3,
@@ -68,6 +69,7 @@ class AuctionControllerTest {
                     creator_username = request.creator_username,
                     card = request.card,
                     collection = request.collection,
+                    description = request.description,
                     min_prize = request.min_prize,
                     startedAt = request.started_at,
                     durationInDays = request.duration_in_days,
@@ -75,6 +77,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -94,9 +97,10 @@ class AuctionControllerTest {
                 .andExpect(jsonPath("$.id").value(createdAuction.id.toString()))
                 .andExpect(jsonPath("$.creator_username").value("paula"))
                 .andExpect(jsonPath("$.card").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$.description").value("Estado impecable"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
 
-            verify(createAuctionUseCase, times(1)).create(any(), any(), any(), any(), any(), any(), any())
+            verify(createAuctionUseCase, times(1)).create(any(), any(), any(), any(), any(), any(), any(), any())
         }
 
         @Test
@@ -108,6 +112,7 @@ class AuctionControllerTest {
                     creator_username = "paula",
                     card = "Charizard 1st Edition",
                     collection = "Base Set",
+                    description = null,
                     min_prize = 150.0,
                     started_at = now,
                     duration_in_days = 3,
@@ -118,6 +123,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -148,6 +154,7 @@ class AuctionControllerTest {
                     creator_username = "paula",
                     card = "Mewtwo",
                     collection = "Promo",
+                    description = null,
                     min_prize = 50.0,
                     started_at = now,
                     duration_in_days = 10,
@@ -157,6 +164,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -190,6 +198,7 @@ class AuctionControllerTest {
                     creator_username = "paula",
                     card = "Charizard",
                     collection = "Base Set",
+                    description = null,
                     min_prize = 100.0,
                     startedAt = now,
                     durationInDays = 3,
@@ -200,6 +209,7 @@ class AuctionControllerTest {
                     creator_username = "ash",
                     card = "Pikachu",
                     collection = "Yellow",
+                    description = "Promo card",
                     min_prize = 20.0,
                     startedAt = now.plusSeconds(3600),
                     durationInDays = 1,
@@ -225,6 +235,7 @@ class AuctionControllerTest {
                     creator_username = "paula",
                     card = "Charizard",
                     collection = "Base Set",
+                    description = null,
                     min_prize = 100.0,
                     startedAt = now,
                     durationInDays = 3,

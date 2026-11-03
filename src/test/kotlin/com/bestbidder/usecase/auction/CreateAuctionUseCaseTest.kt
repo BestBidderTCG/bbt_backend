@@ -4,6 +4,7 @@ import com.bestbidder.domain.auction.Auction
 import com.bestbidder.usecase.port.AuctionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -28,7 +29,6 @@ class CreateAuctionUseCaseTest {
      */
     private fun getValidFutureStart(): Instant {
         val nowUtc = ZonedDateTime.now(ZoneOffset.UTC)
-        // Redondea al siguiente bloque de 15 minutos
         val currentMinute = nowUtc.minute
         val minutesToAdd = 15 - (currentMinute % 15)
 
@@ -38,12 +38,13 @@ class CreateAuctionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debe crear y guardar la subasta si cumple todas las validaciones de tiempo y unicidad")
-    fun `should create auction successfully when non exists`() {
+    @DisplayName("Debe crear y guardar la subasta con descripción si cumple todas las validaciones")
+    fun `should create auction successfully with description`() {
         // Arrange
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
         val card = "Pikachu Illustrator"
+        val description = "Carta en perfecto estado PSA 10"
         val validStart = getValidFutureStart()
 
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card)).thenReturn(false)
@@ -56,6 +57,7 @@ class CreateAuctionUseCaseTest {
                 creator_username = creatorUsername,
                 card = card,
                 collection = "Promo",
+                description = description,
                 minPrize = 500.0,
                 startedAt = validStart,
                 durationInDays = 3,
@@ -66,8 +68,41 @@ class CreateAuctionUseCaseTest {
         assertEquals(creatorId, result.creator_id)
         assertEquals(creatorUsername, result.creator_username)
         assertEquals(card, result.card)
+        assertEquals(description, result.description)
 
         verify(auctionRepository, times(1)).existsByCreatorAndCard(creatorUsername, card)
+        verify(auctionRepository, times(1)).save(any())
+    }
+
+    @Test
+    @DisplayName("Debe crear la subasta correctamente cuando la descripción es nula")
+    fun `should create auction successfully when description is null`() {
+        // Arrange
+        val creatorId = UUID.randomUUID()
+        val creatorUsername = "paula"
+        val card = "Lugui"
+        val validStart = getValidFutureStart()
+
+        `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card)).thenReturn(false)
+        `when`(auctionRepository.save(any())).thenAnswer { invocation -> invocation.getArgument(0) as Auction }
+
+        // Act
+        val result =
+            useCase.create(
+                creator_id = creatorId,
+                creator_username = creatorUsername,
+                card = card,
+                collection = "Neo Genesis",
+                description = null,
+                minPrize = 300.0,
+                startedAt = validStart,
+                durationInDays = 2,
+            )
+
+        // Assert
+        assertNotNull(result)
+        assertNull(result.description)
+
         verify(auctionRepository, times(1)).save(any())
     }
 
@@ -90,6 +125,7 @@ class CreateAuctionUseCaseTest {
                     creator_username = creatorUsername,
                     card = card,
                     collection = "Base Set",
+                    description = "Primera edición",
                     minPrize = 150.0,
                     startedAt = validStart,
                     durationInDays = 2,
@@ -119,6 +155,7 @@ class CreateAuctionUseCaseTest {
                     creator_username = "paula",
                     card = "Blastoise",
                     collection = "Base Set",
+                    description = null,
                     minPrize = 100.0,
                     startedAt = pastStart,
                     durationInDays = 1,
@@ -152,6 +189,7 @@ class CreateAuctionUseCaseTest {
                     creator_username = "paula",
                     card = "Venusaur",
                     collection = "Base Set",
+                    description = null,
                     minPrize = 80.0,
                     startedAt = unalignedStart,
                     durationInDays = 1,
@@ -179,6 +217,7 @@ class CreateAuctionUseCaseTest {
                     creator_username = "paula",
                     card = "Mewtwo",
                     collection = "Promo",
+                    description = null,
                     minPrize = 90.0,
                     startedAt = validStart,
                     durationInDays = 0,

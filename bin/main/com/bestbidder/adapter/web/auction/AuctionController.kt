@@ -43,6 +43,7 @@ class AuctionController(
                 creator_username = request.creator_username,
                 card = request.card,
                 collection = request.collection,
+                description = request.description,
                 minPrize = request.min_prize,
                 startedAt = request.started_at,
                 durationInDays = request.duration_in_days,

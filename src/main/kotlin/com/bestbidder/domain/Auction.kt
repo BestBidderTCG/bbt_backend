@@ -14,6 +14,7 @@ data class Auction(
     val creator_username: String,
     val card: String,
     val collection: String,
+    val description: String? = null,
     val min_prize: Double,
     val startedAt: Instant,
     val durationInDays: Int,

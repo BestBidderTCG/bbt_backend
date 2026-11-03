@@ -22,6 +22,8 @@ class AuctionEntity(
     val card: String,
     @Column(nullable = false)
     val collection: String,
+    @Column(nullable = true)
+    val description: String? = null,
     @Column(name = "min_prize", nullable = false)
     val minPrize: Double,
     @Column(name = "started_at", nullable = false)
@@ -40,6 +42,7 @@ class AuctionEntity(
             creator_username = this.creatorUsername,
             card = this.card,
             collection = this.collection,
+            description = this.description,
             min_prize = this.minPrize,
             startedAt = this.startedAt,
             durationInDays = this.durationInDays,
@@ -55,6 +58,7 @@ class AuctionEntity(
                 creatorUsername = domain.creator_username,
                 card = domain.card,
                 collection = domain.collection,
+                description = domain.description,
                 minPrize = domain.min_prize,
                 startedAt = domain.startedAt.truncatedTo(ChronoUnit.MINUTES),
                 durationInDays = domain.durationInDays,

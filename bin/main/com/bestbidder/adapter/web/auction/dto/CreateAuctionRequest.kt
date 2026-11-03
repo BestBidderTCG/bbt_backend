@@ -11,6 +11,7 @@ data class CreateAuctionRequest(
     val creator_username: String,
     val card: String,
     val collection: String,
+    val description: String? = null,
     val min_prize: Double,
     val started_at: Instant,
     val duration_in_days: Int,

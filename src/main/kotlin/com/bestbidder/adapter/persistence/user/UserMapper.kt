@@ -18,17 +18,20 @@ class UserMapper(
 
     override fun findByUsername(username: String): User? = jpaUserRepository.findByUsername(username)?.toDomain()
 
+    override fun findByEmail(email: String): User? = jpaUserRepository.findByEmail(email)?.toDomain()
+
     override fun existsByUsername(username: String): Boolean = jpaUserRepository.existsByUsername(username)
+
+    override fun existsByEmail(email: String): Boolean = jpaUserRepository.existsByEmail(email)
 
     override fun save(user: User): User = jpaUserRepository.save(user.toEntity()).toDomain()
 
-    // Mappers
     private fun UserEntity.toDomain() =
         User(
             id = id,
+            email = email,
             username = username,
             passwordHash = passwordHash,
-            displayName = displayName,
             description = description,
             avatarNum = avatarNum,
             createdAt = createdAt,
@@ -37,9 +40,9 @@ class UserMapper(
     private fun User.toEntity() =
         UserEntity(
             id = id,
+            email = email,
             username = username,
             passwordHash = passwordHash,
-            displayName = displayName,
             description = description,
             avatarNum = avatarNum,
             createdAt = createdAt,

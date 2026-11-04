@@ -12,45 +12,29 @@ class UpdateUserUseCase(
 ) {
     fun updateProfile(
         userId: UUID,
-        displayName: String?,
         description: String?,
-        avatarNum: String?,
+        avatarNum: Int?,
     ): User {
-        val current =
-            userRepository.findById(userId)
-                ?: throw UserNotFoundException(userId)
-
-        val newDisplayName =
-            if (displayName != null) {
-                require(displayName.isNotBlank()) { "El nombre visible no puede estar vacío" }
-                require(displayName.length <= 80) { "El nombre visible no puede superar los 80 caracteres" }
-                displayName.trim()
-            } else {
-                current.displayName
-            }
+        val current = userRepository.findById(userId) ?: throw UserNotFoundException(userId)
 
         val newDescription =
             when {
                 description == null -> current.description
                 description.isBlank() -> null
-                description.length > 500 -> throw IllegalArgumentException("La descripción no puede superar los 500 caracteres")
+                description.length > 500 -> throw IllegalArgumentException("La descripción no puede tener más de 500 caracteres")
                 else -> description.trim()
             }
 
         val newAvatarNum =
-            when {
-                avatarNum == null -> current.avatarNum
-                avatarNum.isBlank() -> null
-                avatarNum.length > 50 -> throw IllegalArgumentException("El avatar no puede superar los 50 caracteres")
-                else -> avatarNum.trim()
+            if (avatarNum != null) {
+                require(avatarNum >= 0) { "El número de avatar no puede ser negativo" }
+                avatarNum
+            } else {
+                current.avatarNum
             }
 
         return userRepository.save(
-            current.copy(
-                displayName = newDisplayName,
-                description = newDescription,
-                avatarNum = newAvatarNum,
-            ),
+            current.copy(description = newDescription, avatarNum = newAvatarNum),
         )
     }
 }

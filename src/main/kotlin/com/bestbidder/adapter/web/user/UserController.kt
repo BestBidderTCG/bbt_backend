@@ -44,7 +44,6 @@ class UserController(
         val updated =
             updateUserUseCase.updateProfile(
                 userId = principal.id,
-                displayName = req.displayName,
                 description = req.description,
                 avatarNum = req.avatarNum,
             )

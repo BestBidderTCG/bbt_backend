@@ -28,6 +28,7 @@ class GetAuctionUseCaseTest {
                 creator_id = UUID.randomUUID(),
                 creator_username = "paula",
                 card = "Gengar",
+                category = "Pokémon",
                 collection = "Fossil",
                 min_prize = 80.0,
                 startedAt = Instant.now(),
@@ -40,6 +41,7 @@ class GetAuctionUseCaseTest {
 
         assertNotNull(result)
         assertEquals("Gengar", result?.card)
+        assertEquals("Pokémon", result?.category)
         verify(auctionRepository, times(1)).getById(auctionId)
     }
 

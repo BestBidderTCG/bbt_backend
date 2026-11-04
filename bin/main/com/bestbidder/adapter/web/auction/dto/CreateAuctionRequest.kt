@@ -10,6 +10,7 @@ data class CreateAuctionRequest(
     val creator_id: UUID,
     val creator_username: String,
     val card: String,
+    val category: String,
     val collection: String,
     val description: String? = null,
     val min_prize: Double,

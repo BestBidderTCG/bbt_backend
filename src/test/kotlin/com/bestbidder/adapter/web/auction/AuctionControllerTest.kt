@@ -55,6 +55,7 @@ class AuctionControllerTest {
                     creator_id = defaultUserId,
                     creator_username = "paula",
                     card = "Pikachu Illustrator",
+                    category = "Pokémon",
                     collection = "Promo",
                     description = "Estado impecable",
                     min_prize = 500.0,
@@ -68,6 +69,7 @@ class AuctionControllerTest {
                     creator_id = request.creator_id,
                     creator_username = request.creator_username,
                     card = request.card,
+                    category = request.category,
                     collection = request.collection,
                     description = request.description,
                     min_prize = request.min_prize,
@@ -77,6 +79,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -97,10 +100,14 @@ class AuctionControllerTest {
                 .andExpect(jsonPath("$.id").value(createdAuction.id.toString()))
                 .andExpect(jsonPath("$.creator_username").value("paula"))
                 .andExpect(jsonPath("$.card").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$.category").value("Pokémon"))
+                .andExpect(jsonPath("$.collection").value("Promo"))
                 .andExpect(jsonPath("$.description").value("Estado impecable"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
 
-            verify(createAuctionUseCase, times(1)).create(any(), any(), any(), any(), any(), any(), any(), any())
+            verify(createAuctionUseCase, times(1)).create(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
         }
 
         @Test
@@ -111,6 +118,7 @@ class AuctionControllerTest {
                     creator_id = defaultUserId,
                     creator_username = "paula",
                     card = "Charizard 1st Edition",
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = null,
                     min_prize = 150.0,
@@ -123,6 +131,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -153,6 +162,7 @@ class AuctionControllerTest {
                     creator_id = defaultUserId,
                     creator_username = "paula",
                     card = "Mewtwo",
+                    category = "Pokémon",
                     collection = "Promo",
                     description = null,
                     min_prize = 50.0,
@@ -164,6 +174,7 @@ class AuctionControllerTest {
 
             `when`(
                 createAuctionUseCase.create(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -197,6 +208,7 @@ class AuctionControllerTest {
                     creator_id = defaultUserId,
                     creator_username = "paula",
                     card = "Charizard",
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = null,
                     min_prize = 100.0,
@@ -208,6 +220,7 @@ class AuctionControllerTest {
                     creator_id = UUID.randomUUID(),
                     creator_username = "ash",
                     card = "Pikachu",
+                    category = "Pokémon",
                     collection = "Yellow",
                     description = "Promo card",
                     min_prize = 20.0,
@@ -221,8 +234,10 @@ class AuctionControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].creator_username").value("paula"))
+                .andExpect(jsonPath("$[0].category").value("Pokémon"))
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$[1].creator_username").value("ash"))
+                .andExpect(jsonPath("$[1].category").value("Pokémon"))
                 .andExpect(jsonPath("$[1].status").value("UPCOMING"))
         }
 
@@ -234,6 +249,7 @@ class AuctionControllerTest {
                     creator_id = defaultUserId,
                     creator_username = "paula",
                     card = "Charizard",
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = null,
                     min_prize = 100.0,
@@ -247,6 +263,7 @@ class AuctionControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].card").value("Charizard"))
+                .andExpect(jsonPath("$[0].category").value("Pokémon"))
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
         }
     }

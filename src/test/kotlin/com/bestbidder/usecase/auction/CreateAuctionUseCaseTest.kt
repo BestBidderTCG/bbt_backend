@@ -38,12 +38,13 @@ class CreateAuctionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debe crear y guardar la subasta con descripción si cumple todas las validaciones")
+    @DisplayName("Debe crear y guardar la subasta con categoría y descripción si cumple todas las validaciones")
     fun `should create auction successfully with description`() {
         // Arrange
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
         val card = "Pikachu Illustrator"
+        val category = "Pokémon"
         val description = "Carta en perfecto estado PSA 10"
         val validStart = getValidFutureStart()
 
@@ -56,6 +57,7 @@ class CreateAuctionUseCaseTest {
                 creator_id = creatorId,
                 creator_username = creatorUsername,
                 card = card,
+                category = category,
                 collection = "Promo",
                 description = description,
                 minPrize = 500.0,
@@ -68,6 +70,7 @@ class CreateAuctionUseCaseTest {
         assertEquals(creatorId, result.creator_id)
         assertEquals(creatorUsername, result.creator_username)
         assertEquals(card, result.card)
+        assertEquals(category, result.category)
         assertEquals(description, result.description)
 
         verify(auctionRepository, times(1)).existsByCreatorAndCard(creatorUsername, card)
@@ -81,6 +84,7 @@ class CreateAuctionUseCaseTest {
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
         val card = "Lugui"
+        val category = "Pokémon"
         val validStart = getValidFutureStart()
 
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card)).thenReturn(false)
@@ -92,6 +96,7 @@ class CreateAuctionUseCaseTest {
                 creator_id = creatorId,
                 creator_username = creatorUsername,
                 card = card,
+                category = category,
                 collection = "Neo Genesis",
                 description = null,
                 minPrize = 300.0,
@@ -101,6 +106,7 @@ class CreateAuctionUseCaseTest {
 
         // Assert
         assertNotNull(result)
+        assertEquals(category, result.category)
         assertNull(result.description)
 
         verify(auctionRepository, times(1)).save(any())
@@ -124,6 +130,7 @@ class CreateAuctionUseCaseTest {
                     creator_id = creatorId,
                     creator_username = creatorUsername,
                     card = card,
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = "Primera edición",
                     minPrize = 150.0,
@@ -154,6 +161,7 @@ class CreateAuctionUseCaseTest {
                     creator_id = UUID.randomUUID(),
                     creator_username = "paula",
                     card = "Blastoise",
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = null,
                     minPrize = 100.0,
@@ -188,6 +196,7 @@ class CreateAuctionUseCaseTest {
                     creator_id = UUID.randomUUID(),
                     creator_username = "paula",
                     card = "Venusaur",
+                    category = "Pokémon",
                     collection = "Base Set",
                     description = null,
                     minPrize = 80.0,
@@ -216,6 +225,7 @@ class CreateAuctionUseCaseTest {
                     creator_id = UUID.randomUUID(),
                     creator_username = "paula",
                     card = "Mewtwo",
+                    category = "Pokémon",
                     collection = "Promo",
                     description = null,
                     minPrize = 90.0,

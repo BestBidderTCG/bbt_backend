@@ -29,6 +29,7 @@ class StartPendingAuctionsUseCaseTest {
                 creator_id = UUID.randomUUID(),
                 creator_username = "paula",
                 card = "Charizard",
+                category = "Pokémon",
                 collection = "Base Set",
                 min_prize = 100.0,
                 startedAt = now,

@@ -29,6 +29,7 @@ class CloseExpiredAuctionsUseCaseTest {
                 creator_id = UUID.randomUUID(),
                 creator_username = "paula",
                 card = "Mewtwo",
+                category = "Pokémon",
                 collection = "Promo",
                 min_prize = 50.0,
                 startedAt = now.minus(1, ChronoUnit.DAYS),

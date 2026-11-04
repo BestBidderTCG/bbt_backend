@@ -21,6 +21,8 @@ class AuctionEntity(
     @Column(nullable = false)
     val card: String,
     @Column(nullable = false)
+    val category: String,
+    @Column(nullable = false)
     val collection: String,
     @Column(nullable = true)
     val description: String? = null,
@@ -41,6 +43,7 @@ class AuctionEntity(
             creator_id = this.creatorId,
             creator_username = this.creatorUsername,
             card = this.card,
+            category = this.category,
             collection = this.collection,
             description = this.description,
             min_prize = this.minPrize,
@@ -57,6 +60,7 @@ class AuctionEntity(
                 creatorId = domain.creator_id,
                 creatorUsername = domain.creator_username,
                 card = domain.card,
+                category = domain.category,
                 collection = domain.collection,
                 description = domain.description,
                 minPrize = domain.min_prize,

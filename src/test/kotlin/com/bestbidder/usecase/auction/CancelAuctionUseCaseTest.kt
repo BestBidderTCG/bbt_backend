@@ -32,6 +32,7 @@ class CancelAuctionUseCaseTest {
                 creator_id = creatorId,
                 creator_username = "paula",
                 card = "Pikachu Gold",
+                category = "Pokémon",
                 collection = "Promo",
                 min_prize = 200.0,
                 startedAt = Instant.now(),
@@ -43,7 +44,6 @@ class CancelAuctionUseCaseTest {
 
         useCase.cancel(auctionId, creatorId)
 
-        // Comprobamos que save recibe la nueva instancia cancelada
         verify(auctionRepository, times(1)).save(argThat { it.id == auctionId && it.isCancelled })
         verify(notificationPort, times(1)).notifyAuctionCancelled(auctionId)
     }
@@ -60,6 +60,7 @@ class CancelAuctionUseCaseTest {
                 creator_id = creatorId,
                 creator_username = "paula",
                 card = "Pikachu Gold",
+                category = "Pokémon",
                 collection = "Promo",
                 min_prize = 200.0,
                 startedAt = Instant.now(),
@@ -89,6 +90,7 @@ class CancelAuctionUseCaseTest {
                 creator_id = creatorId,
                 creator_username = "paula",
                 card = "Pikachu Gold",
+                category = "Pokémon",
                 collection = "Promo",
                 min_prize = 200.0,
                 startedAt = Instant.now(),

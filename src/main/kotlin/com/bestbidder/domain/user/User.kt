@@ -8,11 +8,11 @@ import java.util.UUID
  */
 data class User(
     val id: UUID,
-    val username: String,
+    val email: String,
     val passwordHash: String,
-    val displayName: String,
+    val username: String,
     val description: String?,
-    // Cambiar prob en algun momento a numero
-    val avatarNum: String?,
+    // Cambiar prob en algun momento a numero (llegó el dia)
+    val avatarNum: Int?,
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )

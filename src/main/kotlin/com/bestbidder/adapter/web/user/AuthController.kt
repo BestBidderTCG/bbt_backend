@@ -1,6 +1,7 @@
 package com.bestbidder.adapter.web.user
 
-import com.bestbidder.adapter.web.user.dto.AuthRequest
+import com.bestbidder.adapter.web.user.dto.LoginRequest
+import com.bestbidder.adapter.web.user.dto.RegisterRequest
 import com.bestbidder.adapter.web.user.dto.LoginResponse
 import com.bestbidder.adapter.web.user.dto.RefreshRequest
 import com.bestbidder.adapter.web.user.dto.UserResponse
@@ -20,17 +21,19 @@ class AuthController(
 ) {
     @PostMapping("/register")
     fun register(
-        @Valid @RequestBody req: AuthRequest,
+        @Valid @RequestBody req: RegisterRequest,
     ): ResponseEntity<UserResponse> {
-        val user = authUseCase.register(req.username, req.password)
+        // Ahora email, username y password
+        val user = authUseCase.register(req.email, req.username, req.password)
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromDomain(user))
     }
 
     @PostMapping("/login")
     fun login(
-        @Valid @RequestBody req: AuthRequest,
+        @Valid @RequestBody req: LoginRequest,
     ): ResponseEntity<LoginResponse> {
-        val result = authUseCase.login(req.username, req.password)
+        // Usamos el identifier
+        val result = authUseCase.login(req.identifier, req.password)
         return ResponseEntity.ok(
             LoginResponse(result.accessToken, result.refreshToken, UserResponse.fromDomain(result.user)),
         )

@@ -17,22 +17,24 @@ class UpdateUserUseCase(
     ): User {
         val current = userRepository.findById(userId) ?: throw UserNotFoundException(userId)
 
-        val newDescription = when {
-            description == null -> current.description
-            description.isBlank() -> null
-            description.length > 500 -> throw IllegalArgumentException("La descripción no puede tener más de 500 caracteres")
-            else -> description.trim()
-        }
+        val newDescription =
+            when {
+                description == null -> current.description
+                description.isBlank() -> null
+                description.length > 500 -> throw IllegalArgumentException("La descripción no puede tener más de 500 caracteres")
+                else -> description.trim()
+            }
 
-        val newAvatarNum = if (avatarNum != null) {
-            require(avatarNum >= 0) { "El número de avatar no puede ser negativo" }
-            avatarNum
-        } else {
-            current.avatarNum
-        }
+        val newAvatarNum =
+            if (avatarNum != null) {
+                require(avatarNum >= 0) { "El número de avatar no puede ser negativo" }
+                avatarNum
+            } else {
+                current.avatarNum
+            }
 
         return userRepository.save(
-            current.copy(description = newDescription, avatarNum = newAvatarNum)
+            current.copy(description = newDescription, avatarNum = newAvatarNum),
         )
     }
 }

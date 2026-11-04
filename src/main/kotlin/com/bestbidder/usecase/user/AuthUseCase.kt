@@ -22,16 +22,23 @@ class AuthUseCase(
     private val refreshTokenService: RefreshTokenService,
 ) {
     // REGLAS pa validar los nombres y gmails
-    private val USERNAME= "^(?=.*[a-z])[a-z0-9_.]{3,50}$".toRegex()
-    private val EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
+    private val usernameE = "^(?=.*[a-z])[a-z0-9_.]{3,50}$".toRegex()
+    private val emailL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
 
-    fun register(email: String, username: String, password: String): User {
+    fun register(
+        email: String,
+        username: String,
+        password: String,
+    ): User {
         // 1. Validar formatos
-        if (!EMAIL.matches(email)) {
+        if (!emailL.matches(email)) {
             throw IllegalArgumentException("El formato del email no es válido.")
         }
-        if (!USERNAME.matches(username)) {
-            throw IllegalArgumentException("El username debe tener entre 3 y 50 caracteres, solo minúsculas, números, guion bajo o punto, y contener al menos una letra.")
+        if (!usernameE.matches(username)) {
+            throw IllegalArgumentException(
+                "El username debe tener entre 3 y 50 caracteres, solo minúsculas, " +
+                    "números, guion bajo o punto, y contener al menos una letra.",
+            )
         }
 
         // 2. Comprobar duplicados
@@ -43,24 +50,29 @@ class AuthUseCase(
         }
 
         // 3. Crear usuario
-        val newUser = User(
-            id = UUID.randomUUID(),
-            email = email,
-            username = username,
-            passwordHash = passwordEncoder.encode(password)!!,
-            description = null,
-            avatarNum = null,
-        )
+        val newUser =
+            User(
+                id = UUID.randomUUID(),
+                email = email,
+                username = username,
+                passwordHash = passwordEncoder.encode(password)!!,
+                description = null,
+                avatarNum = null,
+            )
         return userRepository.save(newUser)
     }
 
-    fun login(identifier: String, password: String): AuthResult {
+    fun login(
+        identifier: String,
+        password: String,
+    ): AuthResult {
         // Si contiene @ es email, si no, es username
-        val user = if (identifier.contains("@")) {
-            userRepository.findByEmail(identifier)
-        } else {
-            userRepository.findByUsername(identifier)
-        } ?: throw InvalidCredentialsException()
+        val user =
+            if (identifier.contains("@")) {
+                userRepository.findByEmail(identifier)
+            } else {
+                userRepository.findByUsername(identifier)
+            } ?: throw InvalidCredentialsException()
 
         if (!passwordEncoder.matches(password, user.passwordHash)) {
             throw InvalidCredentialsException()

@@ -15,21 +15,36 @@ class UserMapper(
     private val jpaUserRepository: JpaUserRepository,
 ) : UserRepository {
     override fun findById(id: UUID): User? = jpaUserRepository.findById(id).orElse(null)?.toDomain()
+
     override fun findByUsername(username: String): User? = jpaUserRepository.findByUsername(username)?.toDomain()
+
     override fun findByEmail(email: String): User? = jpaUserRepository.findByEmail(email)?.toDomain()
 
     override fun existsByUsername(username: String): Boolean = jpaUserRepository.existsByUsername(username)
+
     override fun existsByEmail(email: String): Boolean = jpaUserRepository.existsByEmail(email)
 
     override fun save(user: User): User = jpaUserRepository.save(user.toEntity()).toDomain()
 
-    private fun UserEntity.toDomain() = User(
-        id = id, email = email, username = username, passwordHash = passwordHash,
-        description = description, avatarNum = avatarNum, createdAt = createdAt,
-    )
+    private fun UserEntity.toDomain() =
+        User(
+            id = id,
+            email = email,
+            username = username,
+            passwordHash = passwordHash,
+            description = description,
+            avatarNum = avatarNum,
+            createdAt = createdAt,
+        )
 
-    private fun User.toEntity() = UserEntity(
-        id = id, email = email, username = username, passwordHash = passwordHash,
-        description = description, avatarNum = avatarNum, createdAt = createdAt,
-    )
+    private fun User.toEntity() =
+        UserEntity(
+            id = id,
+            email = email,
+            username = username,
+            passwordHash = passwordHash,
+            description = description,
+            avatarNum = avatarNum,
+            createdAt = createdAt,
+        )
 }

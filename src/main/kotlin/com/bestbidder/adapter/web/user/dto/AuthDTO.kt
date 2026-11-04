@@ -1,20 +1,18 @@
 package com.bestbidder.adapter.web.user.dto
 
 import com.bestbidder.domain.user.User
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 import java.util.UUID
 
-/**
- * DTO  de entrada.
- * Define el JSON exacto que el frontend debe enviarnos en el body.
- */
+// DTO de entrada. Define el JSON exacto que el frontend debe enviarnos en el body.
+
 // Para el Login
 data class LoginRequest(
     @field:NotBlank(message = "El email o username es obligatorio")
-    val identifier: String, // Acepta ambos
+    val identifier: String,
     @field:NotBlank(message = "La contraseña es obligatoria")
     val password: String,
 )
@@ -52,10 +50,15 @@ data class UserResponse(
     val createdAt: LocalDateTime,
 ) {
     companion object {
-        fun fromDomain(user: User) = UserResponse(
-            id = user.id, email = user.email, username = user.username,
-            description = user.description, avatarNum = user.avatarNum, createdAt = user.createdAt,
-        )
+        fun fromDomain(user: User) =
+            UserResponse(
+                id = user.id,
+                email = user.email,
+                username = user.username,
+                description = user.description,
+                avatarNum = user.avatarNum,
+                createdAt = user.createdAt,
+            )
     }
 }
 
@@ -68,10 +71,14 @@ data class PublicUserResponse(
     val avatarNum: Int?,
 ) {
     companion object {
-        fun fromDomain(user: User) = PublicUserResponse(
-            id = user.id, username = user.username, email = user.email,
-            description = user.description, avatarNum = user.avatarNum,
-        )
+        fun fromDomain(user: User) =
+            PublicUserResponse(
+                id = user.id,
+                username = user.username,
+                email = user.email,
+                description = user.description,
+                avatarNum = user.avatarNum,
+            )
     }
 }
 

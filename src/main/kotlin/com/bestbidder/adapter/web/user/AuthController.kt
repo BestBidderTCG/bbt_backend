@@ -1,9 +1,9 @@
 package com.bestbidder.adapter.web.user
 
 import com.bestbidder.adapter.web.user.dto.LoginRequest
-import com.bestbidder.adapter.web.user.dto.RegisterRequest
 import com.bestbidder.adapter.web.user.dto.LoginResponse
 import com.bestbidder.adapter.web.user.dto.RefreshRequest
+import com.bestbidder.adapter.web.user.dto.RegisterRequest
 import com.bestbidder.adapter.web.user.dto.UserResponse
 import com.bestbidder.usecase.user.AuthUseCase
 import jakarta.validation.Valid

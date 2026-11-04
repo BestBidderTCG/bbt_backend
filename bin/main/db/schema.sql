@@ -1,13 +1,36 @@
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS bidder (
     id UUID PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS auction (
     id UUID PRIMARY KEY,
-    creator VARCHAR(50) UNIQUE NOT NULL,
-    cart VARCHAR(255)
-    min_prize DOUBLE PRECISION
+    creator_id UUID NOT NULL,
+    creator_username VARCHAR(255) NOT NULL,
+    card VARCHAR(255) NOT NULL,
+    collection VARCHAR(255) NOT NULL,
+    min_prize DOUBLE PRECISION NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    duration_in_days INT NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE IF NOT EXISTS bid (
+    id UUID PRIMARY KEY,
+    auction_id UUID NOT NULL,
+    bidder_id UUID NOT NULL,
+    bidder_username VARCHAR(255) NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+

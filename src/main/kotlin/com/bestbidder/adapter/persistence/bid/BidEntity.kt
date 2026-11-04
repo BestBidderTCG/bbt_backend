@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Entity
-@Table(name = "bids")
+@Table(name = "bid")
 class BidEntity(
     @Id
     val id: UUID = UUID.randomUUID(),

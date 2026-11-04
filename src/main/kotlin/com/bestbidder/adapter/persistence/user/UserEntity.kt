@@ -12,7 +12,7 @@ import java.util.UUID
  * Para que JPA gestione la persistencia automáticamente.
  */
 @Entity
-@Table(name = "users")
+@Table(name = "bidder")
 class UserEntity(
     @Id
     val id: UUID,

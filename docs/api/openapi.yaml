@@ -2,11 +2,12 @@ openapi: 3.0.3
 
 info:
   title: BestBidder TCG API
-  version: 0.1.0
-  description: Contrato inicial para la API de BestBidder TCG.
+  version: 0.2.0
+  description: Contrato de la API de BestBidder TCG.
 
 servers:
   - url: http://localhost:8080
+
 components:
   securitySchemes:
     bearerAuth:
@@ -16,17 +17,39 @@ components:
       description: "Pega aquí el Access Token"
 
   schemas:
-    AuthRequest:
+    LoginRequest:
       type: object
       required:
-        - username
+        - identifier
         - password
       properties:
-        username:
+        identifier:
           type: string
+          description: "Puede ser el email o el username"
+          example: "david@test.com"
         password:
           type: string
           format: password
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - username
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "david@test.com"
+        username:
+          type: string
+          description: "Minúsculas, entre 3 y 50 chars, al menos una letra (ej: david.99)"
+          example: "david_85"
+        password:
+          type: string
+          format: password
+          example: "secreto85"
 
     UserResponse:
       type: object
@@ -35,22 +58,39 @@ components:
           type: string
           format: uuid
           example: "97aee725-e493-4603-9b8f-d9fc87af37bb"
+        email:
+          type: string
+          example: "david@test.com"
         username:
           type: string
-          example: "david"
-        displayName:
-          type: string
-          example: "David"
+          example: "david_85"
         description:
           type: string
           nullable: true
         avatarNum:
-          type: string
+          type: integer
           nullable: true
+          example: 1
         createdAt:
           type: string
           format: date-time
 
+    PublicUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        description:
+          type: string
+          nullable: true
+        avatarNum:
+          type: integer
+          nullable: true
 
     LoginResponse:
       type: object
@@ -73,12 +113,10 @@ components:
     UpdateUserProfileRequest:
       type: object
       properties:
-        displayName:
-          type: string
         description:
           type: string
         avatarNum:
-          type: string
+          type: integer
 
     ChangePasswordRequest:
       type: object
@@ -97,7 +135,6 @@ paths:
   /api/health:
     get:
       summary: Comprobar el estado del servidor
-      description: Verifica que la API esté arriba y respondiendo correctamente.
       responses:
         '200':
           description: El servidor funciona correctamente
@@ -118,7 +155,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthRequest'
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
           description: Usuario registrado exitosamente.
@@ -129,7 +166,7 @@ paths:
         '400':
           description: Datos inválidos.
         '409':
-          description: El nombre de usuario ya existe.
+          description: El email o el username ya existen.
 
   /api/auth/login:
     post:
@@ -139,7 +176,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthRequest'
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: Autenticación exitosa.
@@ -149,7 +186,6 @@ paths:
                 $ref: '#/components/schemas/LoginResponse'
         '401':
           description: Credenciales incorrectas.
-
 
   /api/auth/refresh:
     post:
@@ -195,6 +231,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: No autorizado.
     patch:
       summary: Editar mi perfil
       security:
@@ -211,6 +249,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Datos inválidos.
+        '401':
+          description: No autorizado.
 
   /api/users/{id}:
     get:
@@ -230,7 +272,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/PublicUserResponse'
+        '401':
+          description: No autorizado.
         '404':
           description: Usuario no encontrado.
 
@@ -248,5 +292,7 @@ paths:
       responses:
         '204':
           description: Contraseña cambiada correctamente.
+        '400':
+          description: Nueva contraseña inválida.
         '401':
-          description: Contraseña actual incorrecta.
+          description: Contraseña actual incorrecta o no autorizado.

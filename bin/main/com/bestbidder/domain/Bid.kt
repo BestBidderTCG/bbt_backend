@@ -1,12 +1,17 @@
 package com.bestbidder.domain.bid
 
-import com.bestbidder.domain.auction.Auction
+import java.time.Instant
+import java.util.UUID
 
-/**
- * Representa la entidad de negocio de una Puja.
- */
 data class Bid(
-    val id: String,
-    val bidder: String,
-    val auction: Auction,
-)
+    val id: UUID = UUID.randomUUID(),
+    val auctionId: UUID,
+    val bidderId: UUID,
+    val bidderUsername: String,
+    val amount: Double,
+    val timestamp: Instant = Instant.now(),
+) {
+    init {
+        require(amount > 0.0) { "El monto de la puja debe ser mayor a 0" }
+    }
+}

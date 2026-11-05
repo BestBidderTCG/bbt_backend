@@ -6,157 +6,156 @@ import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.adapter.persistence.user.UserEntity
 import com.bestbidder.domain.card.CardState
 import org.springframework.boot.CommandLineRunner
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.crypto.password.PasswordEncoder
 import java.util.UUID
 
-@Component
+@Configuration
 class DataInitializer(
-    private val jpaUserRepository: JpaUserRepository,
-    private val jpaCardRepository: JpaCardRepository,
+    private val userRepository: JpaUserRepository,
+    private val cardRepository: JpaCardRepository,
+    private val passwordEncoder: PasswordEncoder,
 ) : CommandLineRunner {
     override fun run(vararg args: String?) {
-        if (jpaUserRepository.count() == 0L) {
-            val testUsers =
-                listOf(
-                    UserEntity(
-                        id = UUID.randomUUID(),
-                        username = "user1",
-                        email = "user1@example.com",
-                        passwordHash = "\$2a\$10\$3z.nKk35o8e7JjLzYgUa3eS9sX1X0a.Y.a7a1W7M7T/9F3a5Y.8mG",
-                        description = "Coleccionista principal",
-                        avatarNum = 1,
-                    ),
-                    UserEntity(
-                        id = UUID.randomUUID(),
-                        username = "user2",
-                        email = "user2@example.com",
-                        passwordHash = "\$2a\$10\$wN1Q6m8L9z5fJ4K3H2G1FeX0Y.a7a1W7M7T/9F3a5Y.8mG7K2J1a.",
-                        description = "Pujador habitual",
-                        avatarNum = 2,
-                    ),
-                    UserEntity(
-                        id = UUID.randomUUID(),
-                        username = "user3",
-                        email = "user3@example.com",
-                        passwordHash = "\$2a\$10\$k8M7N6P5Q4R3S2T1U0V9WeX0Y.a7a1W7M7T/9F3a5Y.8mG7K2J1a.",
-                        description = "Vendedor TCG",
-                        avatarNum = 3,
-                    ),
+        if (userRepository.count() == 0L) {
+            val user1 =
+                UserEntity(
+                    id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                    username = "user1",
+                    email = "user1@example.com",
+                    passwordHash = passwordEncoder.encode("user11"),
+                    description = "Coleccionista principal",
+                    avatarNum = 1,
                 )
 
-            val savedUsers = jpaUserRepository.saveAll(testUsers)
-            val user1 = savedUsers[0]
-            val user2 = savedUsers[1]
-            val user3 = savedUsers[2]
+            val user2 =
+                UserEntity(
+                    id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                    username = "user2",
+                    email = "user2@example.com",
+                    passwordHash = passwordEncoder.encode("user22"),
+                    description = "Pujador habitual",
+                    avatarNum = 2,
+                )
 
-            val testCards =
+            val user3 =
+                UserEntity(
+                    id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                    username = "user3",
+                    email = "user3@example.com",
+                    passwordHash = passwordEncoder.encode("user33"),
+                    description = "Vendedor TCG",
+                    avatarNum = 3,
+                )
+
+            val savedUser1 = userRepository.save(user1)
+            val savedUser2 = userRepository.save(user2)
+            val savedUser3 = userRepository.save(user3)
+
+            val cards =
                 listOf(
-                    // Cartas User 1
                     CardEntity(
                         id = UUID.randomUUID(),
-                        owner = user1,
+                        owner = savedUser1,
                         name = "Charizard 1st Edition",
                         image = "charizard_base.png",
                         category = "Pokémon",
                         collection = "Base Set",
                         num = 4,
-                        state = CardState.NEW,
-                        description = "Carta holo impecable sin marcas de uso.",
-                    ),
-                    CardEntity(
-                        id = UUID.randomUUID(),
-                        owner = user1,
-                        name = "Pikachu Illustrator",
-                        image = "pikachu_illustrator.png",
-                        category = "Pokémon",
-                        collection = "Promo",
-                        num = 1,
                         state = CardState.NEAR_MINT,
-                        description = "Edición limitada de torneo en estuche protector.",
+                        description = "Carta mítica en excelente estado.",
                     ),
                     CardEntity(
                         id = UUID.randomUUID(),
-                        owner = user1,
-                        name = "Blue-Eyes White Dragon",
-                        image = "blue_eyes.png",
-                        category = "Yu-Gi-Oh!",
-                        collection = "LOB",
-                        num = 1,
-                        state = CardState.GOOD,
-                        description = "Clásico de la primera edición LOB-001.",
-                    ),
-                    // Cartas User 2
-                    CardEntity(
-                        id = UUID.randomUUID(),
-                        owner = user2,
+                        owner = savedUser1,
                         name = "Black Lotus",
                         image = "black_lotus.png",
                         category = "Magic: The Gathering",
                         collection = "Alpha",
                         num = 232,
-                        state = CardState.NEAR_MINT,
-                        description = "Joyita vintage de Alpha Set en gran estado.",
+                        state = CardState.GOOD,
+                        description = "Joyero de reserva con ligero desgaste en bordes.",
                     ),
                     CardEntity(
                         id = UUID.randomUUID(),
-                        owner = user2,
-                        name = "Mewtwo Star",
-                        image = "mewtwo_star.png",
-                        category = "Pokémon",
-                        collection = "EX Holon Phantoms",
-                        num = 103,
-                        state = CardState.LIGHT_PLAYED,
-                        description = "Pequeño desgaste en la esquina inferior trasera.",
-                    ),
-                    CardEntity(
-                        id = UUID.randomUUID(),
-                        owner = user2,
-                        name = "Dark Magician Girl",
-                        image = "dark_magician_girl.png",
+                        owner = savedUser1,
+                        name = "Blue-Eyes White Dragon",
+                        image = "blue_eyes.png",
                         category = "Yu-Gi-Oh!",
-                        collection = "MFC",
-                        num = 0,
+                        collection = "LOB",
+                        num = 1,
                         state = CardState.NEW,
-                        description = "Secret Rare con brillo holo perfecto.",
-                    ),
-                    // Cartas User 3
-                    CardEntity(
-                        id = UUID.randomUUID(),
-                        owner = user3,
-                        name = "Luffy Gear 5 Super Rare",
-                        image = "luffy_g5.png",
-                        category = "One Piece TCG",
-                        collection = "OP-05",
-                        num = 119,
-                        state = CardState.NEW,
-                        description = "Recién sacada de sobre, impecable.",
+                        description = "Primera edición en estado impecable.",
                     ),
                     CardEntity(
                         id = UUID.randomUUID(),
-                        owner = user3,
-                        name = "Shanks Manga Alt Art",
-                        image = "shanks_manga.png",
-                        category = "One Piece TCG",
-                        collection = "OP-01",
-                        num = 120,
-                        state = CardState.NEAR_MINT,
-                        description = "Edición Manga Rare súper cotizada.",
-                    ),
-                    CardEntity(
-                        id = UUID.randomUUID(),
-                        owner = user3,
-                        name = "Umbreon VMAX Gold Star",
-                        image = "umbreon_vmax.png",
+                        owner = savedUser2,
+                        name = "Pikachu Illustrator",
+                        image = "pikachu_illustrator.png",
                         category = "Pokémon",
-                        collection = "Evolving Skies",
-                        num = 215,
+                        collection = "Promo",
+                        num = 0,
+                        state = CardState.NEAR_MINT,
+                        description = "Copia promocional japonesa muy rara.",
+                    ),
+                    CardEntity(
+                        id = UUID.randomUUID(),
+                        owner = savedUser2,
+                        name = "Mox Diamond",
+                        image = "mox_diamond.png",
+                        category = "Magic: The Gathering",
+                        collection = "Stronghold",
+                        num = 138,
+                        state = CardState.LIGHT_PLAYED,
+                        description = "Usada en torneos, jugable sin funda doble.",
+                    ),
+                    CardEntity(
+                        id = UUID.randomUUID(),
+                        owner = savedUser2,
+                        name = "Dark Magician",
+                        image = "dark_magician.png",
+                        category = "Yu-Gi-Oh!",
+                        collection = "LOB",
+                        num = 5,
+                        state = CardState.GOOD,
+                        description = "Clásico Mago Oscuro SDK.",
+                    ),
+                    CardEntity(
+                        id = UUID.randomUUID(),
+                        owner = savedUser3,
+                        name = "Umbreon Star",
+                        image = "umbreon_star.png",
+                        category = "Pokémon",
+                        collection = "POP Series 5",
+                        num = 17,
                         state = CardState.POOR,
-                        description = "Esquina superior derecha doblada.",
+                        description = "Con pliegues visibles en la parte posterior.",
+                    ),
+                    CardEntity(
+                        id = UUID.randomUUID(),
+                        owner = savedUser3,
+                        name = "Ancestral Recall",
+                        image = "ancestral_recall.png",
+                        category = "Magic: The Gathering",
+                        collection = "Unlimited",
+                        num = 48,
+                        state = CardState.LIGHT_PLAYED,
+                        description = "Carta histórica de Power 9.",
+                    ),
+                    CardEntity(
+                        id = UUID.randomUUID(),
+                        owner = savedUser3,
+                        name = "Exodia the Forbidden One",
+                        image = "exodia.png",
+                        category = "Yu-Gi-Oh!",
+                        collection = "LOB",
+                        num = 124,
+                        state = CardState.NEAR_MINT,
+                        description = "Cabeza de Exodia en gran condición.",
                     ),
                 )
 
-            jpaCardRepository.saveAll(testCards)
-            println("Usuarios y cartas de prueba insertados en PostgreSQL correctamente.")
+            cardRepository.saveAll(cards)
         }
     }
 }

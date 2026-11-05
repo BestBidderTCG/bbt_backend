@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
+/**
+ * Controlador REST encargado de la gestión y exposición de endpoints relacionales de subastas.
+ */
 @RestController
 @RequestMapping("/api/auction")
 class AuctionController(
@@ -22,6 +25,9 @@ class AuctionController(
     private val getAuctionUseCase: GetAuctionUseCase,
     private val cardRepository: CardRepository,
 ) {
+    /**
+     * Registra una nueva subasta asociada a una carta previamente guardada.
+     */
     @PostMapping("/create")
     fun create(
         @RequestBody request: CreateAuctionRequest,
@@ -44,18 +50,27 @@ class AuctionController(
         return ResponseEntity.status(HttpStatus.CREATED).body(AuctionResponse.fromDomain(auction))
     }
 
+    /**
+     * Recupera el catálogo completo de subastas del sistema.
+     */
     @GetMapping("/all")
     fun getAll(): ResponseEntity<List<AuctionResponse>> {
         val auctions = getAuctionUseCase.getAll().map { AuctionResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 
+    /**
+     * Retorna únicamente las subastas que se encuentran activas en el instante de la consulta.
+     */
     @GetMapping("/active")
     fun getActive(): ResponseEntity<List<AuctionResponse>> {
         val auctions = getAuctionUseCase.getActive().map { AuctionResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 
+    /**
+     * Consulta el historial de subastas asociadas a un identificador de carta en concreto.
+     */
     @GetMapping("/by-card/{cardId}")
     fun getByCard(
         @PathVariable cardId: UUID,

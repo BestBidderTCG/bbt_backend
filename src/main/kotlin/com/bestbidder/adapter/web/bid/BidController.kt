@@ -16,12 +16,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
+/**
+ * Controlador REST para el registro y consulta del historial de pujas sobre las subastas.
+ */
 @RestController
 @RequestMapping("/api/bid")
 class BidController(
     private val placeBidUseCase: PlaceBidUseCase,
     private val getBidsByAuctionUseCase: GetBidsByAuctionUseCase,
 ) {
+    /**
+     * Procesa y registra una puja en una subasta especificada en la ruta.
+     */
     @PostMapping("/{auctionId}")
     fun placeBid(
         @PathVariable auctionId: UUID,
@@ -39,6 +45,9 @@ class BidController(
         return ResponseEntity.status(HttpStatus.CREATED).body(bid)
     }
 
+    /**
+     * Obtiene el historial completo de pujas realizadas sobre una subasta determinada.
+     */
     @GetMapping("/history/{auctionId}")
     fun getAuctionHistory(
         @PathVariable auctionId: UUID,

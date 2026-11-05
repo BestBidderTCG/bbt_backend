@@ -16,12 +16,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
+/**
+ * Controlador REST encargado del mantenimiento y consulta del inventario de cartas coleccionables.
+ */
 @RestController
 @RequestMapping("/api/card")
 class CardController(
     private val createCardUseCase: CreateCardUseCase,
     private val getCardUseCase: GetCardUseCase,
 ) {
+    /**
+     * Crea y guarda una nueva carta asignando la propiedad al usuario autenticado.
+     */
     @PostMapping("/create")
     fun createCard(
         @AuthenticationPrincipal principal: AuthenticatedUser,
@@ -42,12 +48,18 @@ class CardController(
         return ResponseEntity.status(HttpStatus.CREATED).body(card)
     }
 
+    /**
+     * Retorna todas las cartas registradas en la plataforma.
+     */
     @GetMapping("/all")
     fun getAllCards(): ResponseEntity<List<Card>> {
         val cards = getCardUseCase.getAll()
         return ResponseEntity.ok(cards)
     }
 
+    /**
+     * Obtiene la información detallada de una carta buscando por su ID.
+     */
     @GetMapping("/{id}")
     fun getCardById(
         @PathVariable id: UUID,
@@ -58,6 +70,9 @@ class CardController(
         return ResponseEntity.ok(card)
     }
 
+    /**
+     * Devuelve las cartas pertenecientes exclusivamente al usuario autenticado.
+     */
     @GetMapping("/user/my-cards")
     fun getMyCards(
         @AuthenticationPrincipal principal: AuthenticatedUser,

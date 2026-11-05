@@ -34,24 +34,20 @@ class UpdateUserUseCaseTest {
     @DisplayName("Debe actualizar correctamente la descripción y el avatar")
     fun `should update profile successfully`() {
         `when`(userRepository.findById(userId)).thenReturn(existingUser)
-        `when`(userRepository.save(any(User::class.java)))
-            .thenAnswer { it.arguments[0] as User }
+        `when`(userRepository.save(any(User::class.java))).thenAnswer { it.arguments[0] as User }
 
         val result = useCase.updateProfile(userId, "Nueva descripción", 5)
 
         assertEquals("Nueva descripción", result.description)
         assertEquals(5, result.avatarNum)
-        verify(userRepository, times(1))
-            .save(any(User::class.java))
+        verify(userRepository, times(1)).save(any(User::class.java))
     }
 
     @Test
     @DisplayName("Debe borrar la descripción si se envía vacía o en blanco")
     fun `should clear description when blank`() {
         `when`(userRepository.findById(userId)).thenReturn(existingUser)
-        `when`(userRepository.save(any(User::class.java))).thenAnswer {
-            it.arguments[0] as User
-        }
+        `when`(userRepository.save(any(User::class.java))).thenAnswer { it.arguments[0] as User }
 
         val result = useCase.updateProfile(userId, "   ", null)
 

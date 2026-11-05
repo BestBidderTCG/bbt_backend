@@ -4,6 +4,7 @@ import com.bestbidder.domain.user.exceptions.InvalidRefreshTokenException
 import com.bestbidder.usecase.port.RefreshTokenRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDateTime
@@ -26,6 +27,8 @@ class RefreshTokenService(
         return raw
     }
 
+    // Evita el rollback para que el DELETE se guarde en BD
+    @Transactional(noRollbackFor = [InvalidRefreshTokenException::class])
     fun validateAndConsume(token: String): UUID {
         val h = hash(token)
         val stored = repository.findByHash(h) ?: throw InvalidRefreshTokenException()

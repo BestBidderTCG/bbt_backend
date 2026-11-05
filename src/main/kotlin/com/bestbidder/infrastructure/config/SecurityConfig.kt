@@ -31,6 +31,7 @@ class SecurityConfig(
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/auth/logout",
+                        "/error",
                     ).permitAll()
                     .anyRequest().authenticated()
             }

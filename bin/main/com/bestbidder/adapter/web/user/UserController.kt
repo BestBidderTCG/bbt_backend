@@ -10,7 +10,7 @@ import com.bestbidder.usecase.user.GetUserUseCase
 import com.bestbidder.usecase.user.UpdateUserUseCase
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,10 +26,15 @@ class UserController(
     private val updateUserUseCase: UpdateUserUseCase,
     private val changePasswordUseCase: ChangePasswordUseCase,
 ) {
+    private fun getCurrentUser(): AuthenticatedUser {
+        return SecurityContextHolder.getContext().authentication.principal as AuthenticatedUser
+    }
+
     @GetMapping("/me")
-    fun me(
-        @AuthenticationPrincipal principal: AuthenticatedUser,
-    ): UserResponse = UserResponse.fromDomain(getUserUseCase.getById(principal.id))
+    fun me(): UserResponse {
+        val principal = getCurrentUser()
+        return UserResponse.fromDomain(getUserUseCase.getById(principal.id))
+    }
 
     @GetMapping("/{id}")
     fun byId(
@@ -38,9 +43,9 @@ class UserController(
 
     @PatchMapping("/me")
     fun update(
-        @AuthenticationPrincipal principal: AuthenticatedUser,
         @RequestBody req: UpdateUserProfileRequest,
     ): UserResponse {
+        val principal = getCurrentUser()
         val updated =
             updateUserUseCase.updateProfile(
                 userId = principal.id,
@@ -52,9 +57,9 @@ class UserController(
 
     @PatchMapping("/me/password")
     fun changePassword(
-        @AuthenticationPrincipal principal: AuthenticatedUser,
         @Valid @RequestBody req: ChangePasswordRequest,
     ): ResponseEntity<Void> {
+        val principal = getCurrentUser()
         changePasswordUseCase.change(principal.id, req.currentPassword, req.newPassword)
         return ResponseEntity.noContent().build()
     }

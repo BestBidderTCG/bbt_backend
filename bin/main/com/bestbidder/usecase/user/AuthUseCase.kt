@@ -9,6 +9,7 @@ import com.bestbidder.infrastructure.security.RefreshTokenService
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 /**
@@ -81,12 +82,14 @@ class AuthUseCase(
         return issueTokens(user)
     }
 
+    @Transactional
     fun refresh(refreshToken: String): AuthResult {
         val userId = refreshTokenService.validateAndConsume(refreshToken)
         val user = userRepository.findById(userId) ?: throw UserNotFoundException(userId)
         return issueTokens(user)
     }
 
+    @Transactional
     fun logout(refreshToken: String) {
         refreshTokenService.revoke(refreshToken)
     }

@@ -6,6 +6,7 @@ import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.domain.user.exceptions.UsernameAlreadyExistsException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -31,6 +32,11 @@ class GlobalExceptionHandler {
     fun handleValidation(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
         val msg = e.bindingResult.fieldErrors.joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
         return build(HttpStatus.BAD_REQUEST, msg)
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleNotReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        return build(HttpStatus.BAD_REQUEST, "El JSON enviado es inválido o está malformado")
     }
 
     private fun build(

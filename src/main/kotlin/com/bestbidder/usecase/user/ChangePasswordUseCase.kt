@@ -6,6 +6,7 @@ import com.bestbidder.infrastructure.security.RefreshTokenService
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
@@ -14,6 +15,7 @@ class ChangePasswordUseCase(
     private val passwordEncoder: PasswordEncoder,
     private val refreshTokenService: RefreshTokenService,
 ) {
+    @Transactional
     fun change(
         userId: UUID,
         currentPassword: String,

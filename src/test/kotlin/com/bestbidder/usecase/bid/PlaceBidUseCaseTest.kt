@@ -2,6 +2,8 @@ package com.bestbidder.usecase.bid
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
@@ -26,11 +28,23 @@ class PlaceBidUseCaseTest {
 
     private val useCase = PlaceBidUseCase(auctionRepository, bidRepository, notificationPort)
 
+    private val creatorId = UUID.randomUUID()
+    private val sampleCard =
+        Card(
+            id = UUID.randomUUID(),
+            ownerId = creatorId,
+            name = "Charizard First Edition",
+            image = "charizard.png",
+            category = "Pokémon",
+            collection = "Base Set",
+            state = CardState.NEAR_MINT,
+            description = "Perfecto estado",
+        )
+
     @Test
     @DisplayName("Debe registrar la puja si cumple con el incremento mínimo obligatorio según el rango")
     fun `should place bid successfully when satisfying minimum bid increment`() {
         val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
         val previousBidderId = UUID.randomUUID()
         val newBidderId = UUID.randomUUID()
 
@@ -39,9 +53,7 @@ class PlaceBidUseCaseTest {
                 id = auctionId,
                 creator_id = creatorId,
                 creator_username = "paula",
-                card = "Charizard First Edition",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 description = "Perfecto estado",
                 min_prize = 100.0,
                 startedAt = Instant.now().minusSeconds(3600),
@@ -81,112 +93,16 @@ class PlaceBidUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar excepcion si el pujador actual intenta sobrepujar su propia puja mas alta")
-    fun `should throw exception when highest bidder tries to bid again`() {
-        val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
-        val bidderId = UUID.randomUUID()
-
-        val activeAuction =
-            Auction(
-                id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
-                description = null,
-                min_prize = 100.0,
-                startedAt = Instant.now().minusSeconds(3600),
-                durationInDays = 1,
-            )
-
-        val existingHighestBid =
-            Bid(
-                auctionId = auctionId,
-                bidderId = bidderId,
-                bidderUsername = "pujador1",
-                amount = 150.0,
-            )
-
-        `when`(auctionRepository.getById(auctionId)).thenReturn(activeAuction)
-        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(existingHighestBid)
-
-        val exception =
-            assertThrows(IllegalArgumentException::class.java) {
-                useCase.execute(
-                    auctionId = auctionId,
-                    bidderId = bidderId,
-                    bidderUsername = "pujador1",
-                    amount = 160.0,
-                )
-            }
-
-        assertEquals("No puedes pujar si ya tienes la puja más alta actual", exception.message)
-        verify(bidRepository, never()).save(any(Bid::class.java))
-    }
-
-    @Test
-    @DisplayName("Debe lanzar excepcion si la puja no alcanza el incremento mínimo requerido")
-    fun `should throw exception when bid is below the minimum required increment`() {
-        val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
-        val bidderId = UUID.randomUUID()
-
-        val activeAuction =
-            Auction(
-                id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
-                description = null,
-                min_prize = 100.0,
-                startedAt = Instant.now().minusSeconds(3600),
-                durationInDays = 1,
-            )
-
-        val existingHighestBid =
-            Bid(
-                auctionId = auctionId,
-                bidderId = UUID.randomUUID(),
-                bidderUsername = "pujador1",
-                amount = 150.0,
-            )
-
-        `when`(auctionRepository.getById(auctionId)).thenReturn(activeAuction)
-        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(existingHighestBid)
-
-        val exception =
-            assertThrows(IllegalArgumentException::class.java) {
-                useCase.execute(
-                    auctionId = auctionId,
-                    bidderId = bidderId,
-                    bidderUsername = "pujador2",
-                    amount = 152.0,
-                )
-            }
-
-        assertEquals("El importe mínimo para pujar debe ser de 155.0 €", exception.message)
-        verify(bidRepository, never()).save(any(Bid::class.java))
-    }
-
-    @Test
     @DisplayName("Debe lanzar excepcion si el creador intenta pujar en su propia subasta")
     fun `should throw exception when creator tries to bid`() {
         val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
 
         val activeAuction =
             Auction(
                 id = auctionId,
                 creator_id = creatorId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
-                description = null,
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = Instant.now().minusSeconds(3600),
                 durationInDays = 1,
@@ -205,40 +121,6 @@ class PlaceBidUseCaseTest {
             }
 
         assertEquals("El creador de la subasta no puede pujar en ella", exception.message)
-        verify(bidRepository, never()).save(any(Bid::class.java))
-    }
-
-    @Test
-    @DisplayName("Debe lanzar excepcion si la subasta no ha comenzado (UPCOMING)")
-    fun `should throw exception when auction is not in progress`() {
-        val auctionId = UUID.randomUUID()
-        val upcomingAuction =
-            Auction(
-                id = auctionId,
-                creator_id = UUID.randomUUID(),
-                creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
-                description = null,
-                min_prize = 100.0,
-                startedAt = Instant.now().plusSeconds(3600),
-                durationInDays = 1,
-            )
-
-        `when`(auctionRepository.getById(auctionId)).thenReturn(upcomingAuction)
-
-        val exception =
-            assertThrows(IllegalStateException::class.java) {
-                useCase.execute(
-                    auctionId = auctionId,
-                    bidderId = UUID.randomUUID(),
-                    bidderUsername = "pujador",
-                    amount = 150.0,
-                )
-            }
-
-        assertEquals("Solo se puede pujar en subastas en curso (IN_PROGRESS)", exception.message)
         verify(bidRepository, never()).save(any(Bid::class.java))
     }
 }

@@ -3,6 +3,9 @@ package com.bestbidder.domain.bid
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * Representa la puja efectuada por un usuario en una subasta.
+ */
 data class Bid(
     val id: UUID = UUID.randomUUID(),
     val auctionId: UUID,

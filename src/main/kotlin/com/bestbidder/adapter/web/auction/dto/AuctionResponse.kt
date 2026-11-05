@@ -2,6 +2,7 @@ package com.bestbidder.adapter.web.auction.dto
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionStatus
+import com.bestbidder.domain.card.Card
 import java.time.Instant
 import java.util.UUID
 
@@ -9,34 +10,27 @@ data class AuctionResponse(
     val id: UUID,
     val creator_id: UUID,
     val creator_username: String,
-    val card: String,
-    val category: String,
-    val collection: String,
-    val description: String? = null,
+    val card: Card,
+    val description: String?,
     val min_prize: Double,
-    val started_at: Instant,
-    val duration_in_days: Int,
-    val ends_at: Instant,
-    val is_cancelled: Boolean,
+    val startedAt: Instant,
+    val endsAt: Instant,
+    val durationInDays: Int,
     val status: AuctionStatus,
 ) {
     companion object {
-        fun fromDomain(domain: Auction): AuctionResponse {
-            return AuctionResponse(
-                id = domain.id,
-                creator_id = domain.creator_id,
-                creator_username = domain.creator_username,
-                card = domain.card,
-                category = domain.category,
-                collection = domain.collection,
-                description = domain.description,
-                min_prize = domain.min_prize,
-                started_at = domain.startedAt,
-                duration_in_days = domain.durationInDays,
-                ends_at = domain.endsAt,
-                is_cancelled = domain.isCancelled,
-                status = domain.getStatusAt(Instant.now()),
+        fun fromDomain(auction: Auction): AuctionResponse =
+            AuctionResponse(
+                id = auction.id,
+                creator_id = auction.creator_id,
+                creator_username = auction.creator_username,
+                card = auction.card,
+                description = auction.description,
+                min_prize = auction.min_prize,
+                startedAt = auction.startedAt,
+                endsAt = auction.endsAt,
+                durationInDays = auction.durationInDays,
+                status = auction.status,
             )
-        }
     }
 }

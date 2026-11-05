@@ -25,11 +25,7 @@ class GetAuctionUseCase(
         return auctionRepository.getByCreator(creator)
     }
 
-    fun getByCollection(collection: String): List<Auction> {
-        return auctionRepository.getByCollection(collection)
-    }
-
-    fun getByCard(card: String): List<Auction> {
-        return auctionRepository.getByCard(card)
+    fun getByCard(cardId: UUID): List<Auction> {
+        return auctionRepository.getByCard(cardId)
     }
 }

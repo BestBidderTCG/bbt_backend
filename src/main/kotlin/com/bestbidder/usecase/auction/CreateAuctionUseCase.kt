@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.card.Card
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -15,9 +16,7 @@ class CreateAuctionUseCase(
     fun create(
         creator_id: UUID,
         creator_username: String,
-        card: String,
-        category: String,
-        collection: String,
+        card: Card,
         description: String? = null,
         minPrize: Double,
         startedAt: Instant,
@@ -25,12 +24,10 @@ class CreateAuctionUseCase(
     ): Auction {
         val now = Instant.now().truncatedTo(ChronoUnit.MINUTES)
 
-        // No se puede programar en el pasado
         if (startedAt.isBefore(now)) {
             throw IllegalArgumentException("La fecha de inicio de la subasta no puede ser anterior al instante actual")
         }
 
-        // Los minutos deben ser 00, 15, 30 o 45 (y sin segundos/milisegundos)
         val zonedDateTime = startedAt.atZone(ZoneOffset.UTC)
         val minute = zonedDateTime.minute
         val second = zonedDateTime.second
@@ -42,18 +39,17 @@ class CreateAuctionUseCase(
             )
         }
 
-        // Duración mínima de 1 día
         if (durationInDays < 1) {
             throw IllegalArgumentException("La duración de la subasta debe ser de al menos 1 día")
         }
 
-        // No puede haber otra subasta activa o próxima para el mismo usuario y carta
-        val exists = auctionRepository.existsByCreatorAndCard(creator_username, card)
+        val exists = auctionRepository.existsByCreatorAndCard(creator_username, card.id)
         if (exists) {
-            throw IllegalArgumentException("Ya existe una subasta activa o próxima de la carta '$card' para el usuario '$creator_username'")
+            throw IllegalArgumentException(
+                "Ya existe una subasta activa o próxima para la carta con ID '${card.id}' y el usuario '$creator_username'",
+            )
         }
 
-        // Se limpian segundos y milisegundos a :00.000Z
         val cleanStartedAt = startedAt.truncatedTo(ChronoUnit.MINUTES)
 
         val newAuction =
@@ -61,8 +57,6 @@ class CreateAuctionUseCase(
                 creator_id = creator_id,
                 creator_username = creator_username,
                 card = card,
-                category = category,
-                collection = collection,
                 description = description,
                 min_prize = minPrize,
                 startedAt = cleanStartedAt,

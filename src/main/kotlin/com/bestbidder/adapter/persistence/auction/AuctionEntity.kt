@@ -1,9 +1,15 @@
 package com.bestbidder.adapter.persistence.auction
 
+import com.bestbidder.adapter.persistence.card.CardEntity
+import com.bestbidder.adapter.persistence.user.UserEntity
 import com.bestbidder.domain.auction.Auction
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -14,16 +20,12 @@ import java.util.UUID
 class AuctionEntity(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "creator_id", nullable = false)
-    val creatorId: UUID,
-    @Column(name = "creator_username", nullable = false)
-    val creatorUsername: String,
-    @Column(nullable = false)
-    val card: String,
-    @Column(nullable = false)
-    val category: String,
-    @Column(nullable = false)
-    val collection: String,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id", nullable = false)
+    val creator: UserEntity,
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id", nullable = false, unique = true)
+    val card: CardEntity,
     @Column(nullable = true)
     val description: String? = null,
     @Column(name = "min_prize", nullable = false)
@@ -40,11 +42,9 @@ class AuctionEntity(
     fun toDomain(): Auction {
         return Auction(
             id = this.id,
-            creator_id = this.creatorId,
-            creator_username = this.creatorUsername,
-            card = this.card,
-            category = this.category,
-            collection = this.collection,
+            creator_id = this.creator.id,
+            creator_username = this.creator.username,
+            card = this.card.toDomain(),
             description = this.description,
             min_prize = this.minPrize,
             startedAt = this.startedAt,
@@ -54,14 +54,15 @@ class AuctionEntity(
     }
 
     companion object {
-        fun fromDomain(domain: Auction): AuctionEntity {
+        fun fromDomain(
+            domain: Auction,
+            creatorEntity: UserEntity,
+            cardEntity: CardEntity,
+        ): AuctionEntity {
             return AuctionEntity(
                 id = domain.id,
-                creatorId = domain.creator_id,
-                creatorUsername = domain.creator_username,
-                card = domain.card,
-                category = domain.category,
-                collection = domain.collection,
+                creator = creatorEntity,
+                card = cardEntity,
                 description = domain.description,
                 minPrize = domain.min_prize,
                 startedAt = domain.startedAt.truncatedTo(ChronoUnit.MINUTES),

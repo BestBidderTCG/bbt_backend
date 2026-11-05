@@ -2,10 +2,12 @@ package com.bestbidder.adapter.web.bid
 
 import com.bestbidder.adapter.web.bid.dto.PlaceBidRequest
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.bid.GetBidsByAuctionUseCase
 import com.bestbidder.usecase.bid.PlaceBidUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,30 +22,23 @@ class BidController(
     private val placeBidUseCase: PlaceBidUseCase,
     private val getBidsByAuctionUseCase: GetBidsByAuctionUseCase,
 ) {
-    /**
-     * POST /api/bid/{auctionId}
-     * Realiza una nueva puja en la subasta especificada.
-     */
     @PostMapping("/{auctionId}")
     fun placeBid(
         @PathVariable auctionId: UUID,
+        @AuthenticationPrincipal principal: AuthenticatedUser,
         @RequestBody request: PlaceBidRequest,
     ): ResponseEntity<Bid> {
         val bid =
             placeBidUseCase.execute(
                 auctionId = auctionId,
-                bidderId = request.bidder_id,
-                bidderUsername = request.bidder_username,
+                bidderId = principal.id,
+                bidderUsername = principal.username,
                 amount = request.amount,
             )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(bid)
     }
 
-    /**
-     * GET /api/bid/history/{auctionId}
-     * Obtiene el historial completo de pujas de una subasta en orden descendente.
-     */
     @GetMapping("/history/{auctionId}")
     fun getAuctionHistory(
         @PathVariable auctionId: UUID,

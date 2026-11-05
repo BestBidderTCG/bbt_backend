@@ -9,13 +9,8 @@ import java.util.UUID
 interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     fun findByCreatorUsername(creatorUsername: String): List<AuctionEntity>
 
-    fun findByCollection(collection: String): List<AuctionEntity>
+    fun findByCardId(cardId: UUID): List<AuctionEntity>
 
-    fun findByCard(card: String): List<AuctionEntity>
-
-    /**
-     * Devuelve todas las subastas que están activas o próximas (endsAt mayor a la hora actual y no canceladas).
-     */
     @Query(
         """
         SELECT a FROM AuctionEntity a 
@@ -26,9 +21,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     )
     fun findActive(): List<AuctionEntity>
 
-    /**
-     * Devuelve solo las subastas que están IN_PROGRESS en este instante exacto.
-     */
     @Query(
         """
         SELECT a FROM AuctionEntity a 
@@ -40,26 +32,20 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     )
     fun findInProgress(): List<AuctionEntity>
 
-    /**
-     * Comprueba si existe una subasta activa o próxima para esa carta y creador.
-     */
     @Query(
         """
         SELECT COUNT(a) > 0 FROM AuctionEntity a 
-        WHERE a.creatorUsername = :creator 
-          AND a.card = :card 
+        WHERE a.creator.username = :creator 
+          AND a.card.id = :cardId 
           AND a.isCancelled = false 
           AND a.endsAt > CURRENT_TIMESTAMP
     """,
     )
     fun existsActiveAuction(
         @Param("creator") creator: String,
-        @Param("card") card: String,
+        @Param("cardId") cardId: UUID,
     ): Boolean
 
-    /**
-     * Devuelve solo las subastas que acaban de empezar en este instante exacto.
-     */
     @Query(
         """
         SELECT a FROM AuctionEntity a 
@@ -71,9 +57,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         @Param("now") now: Instant,
     ): List<AuctionEntity>
 
-    /**
-     * Devuelve solo las subastas que acaban de expirar en este instante exacto.
-     */
     @Query(
         """
         SELECT a FROM AuctionEntity a 

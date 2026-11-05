@@ -1,6 +1,8 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -22,14 +24,21 @@ class GetAuctionUseCaseTest {
     @DisplayName("Debe obtener una subasta por su ID si existe")
     fun `should get auction by id`() {
         val auctionId = UUID.randomUUID()
+        val creatorId = UUID.randomUUID()
         val expected =
             Auction(
                 id = auctionId,
-                creator_id = UUID.randomUUID(),
+                creator_id = creatorId,
                 creator_username = "paula",
-                card = "Gengar",
-                category = "Pokémon",
-                collection = "Fossil",
+                card =
+                    Card(
+                        id = UUID.randomUUID(),
+                        ownerId = creatorId,
+                        name = "Gengar",
+                        image = "gengar.png",
+                        category = "Pokémon",
+                        state = CardState.POOR,
+                    ),
                 min_prize = 80.0,
                 startedAt = Instant.now(),
                 durationInDays = 3,
@@ -40,8 +49,8 @@ class GetAuctionUseCaseTest {
         val result = useCase.getById(auctionId)
 
         assertNotNull(result)
-        assertEquals("Gengar", result?.card)
-        assertEquals("Pokémon", result?.category)
+        assertEquals("Gengar", result?.card?.name)
+        assertEquals("Pokémon", result?.card?.category)
         verify(auctionRepository, times(1)).getById(auctionId)
     }
 

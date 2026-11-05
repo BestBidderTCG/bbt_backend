@@ -1,5 +1,6 @@
 package com.bestbidder.domain.auction
 
+import com.bestbidder.domain.card.Card
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -12,9 +13,7 @@ data class Auction(
     val id: UUID = UUID.randomUUID(),
     val creator_id: UUID,
     val creator_username: String,
-    val card: String,
-    val category: String,
-    val collection: String,
+    val card: Card,
     val description: String? = null,
     val min_prize: Double,
     val startedAt: Instant,

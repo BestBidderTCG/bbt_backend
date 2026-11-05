@@ -1,5 +1,7 @@
 package com.bestbidder.domain.auction
 
+import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.card.CardState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DisplayName
@@ -12,6 +14,19 @@ class AuctionTest {
     private val now = Instant.now()
     private val userId = UUID.randomUUID()
 
+    private val sampleCard =
+        Card(
+            id = UUID.randomUUID(),
+            ownerId = userId,
+            name = "Charizard",
+            image = "charizard.png",
+            category = "Pokémon",
+            collection = "Base Set",
+            num = 4,
+            state = CardState.NEAR_MINT,
+            description = "Excelente estado",
+        )
+
     @Test
     @DisplayName("Debe calcular endsAt correctamente basándose en startedAt y durationInDays")
     fun `should calculate endsAt correctly`() {
@@ -22,9 +37,7 @@ class AuctionTest {
             Auction(
                 creator_id = userId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = startedAt,
                 durationInDays = durationInDays,
@@ -42,9 +55,7 @@ class AuctionTest {
                 Auction(
                     creator_id = userId,
                     creator_username = "paula",
-                    card = "Charizard",
-                    category = "Pokémon",
-                    collection = "Base Set",
+                    card = sampleCard,
                     min_prize = 100.0,
                     startedAt = now,
                     durationInDays = 0,
@@ -61,9 +72,7 @@ class AuctionTest {
             Auction(
                 creator_id = userId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = now.minus(1, ChronoUnit.DAYS),
                 durationInDays = 3,
@@ -82,9 +91,7 @@ class AuctionTest {
             Auction(
                 creator_id = userId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = futureStart,
                 durationInDays = 2,
@@ -102,9 +109,7 @@ class AuctionTest {
             Auction(
                 creator_id = userId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = pastStart,
                 durationInDays = 3,
@@ -122,9 +127,7 @@ class AuctionTest {
             Auction(
                 creator_id = userId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card = sampleCard,
                 min_prize = 100.0,
                 startedAt = pastStart,
                 durationInDays = 2,

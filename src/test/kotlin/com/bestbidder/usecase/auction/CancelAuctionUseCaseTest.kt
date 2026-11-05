@@ -1,6 +1,8 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -21,19 +23,27 @@ class CancelAuctionUseCaseTest {
     private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
     private val useCase = CancelAuctionUseCase(auctionRepository, notificationPort)
 
+    private val creatorId = UUID.randomUUID()
+    private val sampleCard =
+        Card(
+            id = UUID.randomUUID(),
+            ownerId = creatorId,
+            name = "Pikachu Gold",
+            image = "pikachu.png",
+            category = "Pokémon",
+            state = CardState.NEW,
+        )
+
     @Test
     @DisplayName("Debe cancelar la subasta correctamente si la realiza el creador")
     fun `should cancel auction when requested by creator`() {
         val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
         val auction =
             Auction(
                 id = auctionId,
                 creator_id = creatorId,
                 creator_username = "paula",
-                card = "Pikachu Gold",
-                category = "Pokémon",
-                collection = "Promo",
+                card = sampleCard,
                 min_prize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,
@@ -52,16 +62,13 @@ class CancelAuctionUseCaseTest {
     @DisplayName("Debe lanzar IllegalArgumentException si intenta cancelar un usuario distinto al creador")
     fun `should throw exception when requested by non creator`() {
         val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
         val impostorId = UUID.randomUUID()
         val auction =
             Auction(
                 id = auctionId,
                 creator_id = creatorId,
                 creator_username = "paula",
-                card = "Pikachu Gold",
-                category = "Pokémon",
-                collection = "Promo",
+                card = sampleCard,
                 min_prize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,
@@ -83,15 +90,12 @@ class CancelAuctionUseCaseTest {
     @DisplayName("Debe lanzar IllegalStateException si la subasta ya habia sido cancelada")
     fun `should throw exception when auction is already cancelled`() {
         val auctionId = UUID.randomUUID()
-        val creatorId = UUID.randomUUID()
         val cancelledAuction =
             Auction(
                 id = auctionId,
                 creator_id = creatorId,
                 creator_username = "paula",
-                card = "Pikachu Gold",
-                category = "Pokémon",
-                collection = "Promo",
+                card = sampleCard,
                 min_prize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,

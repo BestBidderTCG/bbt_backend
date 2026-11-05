@@ -1,6 +1,8 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import org.junit.jupiter.api.DisplayName
@@ -23,14 +25,22 @@ class StartPendingAuctionsUseCaseTest {
     fun `should notify started auctions`() {
         val now = Instant.now().truncatedTo(ChronoUnit.MINUTES)
         val auctionId = UUID.randomUUID()
+        val creatorId = UUID.randomUUID()
+
         val auction =
             Auction(
                 id = auctionId,
-                creator_id = UUID.randomUUID(),
+                creator_id = creatorId,
                 creator_username = "paula",
-                card = "Charizard",
-                category = "Pokémon",
-                collection = "Base Set",
+                card =
+                    Card(
+                        id = UUID.randomUUID(),
+                        ownerId = creatorId,
+                        name = "Charizard",
+                        image = "charizard.png",
+                        category = "Pokémon",
+                        state = CardState.POOR,
+                    ),
                 min_prize = 100.0,
                 startedAt = now,
                 durationInDays = 1,

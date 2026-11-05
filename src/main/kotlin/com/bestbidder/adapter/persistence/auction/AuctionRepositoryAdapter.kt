@@ -1,5 +1,7 @@
 package com.bestbidder.adapter.persistence.auction
 
+import com.bestbidder.adapter.persistence.card.JpaCardRepository
+import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Repository
@@ -9,6 +11,8 @@ import java.util.UUID
 @Repository
 class AuctionRepositoryAdapter(
     private val jpaAuctionRepository: JpaAuctionRepository,
+    private val jpaUserRepository: JpaUserRepository,
+    private val jpaCardRepository: JpaCardRepository,
 ) : AuctionRepository {
     override fun getById(id: UUID): Auction? {
         return jpaAuctionRepository.findById(id)
@@ -24,12 +28,8 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findByCreatorUsername(creator).map { it.toDomain() }
     }
 
-    override fun getByCollection(collection: String): List<Auction> {
-        return jpaAuctionRepository.findByCollection(collection).map { it.toDomain() }
-    }
-
-    override fun getByCard(card: String): List<Auction> {
-        return jpaAuctionRepository.findByCard(card).map { it.toDomain() }
+    override fun getByCard(cardId: UUID): List<Auction> {
+        return jpaAuctionRepository.findByCardId(cardId).map { it.toDomain() }
     }
 
     override fun getActive(): List<Auction> {
@@ -42,9 +42,9 @@ class AuctionRepositoryAdapter(
 
     override fun existsByCreatorAndCard(
         creator: String,
-        card: String,
+        cardId: UUID,
     ): Boolean {
-        return jpaAuctionRepository.existsActiveAuction(creator, card)
+        return jpaAuctionRepository.existsActiveAuction(creator, cardId)
     }
 
     override fun getJustStarted(now: Instant): List<Auction> {
@@ -56,7 +56,10 @@ class AuctionRepositoryAdapter(
     }
 
     override fun save(auction: Auction): Auction {
-        val entity = AuctionEntity.fromDomain(auction)
+        val creatorRef = jpaUserRepository.getReferenceById(auction.creator_id)
+        val cardRef = jpaCardRepository.getReferenceById(auction.card.id)
+
+        val entity = AuctionEntity.fromDomain(auction, creatorRef, cardRef)
         return jpaAuctionRepository.save(entity).toDomain()
     }
 }

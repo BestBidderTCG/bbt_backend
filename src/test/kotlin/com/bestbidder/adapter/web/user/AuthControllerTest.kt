@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -46,18 +47,19 @@ class AuthControllerTest {
         @DisplayName("Debe retornar 201 Created cuando el registro es exitoso")
         fun `should return 201 on successful registration`() {
             val request = RegisterRequest("david@test.com", "david_85", "secreto85")
-            val createdUser =
+
+            val fakeUser =
                 User(
                     id = UUID.randomUUID(),
-                    email = request.email,
-                    username = request.username,
-                    passwordHash = "hashed",
+                    email = "test@test.com",
+                    username = "testuser",
+                    passwordHash = "hash",
                     description = null,
                     avatarNum = null,
                 )
+            val fakeAuthResult = AuthResult(user = fakeUser, accessToken = "fakeAccessToken", refreshToken = "fakeRefreshToken")
 
-            `when`(authUseCase.register(request.email, request.username, request.password))
-                .thenReturn(createdUser)
+            `when`(authUseCase.register(any(), any(), any())).thenReturn(fakeAuthResult)
 
             mockMvc.perform(
                 post("/api/auth/register")
@@ -67,6 +69,8 @@ class AuthControllerTest {
                 .andExpect(status().isCreated)
                 .andExpect(jsonPath("$.email").value("david@test.com"))
                 .andExpect(jsonPath("$.username").value("david_85"))
+                .andExpect(jsonPath("$.accessToken").value("fakeAccessToken"))
+                .andExpect(jsonPath("$.refreshToken").value("fakeRefreshToken"))
         }
 
         @Test

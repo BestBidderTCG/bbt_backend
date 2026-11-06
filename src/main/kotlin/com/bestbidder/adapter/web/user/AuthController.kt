@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.user
 
+import com.bestbidder.adapter.web.user.dto.ExistsResponse
 import com.bestbidder.adapter.web.user.dto.LoginRequest
 import com.bestbidder.adapter.web.user.dto.LoginResponse
 import com.bestbidder.adapter.web.user.dto.RefreshRequest
@@ -9,9 +10,11 @@ import com.bestbidder.usecase.user.AuthUseCase
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -22,10 +25,16 @@ class AuthController(
     @PostMapping("/register")
     fun register(
         @Valid @RequestBody req: RegisterRequest,
-    ): ResponseEntity<UserResponse> {
+    ): ResponseEntity<LoginResponse> {
         // Ahora email, username y password
-        val user = authUseCase.register(req.email, req.username, req.password)
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromDomain(user))
+        val result = authUseCase.register(req.email, req.username, req.password)
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            LoginResponse(
+                accessToken = result.accessToken,
+                refreshToken = result.refreshToken,
+                user = UserResponse.fromDomain(result.user),
+            ),
+        )
     }
 
     @PostMapping("/login")
@@ -55,5 +64,26 @@ class AuthController(
     ): ResponseEntity<Void> {
         authUseCase.logout(req.refreshToken)
         return ResponseEntity.noContent().build()
+    }
+
+    /**
+     * Devuelve si un email ya está registrado en el sistema.
+     * Útil para que el frontend avise antes de enviar el registro.
+     */
+    @GetMapping("/check-email")
+    fun checkEmail(
+        @RequestParam email: String,
+    ): ResponseEntity<ExistsResponse> {
+        return ResponseEntity.ok(ExistsResponse(authUseCase.emailExists(email)))
+    }
+
+    /**
+     * Devuelve si un username ya está en uso.
+     */
+    @GetMapping("/check-username")
+    fun checkUsername(
+        @RequestParam username: String,
+    ): ResponseEntity<ExistsResponse> {
+        return ResponseEntity.ok(ExistsResponse(authUseCase.usernameExists(username)))
     }
 }

@@ -30,7 +30,7 @@ class AuthUseCase(
         email: String,
         username: String,
         password: String,
-    ): User {
+    ): AuthResult {
         // 1. Validar formatos
         if (!emailL.matches(email)) {
             throw IllegalArgumentException("El formato del email no es válido.")
@@ -60,7 +60,9 @@ class AuthUseCase(
                 description = null,
                 avatarNum = null,
             )
-        return userRepository.save(newUser)
+
+        val saved = userRepository.save(newUser)
+        return issueTokens(saved)
     }
 
     fun login(
@@ -93,6 +95,11 @@ class AuthUseCase(
     fun logout(refreshToken: String) {
         refreshTokenService.revoke(refreshToken)
     }
+
+    // Checks para el frontend
+    fun emailExists(email: String): Boolean = userRepository.existsByEmail(email)
+
+    fun usernameExists(username: String): Boolean = userRepository.existsByUsername(username)
 
     private fun issueTokens(user: User): AuthResult {
         val access = jwtService.generateAccessToken(user.id, user.username)

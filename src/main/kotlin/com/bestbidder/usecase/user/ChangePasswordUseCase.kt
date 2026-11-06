@@ -28,7 +28,7 @@ class ChangePasswordUseCase(
         if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
             throw InvalidCredentialsException()
         }
-        require(newPassword.length in 6..100) { "La nueva contraseña debe tener entre 6 y 100 caracteres" }
+        require(newPassword.length in 6..50) { "La nueva contraseña debe tener entre 6 y 50 caracteres" }
 
         userRepository.save(user.copy(passwordHash = passwordEncoder.encode(newPassword)!!))
         refreshTokenService.revokeAll(userId)

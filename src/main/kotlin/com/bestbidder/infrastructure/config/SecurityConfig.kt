@@ -31,6 +31,8 @@ class SecurityConfig(
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/auth/logout",
+                        "/api/auth/check-email",
+                        "/api/auth/check-username",
                         "/error",
                     ).permitAll()
                     .anyRequest().authenticated()

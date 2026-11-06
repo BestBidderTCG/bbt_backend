@@ -49,6 +49,8 @@ components:
         password:
           type: string
           format: password
+          minLength: 6
+          maxLength: 50
           example: "secreto85"
 
     UserResponse:
@@ -130,6 +132,15 @@ components:
         newPassword:
           type: string
           format: password
+          minLength: 6
+          maxLength: 50
+
+    ExistsResponse:
+       type: object
+       properties:
+          exists:
+            type: boolean
+            example: false
 
 paths:
   /api/health:
@@ -150,6 +161,7 @@ paths:
   /api/auth/register:
     post:
       summary: Registrar un nuevo usuario
+      description: Devuelve tokens (access + refresh) para evitar una llamada extra a /login.
       requestBody:
         required: true
         content:
@@ -162,9 +174,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/LoginResponse'
         '400':
-          description: Datos inválidos.
+          description: Datos inválidos (email/username con formato incorrecto o contraseña fuera del rango 6-50).
         '409':
           description: El email o el username ya existen.
 
@@ -296,3 +308,39 @@ paths:
           description: Nueva contraseña inválida.
         '401':
           description: Contraseña actual incorrecta o no autorizado.
+
+
+  /api/auth/check-email:
+    get:
+      summary: Comprobar si un email ya está registrado
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Resultado de la comprobación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExistsResponse'
+
+  /api/auth/check-username:
+    get:
+      summary: Comprobar si un username ya está en uso
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resultado de la comprobación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExistsResponse'

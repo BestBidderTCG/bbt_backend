@@ -48,11 +48,16 @@ class AuthUseCaseTest {
             `when`(passwordEncoder.encode(password)).thenReturn("hashed_password")
             `when`(userRepository.save(any(User::class.java))).thenAnswer { it.arguments[0] as User }
 
+            `when`(jwtService.generateAccessToken(any(), any())).thenReturn("fake_access_token")
+            `when`(refreshTokenService.generate(any())).thenReturn("fake_refresh_token")
+
             val result = authUseCase.register(email, username, password)
 
-            assertEquals(email, result.email)
-            assertEquals(username, result.username)
-            assertEquals("hashed_password", result.passwordHash)
+            assertEquals("david@test.com", result.user.email)
+            assertEquals("david_85", result.user.username)
+            assertEquals("hashed_password", result.user.passwordHash)
+            assertEquals("fake_access_token", result.accessToken)
+            assertEquals("fake_refresh_token", result.refreshToken)
             verify(userRepository, times(1)).save(any(User::class.java))
         }
 

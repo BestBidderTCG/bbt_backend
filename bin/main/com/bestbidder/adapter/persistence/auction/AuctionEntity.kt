@@ -17,6 +17,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "auction")
+@Suppress("LongParameterList")
 class AuctionEntity(
     @Id
     val id: UUID = UUID.randomUUID(),

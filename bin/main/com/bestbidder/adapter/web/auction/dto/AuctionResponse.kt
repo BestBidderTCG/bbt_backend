@@ -22,11 +22,11 @@ data class AuctionResponse(
         fun fromDomain(auction: Auction): AuctionResponse =
             AuctionResponse(
                 id = auction.id,
-                creator_id = auction.creator_id,
-                creator_username = auction.creator_username,
+                creator_id = auction.creatorId,
+                creator_username = auction.creatorUsername,
                 card = auction.card,
                 description = auction.description,
-                min_prize = auction.min_prize,
+                min_prize = auction.minPrize,
                 startedAt = auction.startedAt,
                 endsAt = auction.endsAt,
                 durationInDays = auction.durationInDays,

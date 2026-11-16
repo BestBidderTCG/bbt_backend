@@ -13,9 +13,15 @@ import java.util.UUID
 class CreateAuctionUseCase(
     private val auctionRepository: AuctionRepository,
 ) {
+    private companion object {
+        const val MIN_DURATION_DAYS = 1
+        const val MINUTE_BLOCK_ALIGNMENT = 15
+    }
+
+    @Suppress("LongParameterList")
     fun create(
-        creator_id: UUID,
-        creator_username: String,
+        creatorId: UUID,
+        creatorUsername: String,
         card: Card,
         description: String? = null,
         minPrize: Double,
@@ -24,8 +30,8 @@ class CreateAuctionUseCase(
     ): Auction {
         val now = Instant.now().truncatedTo(ChronoUnit.MINUTES)
 
-        if (startedAt.isBefore(now)) {
-            throw IllegalArgumentException("La fecha de inicio de la subasta no puede ser anterior al instante actual")
+        require(!startedAt.isBefore(now)) {
+            "La fecha de inicio de la subasta no puede ser anterior al instante actual"
         }
 
         val zonedDateTime = startedAt.atZone(ZoneOffset.UTC)
@@ -33,29 +39,25 @@ class CreateAuctionUseCase(
         val second = zonedDateTime.second
         val nano = zonedDateTime.nano
 
-        if (minute % 15 != 0 || second != 0 || nano != 0) {
-            throw IllegalArgumentException(
-                "La hora de activación debe estar alineada a bloques de 15 minutos exactos (ej. :00, :15, :30, :45)",
-            )
+        require(minute % MINUTE_BLOCK_ALIGNMENT == 0 && second == 0 && nano == 0) {
+            "La hora de activación debe estar alineada a bloques de 15 minutos exactos (ej. :00, :15, :30, :45)"
         }
 
-        if (durationInDays < 1) {
-            throw IllegalArgumentException("La duración de la subasta debe ser de al menos 1 día")
+        require(durationInDays >= MIN_DURATION_DAYS) {
+            "La duración de la subasta debe ser de al menos 1 día"
         }
 
-        val exists = auctionRepository.existsByCreatorAndCard(creator_username, card.id)
-        if (exists) {
-            throw IllegalArgumentException(
-                "Ya existe una subasta activa o próxima para la carta con ID '${card.id}' y el usuario '$creator_username'",
-            )
+        val exists = auctionRepository.existsByCreatorAndCard(creatorUsername, card.id)
+        require(!exists) {
+            "Ya existe una subasta activa o próxima para la carta con ID '${card.id}' y el usuario '$creatorUsername'"
         }
 
         val cleanStartedAt = startedAt.truncatedTo(ChronoUnit.MINUTES)
 
         val newAuction =
             Auction(
-                creator_id = creator_id,
-                creator_username = creator_username,
+                creator_id = creatorId,
+                creator_username = creatorUsername,
                 card = card,
                 description = description,
                 min_prize = minPrize,

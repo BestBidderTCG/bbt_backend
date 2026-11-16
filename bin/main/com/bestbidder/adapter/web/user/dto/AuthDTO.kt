@@ -25,7 +25,7 @@ data class RegisterRequest(
     @field:NotBlank(message = "El username es obligatorio")
     val username: String,
     @field:NotBlank(message = "La contraseña es obligatoria")
-    @field:Size(min = 6, max = 100)
+    @field:Size(min = 6, max = 50)
     val password: String,
 )
 
@@ -37,7 +37,7 @@ data class UpdateUserProfileRequest(
 
 data class ChangePasswordRequest(
     @field:NotBlank val currentPassword: String,
-    @field:NotBlank @field:Size(min = 6, max = 100) val newPassword: String,
+    @field:NotBlank @field:Size(min = 6, max = 50) val newPassword: String,
 )
 
 // Respuestas
@@ -92,3 +92,6 @@ data class RefreshRequest(
     @field:NotBlank(message = "El refresh token es obligatorio")
     val refreshToken: String,
 )
+
+// Para /check-email y /check-username
+data class ExistsResponse(val exists: Boolean)

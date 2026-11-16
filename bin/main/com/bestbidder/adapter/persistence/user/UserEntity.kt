@@ -13,6 +13,7 @@ import java.util.UUID
  */
 @Entity
 @Table(name = "bidder")
+@Suppress("LongParameterList")
 class UserEntity(
     @Id val id: UUID,
     @Column(unique = true, nullable = false, length = 100)

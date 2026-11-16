@@ -11,11 +11,11 @@ import java.util.UUID
  */
 data class Auction(
     val id: UUID = UUID.randomUUID(),
-    val creator_id: UUID,
-    val creator_username: String,
+    val creatorId: UUID,
+    val creatorUsername: String,
     val card: Card,
     val description: String? = null,
-    val min_prize: Double,
+    val minPrize: Double,
     val startedAt: Instant,
     val durationInDays: Int,
     val isCancelled: Boolean = false,

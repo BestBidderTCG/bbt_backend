@@ -7,6 +7,9 @@ plugins {
 
     // Plugin oficial para formateo y linter de Kotlin
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+
+    // Plugin para análisis estático y calidad de código
+    id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
 group = "com.bestbidder"

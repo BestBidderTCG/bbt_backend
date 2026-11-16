@@ -10,6 +10,7 @@ import java.util.UUID
 class CreateCardUseCase(
     private val cardRepository: CardRepository,
 ) {
+    @Suppress("LongParameterList")
     fun execute(
         ownerId: UUID,
         name: String,

@@ -3,7 +3,10 @@ package com.bestbidder.adapter.persistence.auction
 import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.usecase.auction.AuctionSearchCriteria
 import com.bestbidder.usecase.port.AuctionRepository
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.UUID
@@ -24,16 +27,20 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findAll().map { it.toDomain() }
     }
 
-    override fun getByCreator(creator: String): List<Auction> {
-        return jpaAuctionRepository.findByCreatorUsername(creator).map { it.toDomain() }
-    }
+    override fun search(criteria: AuctionSearchCriteria): List<Auction> {
+        val direction =
+            if (criteria.sortDirection.equals("ASC", ignoreCase = true)) {
+                Sort.Direction.ASC
+            } else {
+                Sort.Direction.DESC
+            }
 
-    override fun getByCard(cardId: UUID): List<Auction> {
-        return jpaAuctionRepository.findByCardId(cardId).map { it.toDomain() }
-    }
+        val allowedSortFields = setOf("createdAt", "endsAt", "startedAt", "minPrize")
+        val sortField = if (criteria.sortBy in allowedSortFields) criteria.sortBy else "createdAt"
 
-    override fun getActive(): List<Auction> {
-        return jpaAuctionRepository.findActive().map { it.toDomain() }
+        val pageable = PageRequest.of(criteria.page, criteria.size, Sort.by(direction, sortField))
+
+        return jpaAuctionRepository.search(criteria, pageable).content.map { it.toDomain() }
     }
 
     override fun getInProgress(): List<Auction> {
@@ -56,7 +63,7 @@ class AuctionRepositoryAdapter(
     }
 
     override fun save(auction: Auction): Auction {
-        val creatorRef = jpaUserRepository.getReferenceById(auction.creator_id)
+        val creatorRef = jpaUserRepository.getReferenceById(auction.creatorId)
         val cardRef = jpaCardRepository.getReferenceById(auction.card.id)
 
         val entity = AuctionEntity.fromDomain(auction, creatorRef, cardRef)

@@ -56,11 +56,11 @@ class CreateAuctionUseCase(
 
         val newAuction =
             Auction(
-                creator_id = creatorId,
-                creator_username = creatorUsername,
+                creatorId = creatorId,
+                creatorUsername = creatorUsername,
                 card = card,
                 description = description,
-                min_prize = minPrize,
+                minPrize = minPrize,
                 startedAt = cleanStartedAt,
                 durationInDays = durationInDays,
             )

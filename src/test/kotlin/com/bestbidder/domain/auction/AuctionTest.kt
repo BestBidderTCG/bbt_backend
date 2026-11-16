@@ -35,10 +35,10 @@ class AuctionTest {
 
         val auction =
             Auction(
-                creator_id = userId,
-                creator_username = "paula",
+                creatorId = userId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = startedAt,
                 durationInDays = durationInDays,
             )
@@ -53,10 +53,10 @@ class AuctionTest {
         val exception =
             assertThrows(IllegalArgumentException::class.java) {
                 Auction(
-                    creator_id = userId,
-                    creator_username = "paula",
+                    creatorId = userId,
+                    creatorUsername = "paula",
                     card = sampleCard,
-                    min_prize = 100.0,
+                    minPrize = 100.0,
                     startedAt = now,
                     durationInDays = 0,
                 )
@@ -70,10 +70,10 @@ class AuctionTest {
     fun `should return CANCELLED when isCancelled is true`() {
         val auction =
             Auction(
-                creator_id = userId,
-                creator_username = "paula",
+                creatorId = userId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = now.minus(1, ChronoUnit.DAYS),
                 durationInDays = 3,
                 isCancelled = true,
@@ -89,10 +89,10 @@ class AuctionTest {
 
         val auction =
             Auction(
-                creator_id = userId,
-                creator_username = "paula",
+                creatorId = userId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = futureStart,
                 durationInDays = 2,
             )
@@ -107,10 +107,10 @@ class AuctionTest {
 
         val auction =
             Auction(
-                creator_id = userId,
-                creator_username = "paula",
+                creatorId = userId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = pastStart,
                 durationInDays = 3,
             )
@@ -125,10 +125,10 @@ class AuctionTest {
 
         val auction =
             Auction(
-                creator_id = userId,
-                creator_username = "paula",
+                creatorId = userId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = pastStart,
                 durationInDays = 2,
             )

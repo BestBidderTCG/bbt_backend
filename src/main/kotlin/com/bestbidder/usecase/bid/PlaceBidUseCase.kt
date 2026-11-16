@@ -29,7 +29,7 @@ class PlaceBidUseCase(
             "Solo se puede pujar en subastas en curso (IN_PROGRESS)"
         }
 
-        require(bidderId != auction.creator_id) {
+        require(bidderId != auction.creatorId) {
             "El creador de la subasta no puede pujar en ella"
         }
 
@@ -44,7 +44,7 @@ class PlaceBidUseCase(
 
         val minimumAllowedAmount: Double =
             BidIncrementPolicy.calculateMinimumNextBid(
-                minPrize = auction.min_prize,
+                minPrize = auction.minPrize,
                 currentHighestBid = currentHighestBidAmount,
             )
 

@@ -51,11 +51,11 @@ class PlaceBidUseCaseTest {
         val activeAuction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card = sampleCard,
                 description = "Perfecto estado",
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = Instant.now().minusSeconds(3600),
                 durationInDays = 1,
             )
@@ -100,10 +100,10 @@ class PlaceBidUseCaseTest {
         val activeAuction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = Instant.now().minusSeconds(3600),
                 durationInDays = 1,
             )

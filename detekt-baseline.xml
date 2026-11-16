@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ConstructorParameterNaming:AuctionResponse.kt$AuctionResponse$val creator_id: UUID</ID>
+    <ID>ConstructorParameterNaming:AuctionResponse.kt$AuctionResponse$val creator_username: String</ID>
+    <ID>ConstructorParameterNaming:AuctionResponse.kt$AuctionResponse$val min_prize: Double</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val card_id: UUID</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val creator_id: UUID</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val creator_username: String</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val duration_in_days: Int</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val min_prize: Double</ID>
+    <ID>ConstructorParameterNaming:CreateAuctionRequest.kt$CreateAuctionRequest$val started_at: Instant</ID>
+    <ID>InvalidPackageDeclaration:JwtServiceTest.kt$package com.bestbidder.infrastructure.security</ID>
+    <ID>InvalidPackageDeclaration:RefreshTokenServiceTest.kt$package com.bestbidder.infrastructure.security</ID>
+    <ID>LongMethod:DataInitializer.kt$DataInitializer$override fun run(vararg args: String?)</ID>
+    <ID>MagicNumber:Auction.kt$Auction$7</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$0.10</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$0.25</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$0.50</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$10.00</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$100.0</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$25.0</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$25.00</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$250.0</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$5.0</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$5.00</ID>
+    <ID>MagicNumber:BidIncrementPolicy.kt$BidIncrementPolicy$500.0</ID>
+    <ID>MagicNumber:ChangePasswordUseCase.kt$ChangePasswordUseCase$50</ID>
+    <ID>MagicNumber:ChangePasswordUseCase.kt$ChangePasswordUseCase$6</ID>
+    <ID>MagicNumber:JwtAuthFilter.kt$JwtAuthFilter$7</ID>
+    <ID>MagicNumber:RefreshTokenService.kt$RefreshTokenService$64</ID>
+    <ID>MagicNumber:UpdateUserUseCase.kt$UpdateUserUseCase$500</ID>
+    <ID>MaxLineLength:AuthControllerTest.kt$AuthControllerTest.RegisterTests$val fakeAuthResult = AuthResult(user = fakeUser, accessToken = "fakeAccessToken", refreshToken = "fakeRefreshToken")</ID>
+    <ID>MaxLineLength:BidControllerTest.kt$BidControllerTest.GetHistoryTests$val bid2 = Bid(auctionId = auctionId, bidderId = UUID.randomUUID(), bidderUsername = "pujador2", amount = 150.0)</ID>
+    <ID>MaxLineLength:CardRepositoryAdapter.kt$CardRepositoryAdapter$override fun getByCreator(creatorId: UUID): List&lt;Card&gt;</ID>
+    <ID>MaxLineLength:UpdateUserUseCase.kt$UpdateUserUseCase$description.length &gt; 500 -&gt; throw IllegalArgumentException("La descripción no puede tener más de 500 caracteres")</ID>
+    <ID>ReturnCount:Auction.kt$Auction$fun getStatusAt(now: Instant): AuctionStatus</ID>
+    <ID>SpreadOperator:BestBidderApplication.kt$(*args)</ID>
+    <ID>SwallowedException:JwtService.kt$JwtService$e: Exception</ID>
+    <ID>ThrowsCount:AuthUseCase.kt$AuthUseCase$fun register( email: String, username: String, password: String, ): AuthResult</ID>
+    <ID>ThrowsCount:CancelAuctionUseCase.kt$CancelAuctionUseCase$@Transactional fun cancel( auctionId: UUID, requesterUserId: UUID, )</ID>
+    <ID>TooGenericExceptionCaught:JwtService.kt$JwtService$e: Exception</ID>
+    <ID>UnusedParameter:GlobalExceptionHandler.kt$GlobalExceptionHandler$e: HttpMessageNotReadableException</ID>
+    <ID>UnusedPrivateProperty:AuthControllerTest.kt$AuthControllerTest$@MockBean private lateinit var jwtService: com.bestbidder.infrastructure.config.JwtService</ID>
+    <ID>UnusedPrivateProperty:UserControllerTest.kt$UserControllerTest$@MockBean private lateinit var changePasswordUseCase: ChangePasswordUseCase</ID>
+    <ID>UnusedPrivateProperty:UserControllerTest.kt$UserControllerTest$@MockBean private lateinit var jwtService: com.bestbidder.infrastructure.config.JwtService</ID>
+    <ID>UseCheckOrError:CancelAuctionUseCase.kt$CancelAuctionUseCase$throw IllegalStateException("La subasta ya se encuentra cancelada")</ID>
+    <ID>UseRequire:AuthUseCase.kt$AuthUseCase$throw IllegalArgumentException("El email ya está registrado")</ID>
+    <ID>UseRequire:AuthUseCase.kt$AuthUseCase$throw IllegalArgumentException("El formato del email no es válido.")</ID>
+    <ID>UseRequire:CancelAuctionUseCase.kt$CancelAuctionUseCase$throw IllegalArgumentException("No tienes permiso para cancelar esta subasta")</ID>
+  </CurrentIssues>
+</SmellBaseline>

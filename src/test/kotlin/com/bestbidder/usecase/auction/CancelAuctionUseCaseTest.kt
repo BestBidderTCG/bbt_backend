@@ -41,10 +41,10 @@ class CancelAuctionUseCaseTest {
         val auction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 200.0,
+                minPrize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,
                 isCancelled = false,
@@ -66,10 +66,10 @@ class CancelAuctionUseCaseTest {
         val auction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 200.0,
+                minPrize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,
             )
@@ -93,10 +93,10 @@ class CancelAuctionUseCaseTest {
         val cancelledAuction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card = sampleCard,
-                min_prize = 200.0,
+                minPrize = 200.0,
                 startedAt = Instant.now(),
                 durationInDays = 2,
                 isCancelled = true,

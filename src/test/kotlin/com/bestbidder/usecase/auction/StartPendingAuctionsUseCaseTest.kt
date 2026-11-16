@@ -30,8 +30,8 @@ class StartPendingAuctionsUseCaseTest {
         val auction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card =
                     Card(
                         id = UUID.randomUUID(),
@@ -41,7 +41,7 @@ class StartPendingAuctionsUseCaseTest {
                         category = "Pokémon",
                         state = CardState.POOR,
                     ),
-                min_prize = 100.0,
+                minPrize = 100.0,
                 startedAt = now,
                 durationInDays = 1,
             )

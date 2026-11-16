@@ -30,8 +30,8 @@ class CloseExpiredAuctionsUseCaseTest {
         val auction =
             Auction(
                 id = auctionId,
-                creator_id = creatorId,
-                creator_username = "paula",
+                creatorId = creatorId,
+                creatorUsername = "paula",
                 card =
                     Card(
                         id = UUID.randomUUID(),
@@ -41,7 +41,7 @@ class CloseExpiredAuctionsUseCaseTest {
                         category = "Pokémon",
                         state = CardState.NEAR_MINT,
                     ),
-                min_prize = 50.0,
+                minPrize = 50.0,
                 startedAt = now.minus(1, ChronoUnit.DAYS),
                 durationInDays = 1,
             )

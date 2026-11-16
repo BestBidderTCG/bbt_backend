@@ -43,11 +43,11 @@ class AuctionEntity(
     fun toDomain(): Auction {
         return Auction(
             id = this.id,
-            creator_id = this.creator.id,
-            creator_username = this.creator.username,
+            creatorId = this.creator.id,
+            creatorUsername = this.creator.username,
             card = this.card.toDomain(),
             description = this.description,
-            min_prize = this.minPrize,
+            minPrize = this.minPrize,
             startedAt = this.startedAt,
             durationInDays = this.durationInDays,
             isCancelled = this.isCancelled,
@@ -65,7 +65,7 @@ class AuctionEntity(
                 creator = creatorEntity,
                 card = cardEntity,
                 description = domain.description,
-                minPrize = domain.min_prize,
+                minPrize = domain.minPrize,
                 startedAt = domain.startedAt.truncatedTo(ChronoUnit.MINUTES),
                 durationInDays = domain.durationInDays,
                 endsAt = domain.endsAt.truncatedTo(ChronoUnit.MINUTES),

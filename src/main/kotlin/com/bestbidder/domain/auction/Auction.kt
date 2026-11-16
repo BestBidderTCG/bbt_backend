@@ -29,7 +29,7 @@ data class Auction(
         require(durationInDays in 1..7) {
             "La duración de la subasta debe estar entre 1 y 7 días"
         }
-        require(min_prize > 0.0) {
+        require(minPrize > 0.0) {
             "El precio mínimo debe ser mayor a 0"
         }
     }

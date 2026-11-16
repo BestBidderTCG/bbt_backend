@@ -21,7 +21,7 @@ class CancelAuctionUseCase(
                 ?: throw IllegalArgumentException("Subasta $auctionId no encontrada")
 
         // Validar que el usuario sea el creador
-        if (auction.creator_id != requesterUserId) {
+        if (auction.creatorId != requesterUserId) {
             throw IllegalArgumentException("No tienes permiso para cancelar esta subasta")
         }
 

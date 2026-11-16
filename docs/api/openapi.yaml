@@ -142,6 +142,178 @@ components:
             type: boolean
             example: false
 
+
+    AuctionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creatorId:
+          type: string
+          format: uuid
+        creatorUsername:
+          type: string
+          example: "paula"
+        card:
+          $ref: '#/components/schemas/CardResponse'
+        description:
+          type: string
+          nullable: true
+          example: "Carta en perfecto estado, funda incluida."
+        minPrize:
+          type: number
+          format: double
+          example: 80.0
+        startedAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        durationInDays:
+          type: integer
+          example: 3
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS, FINISHED, CANCELLED]
+          example: "IN_PROGRESS"
+
+    CreateAuctionRequest:
+      type: object
+      required:
+        - creator_id
+        - creator_username
+        - card_id
+        - min_prize
+        - started_at
+        - duration_in_days
+      properties:
+        creator_id:
+          type: string
+          format: uuid
+        creator_username:
+          type: string
+          example: "paula"
+        card_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+          nullable: true
+        min_prize:
+          type: number
+          format: double
+          example: 80.0
+        started_at:
+          type: string
+          format: date-time
+        duration_in_days:
+          type: integer
+          minimum: 1
+          maximum: 7
+          example: 3
+    CreateCardRequest:
+      type: object
+      required:
+        - name
+        - image
+        - category
+        - collection
+        - num
+        - state
+      properties:
+        name:
+          type: string
+          example: "Charizard Base Set"
+        image:
+          type: string
+          example: "https://example.com/charizard.png"
+        category:
+          type: string
+          example: "Pokémon"
+        collection:
+          type: string
+          example: "Base Set 1999"
+        num:
+          type: string
+          example: "4/102"
+        state:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        description:
+          type: string
+          nullable: true
+          example: "Primera edición en funda protectora."
+
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Charizard Base Set"
+        image:
+          type: string
+          example: "https://example.com/charizard.png"
+        category:
+          type: string
+          example: "Pokémon"
+        collection:
+          type: string
+          nullable: true
+          example: "Base Set 1999"
+        num:
+          type: string
+          nullable: true
+          example: "4/102"
+        state:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        description:
+          type: string
+          nullable: true
+
+    PlaceBidRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 95.0
+
+    BidResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        auctionId:
+          type: string
+          format: uuid
+        bidderId:
+          type: string
+          format: uuid
+        bidderUsername:
+          type: string
+          example: "david_85"
+        amount:
+          type: number
+          format: double
+          example: 95.0
+        createdAt:
+          type: string
+          format: date-time
+
 paths:
   /api/health:
     get:
@@ -157,6 +329,7 @@ paths:
                   status:
                     type: string
                     example: OK
+  
 
   /api/auth/register:
     post:
@@ -344,3 +517,276 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExistsResponse'
+  
+  /api/auction/search:
+    get:
+      summary: Buscar y filtrar subastas con paginación y ordenación
+      description: Permite combinar múltiples filtros opcionales. Todos los parámetros se pasan por query string.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Texto libre para buscar en la descripción de la subasta o en el nombre de la carta (case-insensitive).
+          schema:
+            type: string
+            example: "Charizard"
+        - name: active
+          in: query
+          required: false
+          description: "true: solo activas (no canceladas y no expiradas); false: finalizadas o canceladas; omitido: todas."
+          schema:
+            type: boolean
+            example: true
+        - name: creator
+          in: query
+          required: false
+          description: Filtra por el username exacto del creador de la subasta.
+          schema:
+            type: string
+            example: "paula"
+        - name: cardId
+          in: query
+          required: false
+          description: Filtra subastas asociadas a una carta concreta.
+          schema:
+            type: string
+            format: uuid
+        - name: minPrice
+          in: query
+          required: false
+          description: Precio mínimo inicial (inclusive).
+          schema:
+            type: number
+            format: double
+            example: 50.0
+        - name: maxPrice
+          in: query
+          required: false
+          description: Precio máximo inicial (inclusive).
+          schema:
+            type: number
+            format: double
+            example: 200.0
+        - name: page
+          in: query
+          required: false
+          description: Número de página (empieza en 0).
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          description: Tamaño de página (entre 1 y 50).
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+        - name: sortBy
+          in: query
+          required: false
+          description: Campo de ordenación.
+          schema:
+            type: string
+            enum: [createdAt, endsAt, startedAt, minPrize]
+            default: createdAt
+        - name: direction
+          in: query
+          required: false
+          description: Dirección de ordenación.
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+      responses:
+        '200':
+          description: Listado de subastas que cumplen los criterios.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionResponse'
+
+  /api/auction/all:
+    get:
+      summary: Obtener todas las subastas registradas
+      responses:
+        '200':
+          description: Listado completo de subastas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionResponse'
+
+  /api/auction/{id}:
+    get:
+      summary: Obtener una subasta por su ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle de la subasta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuctionResponse'
+        '404':
+          description: Subasta no encontrada.
+
+  /api/auction/create:
+    post:
+      summary: Crear una nueva subasta
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuctionRequest'
+      responses:
+        '201':
+          description: Subasta creada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuctionResponse'
+        '400':
+          description: Datos inválidos o ya existe una subasta activa para esa carta.
+        '401':
+          description: No autorizado.
+  
+  /api/card/create:
+    post:
+      summary: Crear y registrar una nueva carta
+      description: Asigna automáticamente la propiedad al usuario autenticado mediante el token JWT.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Carta creada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+        '400':
+          description: Datos de la carta inválidos.
+        '401':
+          description: No autorizado.
+
+  /api/card/all:
+    get:
+      summary: Obtener todas las cartas registradas
+      responses:
+        '200':
+          description: Listado completo de cartas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+
+  /api/card/{id}:
+    get:
+      summary: Obtener detalle de una carta por su ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Carta encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+        '400':
+          description: No existe ninguna carta con ese ID.
+
+  /api/card/user/my-cards:
+    get:
+      summary: Obtener las cartas del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de cartas pertenecientes al usuario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+        '401':
+          description: No autorizado.
+
+  /api/bid/{auctionId}:
+    post:
+      summary: Realizar una puja en una subasta
+      description: Registra una puja del usuario autenticado sobre la subasta indicada.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: auctionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceBidRequest'
+      responses:
+        '201':
+          description: Puja registrada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BidResponse'
+        '400':
+          description: Importe insuficiente, subasta inactiva o el pujador es el creador.
+        '401':
+          description: No autorizado.
+
+  /api/bid/history/{auctionId}:
+    get:
+      summary: Obtener historial de pujas de una subasta
+      parameters:
+        - name: auctionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Listado ordenado de pujas de la subasta.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BidResponse'

@@ -17,15 +17,7 @@ class GetAuctionUseCase(
         return auctionRepository.getAll()
     }
 
-    fun getActive(): List<Auction> {
-        return auctionRepository.getActive()
-    }
-
-    fun getByCreator(creator: String): List<Auction> {
-        return auctionRepository.getByCreator(creator)
-    }
-
-    fun getByCard(cardId: UUID): List<Auction> {
-        return auctionRepository.getByCard(cardId)
+    fun search(criteria: AuctionSearchCriteria): List<Auction> {
+        return auctionRepository.search(criteria)
     }
 }

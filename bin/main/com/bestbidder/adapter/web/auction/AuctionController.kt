@@ -2,18 +2,17 @@ package com.bestbidder.adapter.web.auction
 
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
+import com.bestbidder.adapter.web.auction.dto.SearchAuctionRequest
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.port.CardRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 /**
  * Controlador REST encargado de la gestión y exposición de endpoints relacionales de subastas.
@@ -38,8 +37,8 @@ class AuctionController(
 
         val auction =
             createAuctionUseCase.create(
-                creator_id = request.creator_id,
-                creator_username = request.creator_username,
+                creatorId = request.creator_id,
+                creatorUsername = request.creator_username,
                 card = card,
                 description = request.description,
                 minPrize = request.min_prize,
@@ -60,22 +59,11 @@ class AuctionController(
     }
 
     /**
-     * Retorna únicamente las subastas que se encuentran activas en el instante de la consulta.
+     * Busca y filtra subastas combinando múltiples criterios opcionales.
      */
-    @GetMapping("/active")
-    fun getActive(): ResponseEntity<List<AuctionResponse>> {
-        val auctions = getAuctionUseCase.getActive().map { AuctionResponse.fromDomain(it) }
-        return ResponseEntity.ok(auctions)
-    }
-
-    /**
-     * Consulta el historial de subastas asociadas a un identificador de carta en concreto.
-     */
-    @GetMapping("/by-card/{cardId}")
-    fun getByCard(
-        @PathVariable cardId: UUID,
-    ): ResponseEntity<List<AuctionResponse>> {
-        val auctions = getAuctionUseCase.getByCard(cardId).map { AuctionResponse.fromDomain(it) }
+    @GetMapping("/search")
+    fun search(request: SearchAuctionRequest): ResponseEntity<List<AuctionResponse>> {
+        val auctions = getAuctionUseCase.search(request.toCriteria()).map { AuctionResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 }

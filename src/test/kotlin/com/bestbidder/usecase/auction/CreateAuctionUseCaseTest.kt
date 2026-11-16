@@ -57,8 +57,8 @@ class CreateAuctionUseCaseTest {
 
         val result =
             useCase.create(
-                creator_id = creatorId,
-                creator_username = creatorUsername,
+                creatorId = creatorId,
+                creatorUsername = creatorUsername,
                 card = card,
                 description = description,
                 minPrize = 500.0,
@@ -67,8 +67,8 @@ class CreateAuctionUseCaseTest {
             )
 
         assertNotNull(result)
-        assertEquals(creatorId, result.creator_id)
-        assertEquals(creatorUsername, result.creator_username)
+        assertEquals(creatorId, result.creatorId)
+        assertEquals(creatorUsername, result.creatorUsername)
         assertEquals(card, result.card)
         assertEquals(description, result.description)
 
@@ -97,8 +97,8 @@ class CreateAuctionUseCaseTest {
         val exception =
             assertThrows(IllegalArgumentException::class.java) {
                 useCase.create(
-                    creator_id = creatorId,
-                    creator_username = creatorUsername,
+                    creatorId = creatorId,
+                    creatorUsername = creatorUsername,
                     card = card,
                     description = "Primera edición",
                     minPrize = 150.0,

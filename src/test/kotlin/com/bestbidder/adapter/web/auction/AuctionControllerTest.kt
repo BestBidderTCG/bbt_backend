@@ -77,11 +77,11 @@ class AuctionControllerTest {
             val createdAuction =
                 Auction(
                     id = UUID.randomUUID(),
-                    creator_id = request.creator_id,
-                    creator_username = request.creator_username,
+                    creatorId = request.creator_id,
+                    creatorUsername = request.creator_username,
                     card = sampleCard,
                     description = request.description,
-                    min_prize = request.min_prize,
+                    minPrize = request.min_prize,
                     startedAt = request.started_at,
                     durationInDays = request.duration_in_days,
                 )
@@ -105,7 +105,7 @@ class AuctionControllerTest {
             )
                 .andExpect(status().isCreated)
                 .andExpect(jsonPath("$.id").value(createdAuction.id.toString()))
-                .andExpect(jsonPath("$.creator_username").value("paula"))
+                .andExpect(jsonPath("$.creatorUsername").value("paula"))
                 .andExpect(jsonPath("$.card.name").value("Pikachu Illustrator"))
                 .andExpect(jsonPath("$.description").value("Estado impecable"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
@@ -130,11 +130,11 @@ class AuctionControllerTest {
         fun `should return 200 OK with all auctions`() {
             val auction1 =
                 Auction(
-                    creator_id = defaultUserId,
-                    creator_username = "paula",
+                    creatorId = defaultUserId,
+                    creatorUsername = "paula",
                     card = sampleCard,
                     description = null,
-                    min_prize = 100.0,
+                    minPrize = 100.0,
                     startedAt = now,
                     durationInDays = 3,
                 )
@@ -144,7 +144,7 @@ class AuctionControllerTest {
             mockMvc.perform(get("/api/auction/all"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].creator_username").value("paula"))
+                .andExpect(jsonPath("$[0].creatorUsername").value("paula"))
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
         }
     }

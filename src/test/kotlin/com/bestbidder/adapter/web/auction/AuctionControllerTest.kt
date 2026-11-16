@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -141,6 +142,73 @@ class AuctionControllerTest {
                 any(),
             )
         }
+
+        @Test
+        @DisplayName("Debe retornar 400 Bad Request cuando la carta pertenece a otro usuario")
+        fun `should return 400 Bad Request when card belongs to another user`() {
+            val request =
+                CreateAuctionRequest(
+                    cardId = sampleCardId,
+                    description = "Intento con carta ajena",
+                    minPrize = 500.0,
+                    startedAt = now,
+                    durationInDays = 3,
+                )
+
+            val foreignCard = sampleCard.copy(ownerId = UUID.randomUUID())
+            `when`(cardRepository.getById(sampleCardId)).thenReturn(foreignCard)
+
+            mockMvc.perform(
+                post("/api/auction/create")
+                    .with(authentication(authToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isBadRequest)
+
+            verify(createAuctionUseCase, never()).create(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        }
+
+        @Test
+        @DisplayName("Debe retornar 400 Bad Request cuando la carta no existe")
+        fun `should return 400 Bad Request when card does not exist`() {
+            val request =
+                CreateAuctionRequest(
+                    cardId = sampleCardId,
+                    description = "Carta inexistente",
+                    minPrize = 500.0,
+                    startedAt = now,
+                    durationInDays = 3,
+                )
+
+            `when`(cardRepository.getById(sampleCardId)).thenReturn(null)
+
+            mockMvc.perform(
+                post("/api/auction/create")
+                    .with(authentication(authToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isBadRequest)
+
+            verify(createAuctionUseCase, never()).create(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        }
     }
 
     @Nested
@@ -185,6 +253,21 @@ class AuctionControllerTest {
                 .andExpect(status().isCreated)
 
             verify(manageFavoriteAuctionUseCase, times(1)).addFavorite(defaultUserId, auctionId)
+        }
+
+        @Test
+        @DisplayName("POST /api/auction/{id}/favorite - Debe retornar 400 Bad Request si el caso de uso lo rechaza")
+        fun `should return 400 Bad Request when adding favorite fails`() {
+            val auctionId = UUID.randomUUID()
+
+            `when`(manageFavoriteAuctionUseCase.addFavorite(defaultUserId, auctionId))
+                .thenThrow(IllegalArgumentException("No puedes añadir tu propia subasta a favoritos"))
+
+            mockMvc.perform(
+                post("/api/auction/$auctionId/favorite")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isBadRequest)
         }
 
         @Test

@@ -1,9 +1,11 @@
 package com.bestbidder.adapter.persistence.auction
 
 import com.bestbidder.usecase.auction.AuctionSearchCriteria
+import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.Instant
@@ -82,9 +84,15 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     WHERE a.creator.id = :userId
       AND a.isCancelled = false
       AND a.endsAt > CURRENT_TIMESTAMP
-""",
+    """,
     )
     fun existsActiveOrUpcomingByCreator(
         @Param("userId") userId: UUID,
     ): Boolean
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM AuctionEntity a WHERE a.id = :id")
+    fun findByIdForUpdate(
+        @Param("id") id: UUID,
+    ): AuctionEntity?
 }

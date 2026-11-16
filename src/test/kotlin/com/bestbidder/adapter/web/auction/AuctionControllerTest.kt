@@ -5,8 +5,11 @@ import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
+import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
+import com.bestbidder.usecase.port.CardRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -16,11 +19,15 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -29,6 +36,7 @@ import java.time.Instant
 import java.util.UUID
 
 @WebMvcTest(AuctionController::class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler::class)
 class AuctionControllerTest {
     @Autowired
@@ -43,9 +51,22 @@ class AuctionControllerTest {
     @MockBean
     private lateinit var getAuctionUseCase: GetAuctionUseCase
 
+    @MockBean
+    private lateinit var cardRepository: CardRepository
+
+    @MockBean
+    private lateinit var manageFavoriteAuctionUseCase: ManageFavoriteAuctionUseCase
+
     private val now = Instant.now()
     private val defaultUserId = UUID.randomUUID()
     private val sampleCardId = UUID.randomUUID()
+
+    private val authToken =
+        UsernamePasswordAuthenticationToken(
+            AuthenticatedUser(defaultUserId, "paula"),
+            null,
+            emptyList(),
+        )
 
     private val sampleCard =
         Card(
@@ -65,27 +86,26 @@ class AuctionControllerTest {
         fun `should return 201 Created when auction creation is successful`() {
             val request =
                 CreateAuctionRequest(
-                    creator_id = defaultUserId,
-                    creator_username = "paula",
-                    card_id = sampleCardId,
+                    cardId = sampleCardId,
                     description = "Estado impecable",
-                    min_prize = 500.0,
-                    started_at = now,
-                    duration_in_days = 3,
+                    minPrize = 500.0,
+                    startedAt = now,
+                    durationInDays = 3,
                 )
 
             val createdAuction =
                 Auction(
                     id = UUID.randomUUID(),
-                    creatorId = request.creator_id,
-                    creatorUsername = request.creator_username,
+                    creatorId = defaultUserId,
+                    creatorUsername = "paula",
                     card = sampleCard,
                     description = request.description,
-                    minPrize = request.min_prize,
-                    startedAt = request.started_at,
-                    durationInDays = request.duration_in_days,
+                    minPrize = request.minPrize,
+                    startedAt = request.startedAt,
+                    durationInDays = request.durationInDays,
                 )
 
+            `when`(cardRepository.getById(sampleCardId)).thenReturn(sampleCard)
             `when`(
                 createAuctionUseCase.create(
                     any(),
@@ -100,12 +120,13 @@ class AuctionControllerTest {
 
             mockMvc.perform(
                 post("/api/auction/create")
+                    .with(authentication(authToken))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)),
             )
                 .andExpect(status().isCreated)
                 .andExpect(jsonPath("$.id").value(createdAuction.id.toString()))
-                .andExpect(jsonPath("$.creatorUsername").value("paula"))
+                .andExpect(jsonPath("$.creator_username").value("paula"))
                 .andExpect(jsonPath("$.card.name").value("Pikachu Illustrator"))
                 .andExpect(jsonPath("$.description").value("Estado impecable"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
@@ -144,8 +165,65 @@ class AuctionControllerTest {
             mockMvc.perform(get("/api/auction/all"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].creatorUsername").value("paula"))
+                .andExpect(jsonPath("$[0].creator_username").value("paula"))
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+        }
+    }
+
+    @Nested
+    @DisplayName("Favorite Auctions Endpoints")
+    inner class FavoriteAuctionTests {
+        @Test
+        @DisplayName("POST /api/auction/{id}/favorite - Debe retornar 201 Created")
+        fun `should add favorite auction`() {
+            val auctionId = UUID.randomUUID()
+
+            mockMvc.perform(
+                post("/api/auction/$auctionId/favorite")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isCreated)
+
+            verify(manageFavoriteAuctionUseCase, times(1)).addFavorite(defaultUserId, auctionId)
+        }
+
+        @Test
+        @DisplayName("DELETE /api/auction/{id}/favorite - Debe retornar 204 No Content")
+        fun `should remove favorite auction`() {
+            val auctionId = UUID.randomUUID()
+
+            mockMvc.perform(
+                delete("/api/auction/$auctionId/favorite")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isNoContent)
+
+            verify(manageFavoriteAuctionUseCase, times(1)).removeFavorite(defaultUserId, auctionId)
+        }
+
+        @Test
+        @DisplayName("GET /api/auction/favorites - Debe retornar 200 OK con las favoritas")
+        fun `should list favorite auctions`() {
+            val favoriteAuction =
+                Auction(
+                    creatorId = UUID.randomUUID(),
+                    creatorUsername = "user2",
+                    card = sampleCard,
+                    minPrize = 150.0,
+                    startedAt = now,
+                    durationInDays = 2,
+                )
+
+            `when`(manageFavoriteAuctionUseCase.getUserFavorites(defaultUserId))
+                .thenReturn(listOf(favoriteAuction))
+
+            mockMvc.perform(
+                get("/api/auction/favorites")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].creator_username").value("user2"))
         }
     }
 }

@@ -23,6 +23,10 @@ class AuctionRepositoryAdapter(
             .orElse(null)
     }
 
+    override fun getByIdForUpdate(id: UUID): Auction? {
+        return jpaAuctionRepository.findByIdForUpdate(id)?.toDomain()
+    }
+
     override fun getAll(): List<Auction> {
         return jpaAuctionRepository.findAll().map { it.toDomain() }
     }

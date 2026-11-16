@@ -3,6 +3,7 @@ package com.bestbidder.adapter.persistence.user
 import com.bestbidder.domain.user.User
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Component
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -26,6 +27,13 @@ class UserMapper(
 
     override fun save(user: User): User = jpaUserRepository.save(user.toEntity()).toDomain()
 
+    override fun findPendingDeletionBefore(cutoff: Instant): List<User> =
+        jpaUserRepository.findByDeletionRequestedAtBeforeAndDeletedAtIsNull(
+            cutoff,
+        ).map {
+            it.toDomain()
+        }
+
     private fun UserEntity.toDomain() =
         User(
             id = id,
@@ -35,6 +43,8 @@ class UserMapper(
             description = description,
             avatarNum = avatarNum,
             createdAt = createdAt,
+            deletionRequestedAt = this.deletionRequestedAt,
+            deletedAt = this.deletedAt,
         )
 
     private fun User.toEntity() =
@@ -46,5 +56,7 @@ class UserMapper(
             description = description,
             avatarNum = avatarNum,
             createdAt = createdAt,
+            deletionRequestedAt = this.deletionRequestedAt,
+            deletedAt = this.deletedAt,
         )
 }

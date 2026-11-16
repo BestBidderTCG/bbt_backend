@@ -1,6 +1,7 @@
 package com.bestbidder.infrastructure.security
 
 import com.bestbidder.infrastructure.config.JwtService
+import com.bestbidder.usecase.port.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthFilter(
     private val jwtService: JwtService,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -22,9 +24,12 @@ class JwtAuthFilter(
         if (header != null && header.startsWith("Bearer ")) {
             val parsed = jwtService.parseAccessToken(header.substring(7))
             if (parsed != null) {
-                val principal = AuthenticatedUser(parsed.userId, parsed.username)
-                val auth = UsernamePasswordAuthenticationToken(principal, null, emptyList())
-                SecurityContextHolder.getContext().authentication = auth
+                val user = userRepository.findById(parsed.userId)
+                if (user != null && user.deletedAt == null) {
+                    val principal = AuthenticatedUser(parsed.userId, parsed.username)
+                    val auth = UsernamePasswordAuthenticationToken(principal, null, emptyList())
+                    SecurityContextHolder.getContext().authentication = auth
+                }
             }
         }
         filterChain.doFilter(request, response)

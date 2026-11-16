@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.exception
 
+import com.bestbidder.domain.user.exceptions.AccountDeletionBlockedException
 import com.bestbidder.domain.user.exceptions.InvalidCredentialsException
 import com.bestbidder.domain.user.exceptions.InvalidRefreshTokenException
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
@@ -38,6 +39,9 @@ class GlobalExceptionHandler {
     fun handleNotReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         return build(HttpStatus.BAD_REQUEST, "El JSON enviado es inválido o está malformado")
     }
+
+    @ExceptionHandler(AccountDeletionBlockedException::class)
+    fun handleDeletionBlocked(e: AccountDeletionBlockedException) = build(HttpStatus.CONFLICT, e.message)
 
     private fun build(
         status: HttpStatus,

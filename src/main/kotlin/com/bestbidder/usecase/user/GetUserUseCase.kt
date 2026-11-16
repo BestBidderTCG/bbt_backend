@@ -10,5 +10,9 @@ import java.util.UUID
 class GetUserUseCase(
     private val userRepository: UserRepository,
 ) {
-    fun getById(id: UUID): User = userRepository.findById(id) ?: throw UserNotFoundException(id)
+    fun getById(id: UUID): User {
+        val user = userRepository.findById(id) ?: throw UserNotFoundException(id)
+        if (user.deletedAt != null) throw UserNotFoundException(id)
+        return user
+    }
 }

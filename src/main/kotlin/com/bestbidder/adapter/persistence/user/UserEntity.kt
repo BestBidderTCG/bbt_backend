@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -28,4 +29,8 @@ class UserEntity(
     val avatarNum: Int?,
     @Column(name = "created_at", updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "deletion_requested_at")
+    val deletionRequestedAt: Instant? = null,
+    @Column(name = "deleted_at")
+    val deletedAt: Instant? = null,
 )

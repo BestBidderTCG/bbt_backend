@@ -21,4 +21,6 @@ interface BidRepository {
      * Almacena una nueva puja en el sistema.
      */
     fun save(bid: Bid): Bid
+
+    fun isHighestBidderInActiveAuction(bidderId: UUID): Boolean
 }

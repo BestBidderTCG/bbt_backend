@@ -48,4 +48,6 @@ interface AuctionRepository {
     fun save(auction: Auction): Auction
 
     fun search(criteria: AuctionSearchCriteria): List<Auction>
+
+    fun hasActiveAuctionsAsCreator(userId: UUID): Boolean
 }

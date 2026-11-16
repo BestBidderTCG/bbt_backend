@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.port
 
 import com.bestbidder.domain.user.User
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -36,4 +37,6 @@ interface UserRepository {
      * Busca un usuario asociado a una dirección de correo electrónico.
      */
     fun findByEmail(email: String): User?
+
+    fun findPendingDeletionBefore(cutoff: Instant): List<User>
 }

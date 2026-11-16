@@ -2,7 +2,9 @@ package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneOffset
@@ -12,6 +14,7 @@ import java.util.UUID
 @Service
 class CreateAuctionUseCase(
     private val auctionRepository: AuctionRepository,
+    private val userRepository: UserRepository,
 ) {
     private companion object {
         const val MIN_DURATION_DAYS = 1
@@ -32,6 +35,11 @@ class CreateAuctionUseCase(
 
         require(!startedAt.isBefore(now)) {
             "La fecha de inicio de la subasta no puede ser anterior al instante actual"
+        }
+
+        val creator = userRepository.findById(creatorId) ?: throw UserNotFoundException(creatorId)
+        check(creator.deletedAt == null && !creator.isPendingDeletion) {
+            "Tu cuenta está pendiente de eliminación. Inicia sesión para reactivarla antes de operar."
         }
 
         val zonedDateTime = startedAt.atZone(ZoneOffset.UTC)

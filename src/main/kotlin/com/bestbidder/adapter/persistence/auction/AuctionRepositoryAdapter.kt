@@ -62,6 +62,10 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findJustExpired(now).map { it.toDomain() }
     }
 
+    override fun hasActiveAuctionsAsCreator(userId: UUID): Boolean {
+        return jpaAuctionRepository.existsActiveOrUpcomingByCreator(userId)
+    }
+
     override fun save(auction: Auction): Auction {
         val creatorRef = jpaUserRepository.getReferenceById(auction.creatorId)
         val cardRef = jpaCardRepository.getReferenceById(auction.card.id)

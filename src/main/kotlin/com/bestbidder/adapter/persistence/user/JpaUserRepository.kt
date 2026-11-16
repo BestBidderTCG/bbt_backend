@@ -1,6 +1,7 @@
 package com.bestbidder.adapter.persistence.user
 
 import org.springframework.data.jpa.repository.JpaRepository
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -16,4 +17,6 @@ interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
     fun findByEmail(email: String): UserEntity?
 
     fun existsByEmail(email: String): Boolean
+
+    fun findByDeletionRequestedAtBeforeAndDeletedAtIsNull(cutoff: Instant): List<UserEntity>
 }

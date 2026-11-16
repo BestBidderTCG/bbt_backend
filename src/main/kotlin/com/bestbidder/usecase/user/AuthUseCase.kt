@@ -77,11 +77,20 @@ class AuthUseCase(
                 userRepository.findByUsername(identifier)
             } ?: throw InvalidCredentialsException()
 
-        if (!passwordEncoder.matches(password, user.passwordHash)) {
+        // Cuenta purgada no existe
+        if (user.deletedAt != null || !passwordEncoder.matches(password, user.passwordHash)) {
             throw InvalidCredentialsException()
         }
 
-        return issueTokens(user)
+        // Login exitoso cancela una baja
+        val effectiveUser =
+            if (user.deletionRequestedAt != null) {
+                userRepository.save(user.copy(deletionRequestedAt = null))
+            } else {
+                user
+            }
+
+        return issueTokens(effectiveUser)
     }
 
     @Transactional

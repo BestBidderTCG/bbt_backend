@@ -4,6 +4,7 @@ import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -23,7 +24,8 @@ import java.util.UUID
 
 class CreateAuctionUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
-    private val useCase = CreateAuctionUseCase(auctionRepository)
+    private val userRepository: UserRepository = mock(UserRepository::class.java)
+    private val useCase = CreateAuctionUseCase(auctionRepository, userRepository)
 
     private fun getValidFutureStart(): Instant {
         val nowUtc = ZonedDateTime.now(ZoneOffset.UTC)

@@ -1,5 +1,6 @@
 package com.bestbidder.domain.user
 
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -15,4 +16,9 @@ data class User(
     // Cambiar prob en algun momento a numero (llegó el dia)
     val avatarNum: Int?,
     val createdAt: LocalDateTime = LocalDateTime.now(),
-)
+    val deletionRequestedAt: Instant? = null,
+    val deletedAt: Instant? = null,
+) {
+    val isDeleted: Boolean get() = deletedAt != null
+    val isPendingDeletion: Boolean get() = deletionRequestedAt != null && deletedAt == null
+}

@@ -2,9 +2,11 @@ package com.bestbidder.usecase.bid
 
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.bid.BidIncrementPolicy
+import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.UUID
@@ -14,6 +16,7 @@ class PlaceBidUseCase(
     private val auctionRepository: AuctionRepository,
     private val bidRepository: BidRepository,
     private val notificationPort: AuctionNotificationPort,
+    private val userRepository: UserRepository,
 ) {
     fun execute(
         auctionId: UUID,
@@ -31,6 +34,11 @@ class PlaceBidUseCase(
 
         require(bidderId != auction.creatorId) {
             "El creador de la subasta no puede pujar en ella"
+        }
+
+        val bidder = userRepository.findById(bidderId) ?: throw UserNotFoundException(bidderId)
+        check(bidder.deletedAt == null && !bidder.isPendingDeletion) {
+            "Tu cuenta está pendiente de eliminación. Inicia sesión para reactivarla antes de operar."
         }
 
         val previousBid = bidRepository.findHighestBidByAuctionId(auctionId)

@@ -29,4 +29,8 @@ class BidRepositoryAdapter(
         return jpaBidRepository.findByAuctionIdOrderByAmountDesc(auctionId)
             .map { it.toDomain() }
     }
+
+    override fun isHighestBidderInActiveAuction(bidderId: UUID): Boolean =
+        jpaBidRepository
+            .existsHighestBidInActiveAuction(bidderId)
 }

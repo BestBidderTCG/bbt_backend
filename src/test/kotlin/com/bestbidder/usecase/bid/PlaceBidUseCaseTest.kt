@@ -7,6 +7,7 @@ import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -25,8 +26,8 @@ class PlaceBidUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val bidRepository: BidRepository = mock(BidRepository::class.java)
     private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
-
-    private val useCase = PlaceBidUseCase(auctionRepository, bidRepository, notificationPort)
+    private val userRepository: UserRepository = mock(UserRepository::class.java)
+    private val useCase = PlaceBidUseCase(auctionRepository, bidRepository, notificationPort, userRepository)
 
     private val creatorId = UUID.randomUUID()
     private val sampleCard =

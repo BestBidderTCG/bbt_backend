@@ -75,4 +75,16 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     fun findJustExpired(
         @Param("now") now: Instant,
     ): List<AuctionEntity>
+
+    @Query(
+        """
+    SELECT COUNT(a) > 0 FROM AuctionEntity a
+    WHERE a.creator.id = :userId
+      AND a.isCancelled = false
+      AND a.endsAt > CURRENT_TIMESTAMP
+""",
+    )
+    fun existsActiveOrUpcomingByCreator(
+        @Param("userId") userId: UUID,
+    ): Boolean
 }

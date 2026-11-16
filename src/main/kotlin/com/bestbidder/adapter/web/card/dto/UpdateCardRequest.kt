@@ -8,5 +8,5 @@ data class UpdateCardRequest(
     val collection: String? = null,
     val num: Int? = null,
     val state: CardState? = null,
-    val description: String? = null
+    val description: String? = null,
 )

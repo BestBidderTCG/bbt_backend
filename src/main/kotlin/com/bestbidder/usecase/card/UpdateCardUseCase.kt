@@ -7,9 +7,14 @@ import java.util.UUID
 
 @Service
 class UpdateCardUseCase(private val cardRepository: CardRepository) {
-    fun execute(cardId: UUID, ownerId: UUID, updatedCard: Card): Card {
-        val existing = cardRepository.getById(cardId)
-            ?: throw IllegalArgumentException("Carta no encontrada")
+    fun execute(
+        cardId: UUID,
+        ownerId: UUID,
+        updatedCard: Card,
+    ): Card {
+        val existing =
+            cardRepository.getById(cardId)
+                ?: throw IllegalArgumentException("Carta no encontrada")
 
         require(existing.ownerId == ownerId) {
             "No tienes permiso para editar esta carta"

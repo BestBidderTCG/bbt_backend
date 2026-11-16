@@ -10,11 +10,12 @@ data class CardSummaryResponse(
     val image: String,
 ) {
     companion object {
-        fun fromDomain(card: Card) = CardSummaryResponse(
-            id = card.id,
-            name = card.name,
-            category = card.category,
-            image = card.image
-        )
+        fun fromDomain(card: Card) =
+            CardSummaryResponse(
+                id = card.id,
+                name = card.name,
+                category = card.category,
+                image = card.image,
+            )
     }
 }

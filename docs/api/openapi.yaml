@@ -213,39 +213,92 @@ components:
           minimum: 1
           maximum: 7
           example: 3
+
     CreateCardRequest:
       type: object
       required:
         - name
-        - image
         - category
-        - collection
-        - num
         - state
       properties:
         name:
           type: string
           example: "Charizard Base Set"
-        image:
-          type: string
-          example: "https://example.com/charizard.png"
         category:
           type: string
-          example: "Pokémon"
+          example: "Pokemon"
         collection:
           type: string
-          example: "Base Set 1999"
+          nullable: true
+          example: "Pokemon 151"
         num:
-          type: string
-          example: "4/102"
+          type: integer
+          nullable: true
+          example: 4
         state:
           type: string
-          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
           example: "NEAR_MINT"
         description:
           type: string
           nullable: true
           example: "Primera edición en funda protectora."
+
+    UpdateCardRequest:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "Charizard Base Set Editado"
+          category:
+            type: string
+            example: "Pokemon"
+          collection:
+            type: string
+            nullable: true
+            example: "Pokemon 151"
+          num:
+            type: integer
+            nullable: true
+            example: 4
+          state:
+            type: string
+            enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
+            example: "NEAR_MINT"
+          description:
+            type: string
+            nullable: true
+            example: "Descripción actualizada"
+
+    CardSummaryResponse:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          name:
+            type: string
+            example: "Charizard Base Set"
+          category:
+            type: string
+            example: "Pokemon"
+          image:
+            type: string
+            example: "/uploads/imagen.png"
+
+    CatalogResponse:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+        example:
+          Pokemon:
+            - "Destinos de paldea"
+            - "Brecha Paradojica"
+            - "Pokemon 151"
+          Magic:
+            - "Alpha / Beta / Unlimited (1993)"
 
     CardResponse:
       type: object
@@ -313,6 +366,19 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Mensaje descriptivo del error"
 
 paths:
   /api/health:
@@ -666,18 +732,36 @@ paths:
         '401':
           description: No autorizado.
   
+  /api/card/catalog:
+    get:
+      summary: Obtener el catálogo estático de categorías y colecciones
+      responses:
+        '200':
+          description: Catálogo obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+
   /api/card/create:
     post:
       summary: Crear y registrar una nueva carta
       description: Asigna automáticamente la propiedad al usuario autenticado mediante el token JWT.
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CreateCardRequest'
+              type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/CreateCardRequest'
+                image:
+                  type: string
+                  format: binary
+                  description: Archivo de la imagen de la carta.
       responses:
         '201':
           description: Carta creada exitosamente.
@@ -686,13 +770,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/CardResponse'
         '400':
-          description: Datos de la carta inválidos.
+          description: Datos de la carta inválidos o categoría no permitida.
         '401':
           description: No autorizado.
 
   /api/card/all:
     get:
-      summary: Obtener todas las cartas registradas
+      summary: Obtener todas las cartas registradas en el sistema
       responses:
         '200':
           description: Listado completo de cartas.
@@ -703,9 +787,27 @@ paths:
                 items:
                   $ref: '#/components/schemas/CardResponse'
 
+  /api/card/user/my-cards:
+    get:
+      summary: Obtener el resumen de las cartas del usuario autenticado
+      description: Devuelve solo id, nombre, categoría e imagen (optimizado para listados).
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Listado de cartas pertenecientes al usuario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardSummaryResponse'
+        '401':
+          description: No autorizado.
+
   /api/card/{id}:
     get:
-      summary: Obtener detalle de una carta por su ID
+      summary: Obtener detalle completo de una carta por su ID
       parameters:
         - name: id
           in: path
@@ -723,22 +825,64 @@ paths:
         '400':
           description: No existe ninguna carta con ese ID.
 
-  /api/card/user/my-cards:
-    get:
-      summary: Obtener las cartas del usuario autenticado
+    put:
+      summary: Editar una carta existente
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/UpdateCardRequest'
+                image:
+                  type: string
+                  format: binary
+                  description: (Opcional) Nueva imagen para la carta.
       responses:
         '200':
-          description: Listado de cartas pertenecientes al usuario.
+          description: Carta actualizada correctamente.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardResponse'
+                $ref: '#/components/schemas/CardResponse'
+        '400':
+          description: Datos inválidos, categoría no permitida o carta no encontrada.
         '401':
           description: No autorizado.
+        '403':
+          description: No tienes permiso para editar esta carta.
+
+    delete:
+      summary: Eliminar una carta
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Carta eliminada correctamente.
+        '400':
+          description: Carta no encontrada.
+        '401':
+          description: No autorizado.
+        '403':
+          description: No tienes permiso para borrar esta carta.
 
   /api/bid/{auctionId}:
     post:

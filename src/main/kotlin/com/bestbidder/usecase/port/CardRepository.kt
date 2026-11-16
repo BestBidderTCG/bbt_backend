@@ -26,4 +26,6 @@ interface CardRepository {
      * Guarda o actualiza la información de una carta.
      */
     fun save(card: Card): Card
+
+    fun delete(id: UUID)
 }

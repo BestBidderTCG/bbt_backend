@@ -4,7 +4,7 @@ import com.bestbidder.domain.card.CardState
 
 data class CreateCardRequest(
     val name: String,
-    val image: String,
+    //val image: String,
     val category: String,
     val collection: String? = null,
     val num: Int? = null,

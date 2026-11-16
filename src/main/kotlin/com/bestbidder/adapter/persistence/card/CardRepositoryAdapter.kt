@@ -22,4 +22,8 @@ class CardRepositoryAdapter(
         val entity = CardEntity.fromDomain(card, ownerRef)
         return jpaCardRepository.save(entity).toDomain()
     }
+
+    override fun delete(id: UUID) {
+        jpaCardRepository.deleteById(id)
+    }
 }

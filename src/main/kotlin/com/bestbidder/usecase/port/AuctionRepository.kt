@@ -15,6 +15,11 @@ interface AuctionRepository {
     fun getById(id: UUID): Auction?
 
     /**
+     * Obtiene una subasta bloqueando el registro para escritura hasta el fin de la transacción.
+     */
+    fun getByIdForUpdate(id: UUID): Auction?
+
+    /**
      * Obtiene todas las subastas registradas.
      */
     fun getAll(): List<Auction>

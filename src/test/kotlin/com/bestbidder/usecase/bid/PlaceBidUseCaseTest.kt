@@ -41,6 +41,18 @@ class PlaceBidUseCaseTest {
             description = "Perfecto estado",
         )
 
+    private fun buildActiveAuction(auctionId: UUID) =
+        Auction(
+            id = auctionId,
+            creatorId = creatorId,
+            creatorUsername = "paula",
+            card = sampleCard,
+            description = "Perfecto estado",
+            minPrize = 100.0,
+            startedAt = Instant.now().minusSeconds(3600),
+            durationInDays = 1,
+        )
+
     @Test
     @DisplayName("Debe registrar la puja si cumple con el incremento mínimo obligatorio según el rango")
     fun `should place bid successfully when satisfying minimum bid increment`() {
@@ -48,17 +60,7 @@ class PlaceBidUseCaseTest {
         val previousBidderId = UUID.randomUUID()
         val newBidderId = UUID.randomUUID()
 
-        val activeAuction =
-            Auction(
-                id = auctionId,
-                creatorId = creatorId,
-                creatorUsername = "paula",
-                card = sampleCard,
-                description = "Perfecto estado",
-                minPrize = 100.0,
-                startedAt = Instant.now().minusSeconds(3600),
-                durationInDays = 1,
-            )
+        val activeAuction = buildActiveAuction(auctionId)
 
         val previousBid =
             Bid(
@@ -68,7 +70,7 @@ class PlaceBidUseCaseTest {
                 amount = 150.0,
             )
 
-        `when`(auctionRepository.getById(auctionId)).thenReturn(activeAuction)
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(previousBid)
         `when`(bidRepository.save(any(Bid::class.java))).thenAnswer { it.arguments[0] as Bid }
 
@@ -84,6 +86,7 @@ class PlaceBidUseCaseTest {
         assertEquals(155.0, result.amount)
         assertEquals(newBidderId, result.bidderId)
 
+        verify(auctionRepository, times(1)).getByIdForUpdate(auctionId)
         verify(bidRepository, times(1)).save(any(Bid::class.java))
         verify(notificationPort, times(1)).notifyNewBidPlaced(
             auctionId = auctionId,
@@ -93,22 +96,32 @@ class PlaceBidUseCaseTest {
     }
 
     @Test
+    @DisplayName("Debe lanzar excepcion si la subasta no existe")
+    fun `should throw exception when auction does not exist`() {
+        val auctionId = UUID.randomUUID()
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(null)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.execute(
+                    auctionId = auctionId,
+                    bidderId = UUID.randomUUID(),
+                    bidderUsername = "pujador1",
+                    amount = 150.0,
+                )
+            }
+
+        assertEquals("La subasta no existe", exception.message)
+        verify(bidRepository, never()).save(any(Bid::class.java))
+    }
+
+    @Test
     @DisplayName("Debe lanzar excepcion si el creador intenta pujar en su propia subasta")
     fun `should throw exception when creator tries to bid`() {
         val auctionId = UUID.randomUUID()
+        val activeAuction = buildActiveAuction(auctionId)
 
-        val activeAuction =
-            Auction(
-                id = auctionId,
-                creatorId = creatorId,
-                creatorUsername = "paula",
-                card = sampleCard,
-                minPrize = 100.0,
-                startedAt = Instant.now().minusSeconds(3600),
-                durationInDays = 1,
-            )
-
-        `when`(auctionRepository.getById(auctionId)).thenReturn(activeAuction)
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
 
         val exception =
             assertThrows(IllegalArgumentException::class.java) {
@@ -121,6 +134,69 @@ class PlaceBidUseCaseTest {
             }
 
         assertEquals("El creador de la subasta no puede pujar en ella", exception.message)
+        verify(bidRepository, never()).save(any(Bid::class.java))
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepcion si el usuario intenta superar su propia puja más alta")
+    fun `should throw exception when bidder already holds highest bid`() {
+        val auctionId = UUID.randomUUID()
+        val bidderId = UUID.randomUUID()
+        val activeAuction = buildActiveAuction(auctionId)
+
+        val currentHighestBid =
+            Bid(
+                auctionId = auctionId,
+                bidderId = bidderId,
+                bidderUsername = "pujador1",
+                amount = 150.0,
+            )
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.execute(
+                    auctionId = auctionId,
+                    bidderId = bidderId,
+                    bidderUsername = "pujador1",
+                    amount = 200.0,
+                )
+            }
+
+        assertEquals("No puedes pujar si ya tienes la puja más alta actual", exception.message)
+        verify(bidRepository, never()).save(any(Bid::class.java))
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepcion si el importe es menor al incremento mínimo permitido")
+    fun `should throw exception when bid amount is below minimum increment`() {
+        val auctionId = UUID.randomUUID()
+        val activeAuction = buildActiveAuction(auctionId)
+
+        val currentHighestBid =
+            Bid(
+                auctionId = auctionId,
+                bidderId = UUID.randomUUID(),
+                bidderUsername = "pujador1",
+                amount = 150.0,
+            )
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.execute(
+                    auctionId = auctionId,
+                    bidderId = UUID.randomUUID(),
+                    bidderUsername = "pujador2",
+                    amount = 151.0,
+                )
+            }
+
+        assertEquals("El importe mínimo para pujar debe ser de 155.0 €", exception.message)
         verify(bidRepository, never()).save(any(Bid::class.java))
     }
 }

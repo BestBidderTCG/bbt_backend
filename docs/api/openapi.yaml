@@ -790,3 +790,78 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BidResponse'
+  
+  /api/auction/{id}/favorite:
+    post:
+      tags:
+        - Auction
+      summary: Añadir una subasta a favoritos
+      description: Marca una subasta como favorita para el usuario autenticado. Es idempotente y no permite guardar subastas propias.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID de la subasta
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Subasta añadida a favoritos correctamente
+        '400':
+          description: Subasta inexistente o intento de añadir una subasta propia a favoritos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado o token inválido
+        '403':
+          description: Acceso denegado
+
+    delete:
+      tags:
+        - Auction
+      summary: Eliminar una subasta de favoritos
+      description: Elimina la subasta de la lista de favoritos del usuario autenticado.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID de la subasta
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Subasta eliminada de favoritos correctamente
+        '401':
+          description: No autenticado o token inválido
+        '403':
+          description: Acceso denegado
+
+  /api/auction/favorites:
+    get:
+      tags:
+        - Auction
+      summary: Listar subastas favoritas del usuario
+      description: Devuelve todas las subastas marcadas como favoritas por el usuario autenticado.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de subastas favoritas obtenido correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionResponse'
+        '401':
+          description: No autenticado o token inválido
+        '403':
+          description: Acceso denegado

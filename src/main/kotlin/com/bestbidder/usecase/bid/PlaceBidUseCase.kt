@@ -6,6 +6,7 @@ import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
@@ -15,6 +16,7 @@ class PlaceBidUseCase(
     private val bidRepository: BidRepository,
     private val notificationPort: AuctionNotificationPort,
 ) {
+    @Transactional
     fun execute(
         auctionId: UUID,
         bidderId: UUID,
@@ -22,7 +24,7 @@ class PlaceBidUseCase(
         amount: Double,
     ): Bid {
         val auction =
-            auctionRepository.getById(auctionId)
+            auctionRepository.getByIdForUpdate(auctionId)
                 ?: throw IllegalArgumentException("La subasta no existe")
 
         check(auction.getStatusAt(Instant.now()).name == "IN_PROGRESS") {

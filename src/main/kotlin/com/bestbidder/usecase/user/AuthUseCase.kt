@@ -58,7 +58,7 @@ class AuthUseCase(
                 username = username,
                 passwordHash = passwordEncoder.encode(password)!!,
                 description = null,
-                avatarNum = null,
+                avatarNum = 0,
             )
 
         val saved = userRepository.save(newUser)

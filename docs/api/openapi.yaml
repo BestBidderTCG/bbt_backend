@@ -71,7 +71,7 @@ components:
           nullable: true
         avatarNum:
           type: integer
-          nullable: true
+          nullable: false
           example: 1
         createdAt:
           type: string
@@ -141,6 +141,24 @@ components:
           exists:
             type: boolean
             example: false
+
+    DeletionStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ ACTIVE, PENDING_DELETION, DELETED ]
+          example: "PENDING_DELETION"
+        deletionRequestedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2023-11-16T10:00:00Z"
+        scheduledPurgeAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2023-12-01T10:00:00Z"
 
 
     AuctionResponse:
@@ -505,6 +523,30 @@ paths:
         '401':
           description: No autorizado.
 
+    delete:
+      summary: Solicitar eliminación de cuenta
+      description: |
+        Inicia el proceso de baja con un periodo de gracia de 15 días. 
+        Bloquea la operación con un error 409 si el usuario tiene subastas activas/pendientes o si es el mayor pujador de una subasta en curso.
+        Al solicitar la baja, se revocan todos los refresh tokens.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '202':
+          description: Solicitud de eliminación aceptada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionStatusResponse'
+        '401':
+          description: No autorizado.
+        '409':
+          description: No se puede eliminar la cuenta porque tiene subastas activas o pujas ganadoras.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/users/{id}:
     get:
       summary: Obtener perfil público de otro usuario
@@ -547,6 +589,34 @@ paths:
           description: Nueva contraseña inválida.
         '401':
           description: Contraseña actual incorrecta o no autorizado.
+
+  /api/users/me/cancel-deletion:
+    post:
+      summary: Cancelar la eliminación de cuenta
+      description: Cancela el proceso de baja si el usuario se arrepiente. (Hacer login también cancela la baja).
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '204':
+          description: Eliminación cancelada correctamente. La cuenta vuelve a estado ACTIVE.
+        '401':
+          description: No autorizado.
+
+    /api/users/me/deletion-status:
+      get:
+        summary: Consultar estado de eliminación de la cuenta
+        description: Devuelve si la cuenta está activa, pendiente de borrado (con su fecha límite) o si ya ha sido purgada.
+        security:
+          - bearerAuth: [ ]
+        responses:
+          '200':
+            description: Estado obtenido correctamente.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/DeletionStatusResponse'
+          '401':
+            description: No autorizado.
 
 
   /api/auth/check-email:

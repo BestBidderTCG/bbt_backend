@@ -56,6 +56,7 @@ class AuthUseCaseTest {
             assertEquals("david@test.com", result.user.email)
             assertEquals("david_85", result.user.username)
             assertEquals("hashed_password", result.user.passwordHash)
+            assertEquals(0, result.user.avatarNum)
             assertEquals("fake_access_token", result.accessToken)
             assertEquals("fake_refresh_token", result.refreshToken)
             verify(userRepository, times(1)).save(any(User::class.java))

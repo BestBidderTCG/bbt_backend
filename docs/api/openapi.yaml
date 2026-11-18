@@ -696,8 +696,23 @@ paths:
     get:
       summary: Obtener el listado de subastas en curso
       description: |
-        Devuelve un resumen de las subastas no canceladas y no finalizadas.
-        El filtrado se realiza en el cliente; el backend solo devuelve el listado.
+        Devuelve un resumen de las subastas no canceladas y no finalizadas, ordenadas según el parámetro `sort`.
+        El filtrado se realiza en el cliente; el backend solo gestiona la ordenación.
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Criterio de ordenación:
+            - ENDING_SOON: las que terminan antes primero
+            - ENDING_LATE: las que terminan más tarde primero
+            - PRICE_ASC / PRICE_DESC: puja actual de menor a mayor / de mayor a menor
+            - NAME_ASC / NAME_DESC: nombre de la carta de A a Z / de Z a A
+            - NUMBER_ASC / NUMBER_DESC: número de carta ascendente / descendente (las cartas sin número van siempre al final)
+          schema:
+            type: string
+            enum: [ENDING_SOON, ENDING_LATE, PRICE_ASC, PRICE_DESC, NAME_ASC, NAME_DESC, NUMBER_ASC, NUMBER_DESC]
+            default: ENDING_SOON
       responses:
         '200':
           description: Listado de subastas.
@@ -707,6 +722,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AuctionSummaryResponse'
+        '400':
+          description: Valor de `sort` no válido.
 
   /api/auction/{id}:
     get:

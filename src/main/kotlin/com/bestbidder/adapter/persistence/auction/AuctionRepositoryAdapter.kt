@@ -32,6 +32,8 @@ class AuctionRepositoryAdapter(
             when (sort) {
                 AuctionSort.ENDING_SOON -> jpaAuctionRepository.findSummariesEndingSoon(now)
                 AuctionSort.ENDING_LATE -> jpaAuctionRepository.findSummariesEndingLate(now)
+                AuctionSort.RECENT_FIRST -> jpaAuctionRepository.findSummariesRecentFirst(now)
+                AuctionSort.OLDEST_FIRST -> jpaAuctionRepository.findSummariesOldestFirst(now)
                 AuctionSort.PRICE_ASC -> jpaAuctionRepository.findSummariesPriceAsc(now)
                 AuctionSort.PRICE_DESC -> jpaAuctionRepository.findSummariesPriceDesc(now)
                 AuctionSort.NAME_ASC -> jpaAuctionRepository.findSummariesNameAsc(now)

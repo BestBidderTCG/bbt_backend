@@ -734,6 +734,8 @@ paths:
             Criterio de ordenación:
             - ENDING_SOON: las que terminan antes primero
             - ENDING_LATE: las que terminan más tarde primero
+            - RECENT_FIRST: las subastas que empezaron más recientemente (SOLO VÁLIDA PARA ACTIVAS)
+            - OLDEST_FIRST: las subastas que empezaron hace más tiempo (SOLO VÁLIDA PARA ACTIVAS)
             - PRICE_ASC / PRICE_DESC: puja actual de menor a mayor / de mayor a menor
             - NAME_ASC / NAME_DESC: nombre de la carta de A a Z / de Z a A
             - NUMBER_ASC / NUMBER_DESC: número de carta ascendente / descendente (las cartas sin número van siempre al final)

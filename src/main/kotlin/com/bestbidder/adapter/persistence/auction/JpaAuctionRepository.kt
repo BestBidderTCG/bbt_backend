@@ -32,6 +32,16 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         @Param("now") now: Instant,
     ): List<AuctionSummaryRow>
 
+    @Query("$SUMMARY_SELECT ORDER BY a.startedAt DESC")
+    fun findSummariesRecentFirst(
+        @Param("now") now: Instant,
+    ): List<AuctionSummaryRow>
+
+    @Query("$SUMMARY_SELECT ORDER BY a.startedAt ASC")
+    fun findSummariesOldestFirst(
+        @Param("now") now: Instant,
+    ): List<AuctionSummaryRow>
+
     @Query("$SUMMARY_SELECT ORDER BY COALESCE(MAX(b.amount), a.minPrize) ASC, a.endsAt ASC")
     fun findSummariesPriceAsc(
         @Param("now") now: Instant,

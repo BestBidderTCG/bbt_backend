@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.user
 
+import com.bestbidder.adapter.web.user.dto.AccountDeletionCheckResponse
 import com.bestbidder.adapter.web.user.dto.ChangePasswordRequest
 import com.bestbidder.adapter.web.user.dto.DeletionStatusResponse
 import com.bestbidder.adapter.web.user.dto.PublicUserResponse
@@ -8,6 +9,7 @@ import com.bestbidder.adapter.web.user.dto.UserResponse
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.user.CancelAccountDeletionUseCase
 import com.bestbidder.usecase.user.ChangePasswordUseCase
+import com.bestbidder.usecase.user.CheckAccountDeletionUseCase
 import com.bestbidder.usecase.user.GetUserUseCase
 import com.bestbidder.usecase.user.RequestAccountDeletionUseCase
 import com.bestbidder.usecase.user.UpdateUserUseCase
@@ -33,6 +35,7 @@ class UserController(
     private val changePasswordUseCase: ChangePasswordUseCase,
     private val requestAccountDeletionUseCase: RequestAccountDeletionUseCase,
     private val cancelAccountDeletionUseCase: CancelAccountDeletionUseCase,
+    private val checkAccountDeletionUseCase: CheckAccountDeletionUseCase,
 ) {
     private fun getCurrentUser(): AuthenticatedUser {
         return SecurityContextHolder.getContext().authentication.principal as AuthenticatedUser
@@ -90,5 +93,15 @@ class UserController(
     fun deletionStatus(): DeletionStatusResponse {
         val principal = getCurrentUser()
         return DeletionStatusResponse.from(getUserUseCase.getById(principal.id))
+    }
+
+    @GetMapping("/me/deletion-check")
+    fun checkDeletion(): AccountDeletionCheckResponse {
+        val principal = getCurrentUser()
+        val blockers = checkAccountDeletionUseCase.execute(principal.id)
+        return AccountDeletionCheckResponse(
+            canDelete = blockers.isEmpty(),
+            blockers = blockers,
+        )
     }
 }

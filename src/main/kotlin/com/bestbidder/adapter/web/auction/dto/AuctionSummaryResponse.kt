@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.auction.dto
 
+import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.CardState
 import java.util.UUID
@@ -14,6 +15,7 @@ data class AuctionSummaryResponse(
     val cardCategory: String,
     val cardCollection: String?,
     val cardNumber: Int?,
+    val status: AuctionStatus,
 ) {
     companion object {
         fun fromDomain(summary: AuctionSummary) =
@@ -27,6 +29,7 @@ data class AuctionSummaryResponse(
                 cardCategory = summary.cardCategory,
                 cardCollection = summary.cardCollection,
                 cardNumber = summary.cardNumber,
+                status = summary.status,
             )
     }
 }

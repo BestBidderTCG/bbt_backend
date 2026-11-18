@@ -11,13 +11,13 @@ import java.util.UUID
 private const val SUMMARY_SELECT = """
     SELECT new com.bestbidder.adapter.persistence.auction.AuctionSummaryRow(
         a.id, c.name, c.image, COALESCE(MAX(b.amount), a.minPrize),
-        a.endsAt, c.state, c.category, c.collection, c.num
+        a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num
     )
     FROM AuctionEntity a
     JOIN a.card c
     LEFT JOIN BidEntity b ON b.auction = a
     WHERE a.isCancelled = false AND a.endsAt > :now
-    GROUP BY a.id, c.name, c.image, a.minPrize, a.endsAt, c.state, c.category, c.collection, c.num
+    GROUP BY a.id, c.name, c.image, a.minPrize, a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num
 """
 
 @Suppress("TooManyFunctions")

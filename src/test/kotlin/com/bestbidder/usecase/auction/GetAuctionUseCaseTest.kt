@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
@@ -60,6 +61,7 @@ class GetAuctionUseCaseTest {
         cardCategory = "Pokémon",
         cardCollection = null,
         cardNumber = cardNumber,
+        status = AuctionStatus.IN_PROGRESS,
     )
 
     @Test

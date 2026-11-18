@@ -3,6 +3,7 @@ package com.bestbidder.adapter.web.auction
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
@@ -230,6 +231,7 @@ class AuctionControllerTest {
                     cardCategory = "Pokémon",
                     cardCollection = null,
                     cardNumber = 5,
+                    status = AuctionStatus.UPCOMING,
                 )
 
             `when`(getAuctionUseCase.getAll(AuctionSort.ENDING_SOON)).thenReturn(listOf(summary))
@@ -245,6 +247,7 @@ class AuctionControllerTest {
                 .andExpect(jsonPath("$[0].card_state").value("NEW"))
                 .andExpect(jsonPath("$[0].card_category").value("Pokémon"))
                 .andExpect(jsonPath("$[0].card_number").value(5))
+                .andExpect(jsonPath("$[0].status").value("UPCOMING"))
         }
 
         @Test

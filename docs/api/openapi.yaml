@@ -160,6 +160,18 @@ components:
           nullable: true
           example: "2023-12-01T10:00:00Z"
 
+    AccountDeletionCheckResponse:
+      type: object
+      properties:
+        canDelete:
+          type: boolean
+          example: false
+        blockers:
+          type: array
+          items:
+            type: string
+          example: [ "tienes subastas activas o pendientes de comenzar" ]
+
 
     AuctionResponse:
       type: object
@@ -638,7 +650,7 @@ paths:
         '401':
           description: No autorizado.
 
-    /api/users/me/deletion-status:
+  /api/users/me/deletion-status:
       get:
         summary: Consultar estado de eliminación de la cuenta
         description: Devuelve si la cuenta está activa, pendiente de borrado (con su fecha límite) o si ya ha sido purgada.
@@ -651,6 +663,22 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/DeletionStatusResponse'
+          '401':
+            description: No autorizado.
+
+  /api/users/me/deletion-check:
+      get:
+        summary: Comprobar si la cuenta se puede eliminar
+        description: Devuelve un booleano indicando si el usuario puede borrar su cuenta o si está bloqueado por subastas o pujas.
+        security:
+          - bearerAuth: [ ]
+        responses:
+          '200':
+            description: Resultado de la comprobación.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AccountDeletionCheckResponse'
           '401':
             description: No autorizado.
 

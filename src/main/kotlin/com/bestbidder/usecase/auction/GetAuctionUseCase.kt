@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -13,11 +14,7 @@ class GetAuctionUseCase(
         return auctionRepository.getById(id)
     }
 
-    fun getAll(): List<Auction> {
-        return auctionRepository.getAll()
-    }
-
-    fun search(criteria: AuctionSearchCriteria): List<Auction> {
-        return auctionRepository.search(criteria)
+    fun getAll(): List<AuctionSummary> {
+        return auctionRepository.getAllSummaries()
     }
 }

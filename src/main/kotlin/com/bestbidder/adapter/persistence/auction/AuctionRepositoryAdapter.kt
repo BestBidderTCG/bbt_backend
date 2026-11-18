@@ -3,10 +3,8 @@ package com.bestbidder.adapter.persistence.auction
 import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
-import com.bestbidder.usecase.auction.AuctionSearchCriteria
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.usecase.port.AuctionRepository
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.UUID
@@ -27,28 +25,9 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findByIdForUpdate(id)?.toDomain()
     }
 
-    override fun getAll(): List<Auction> {
-        return jpaAuctionRepository.findAll().map { it.toDomain() }
-    }
-
-    override fun search(criteria: AuctionSearchCriteria): List<Auction> {
-        val direction =
-            if (criteria.sortDirection.equals("ASC", ignoreCase = true)) {
-                Sort.Direction.ASC
-            } else {
-                Sort.Direction.DESC
-            }
-
-        val allowedSortFields = setOf("createdAt", "endsAt", "startedAt", "minPrize")
-        val sortField = if (criteria.sortBy in allowedSortFields) criteria.sortBy else "createdAt"
-
-        val pageable = PageRequest.of(criteria.page, criteria.size, Sort.by(direction, sortField))
-
-        return jpaAuctionRepository.search(criteria, pageable).content.map { it.toDomain() }
-    }
-
-    override fun getInProgress(): List<Auction> {
-        return jpaAuctionRepository.findInProgress().map { it.toDomain() }
+    override fun getAllSummaries(): List<AuctionSummary> {
+        val now = Instant.now()
+        return jpaAuctionRepository.findAllSummaries(now).map { it.toSummary(now) }
     }
 
     override fun existsByCreatorAndCard(

@@ -1,8 +1,8 @@
 package com.bestbidder.adapter.web.auction
 
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
+import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
-import com.bestbidder.adapter.web.auction.dto.SearchAuctionRequest
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
@@ -65,17 +65,8 @@ class AuctionController(
      * Recupera el catálogo completo de subastas del sistema.
      */
     @GetMapping("/all")
-    fun getAll(): ResponseEntity<List<AuctionResponse>> {
-        val auctions = getAuctionUseCase.getAll().map { AuctionResponse.fromDomain(it) }
-        return ResponseEntity.ok(auctions)
-    }
-
-    /**
-     * Busca y filtra subastas combinando múltiples criterios opcionales.
-     */
-    @GetMapping("/search")
-    fun search(request: SearchAuctionRequest): ResponseEntity<List<AuctionResponse>> {
-        val auctions = getAuctionUseCase.search(request.toCriteria()).map { AuctionResponse.fromDomain(it) }
+    fun getAll(): ResponseEntity<List<AuctionSummaryResponse>> {
+        val auctions = getAuctionUseCase.getAll().map { AuctionSummaryResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 

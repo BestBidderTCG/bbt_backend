@@ -3,6 +3,7 @@ package com.bestbidder.adapter.web.auction
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
@@ -217,24 +218,30 @@ class AuctionControllerTest {
         @Test
         @DisplayName("GET /api/auction/all - Debe retornar 200 OK con el listado completo")
         fun `should return 200 OK with all auctions`() {
-            val auction1 =
-                Auction(
-                    creatorId = defaultUserId,
-                    creatorUsername = "paula",
-                    card = sampleCard,
-                    description = null,
-                    minPrize = 100.0,
-                    startedAt = now,
-                    durationInDays = 3,
+            val summary =
+                AuctionSummary(
+                    id = UUID.randomUUID(),
+                    cardName = "Pikachu Illustrator",
+                    cardImage = "pikachu.png",
+                    currentBid = 100.0,
+                    remainingDays = 3,
+                    cardState = CardState.NEW,
+                    cardCategory = "Pokémon",
+                    cardCollection = null,
                 )
 
-            `when`(getAuctionUseCase.getAll()).thenReturn(listOf(auction1))
+            `when`(getAuctionUseCase.getAll()).thenReturn(listOf(summary))
 
             mockMvc.perform(get("/api/auction/all"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].creator_username").value("paula"))
-                .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[0].id").value(summary.id.toString()))
+                .andExpect(jsonPath("$[0].card_name").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$[0].card_image").value("pikachu.png"))
+                .andExpect(jsonPath("$[0].current_bid").value(100.0))
+                .andExpect(jsonPath("$[0].remaining_days").value(3))
+                .andExpect(jsonPath("$[0].card_state").value("NEW"))
+                .andExpect(jsonPath("$[0].card_category").value("Pokémon"))
         }
     }
 

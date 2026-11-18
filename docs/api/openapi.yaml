@@ -232,6 +232,42 @@ components:
           maximum: 7
           example: 3
 
+    AuctionSummaryResponse:
+      type: object
+      description: Resumen de una subasta para el listado principal.
+      properties:
+        id:
+          type: string
+          format: uuid
+        cardName:
+          type: string
+          example: "Charizard Base Set"
+        cardImage:
+          type: string
+          example: "/uploads/charizard.png"
+        currentBid:
+          type: number
+          format: double
+          description: Importe de la última puja, o el precio mínimo si aún no hay pujas.
+          example: 650.0
+        remainingDays:
+          type: integer
+          minimum: 0
+          maximum: 7
+          description: Días restantes (redondeado hacia arriba).
+          example: 3
+        cardState:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        cardCategory:
+          type: string
+          example: "Pokémon"
+        cardCollection:
+          type: string
+          nullable: true
+          example: "Base Set 1999"
+
     CreateCardRequest:
       type: object
       required:
@@ -654,110 +690,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExistsResponse'
   
-  /api/auction/search:
-    get:
-      summary: Buscar y filtrar subastas con paginación y ordenación
-      description: Permite combinar múltiples filtros opcionales. Todos los parámetros se pasan por query string.
-      parameters:
-        - name: q
-          in: query
-          required: false
-          description: Texto libre para buscar en la descripción de la subasta o en el nombre de la carta (case-insensitive).
-          schema:
-            type: string
-            example: "Charizard"
-        - name: active
-          in: query
-          required: false
-          description: "true: solo activas (no canceladas y no expiradas); false: finalizadas o canceladas; omitido: todas."
-          schema:
-            type: boolean
-            example: true
-        - name: creator
-          in: query
-          required: false
-          description: Filtra por el username exacto del creador de la subasta.
-          schema:
-            type: string
-            example: "paula"
-        - name: cardId
-          in: query
-          required: false
-          description: Filtra subastas asociadas a una carta concreta.
-          schema:
-            type: string
-            format: uuid
-        - name: minPrice
-          in: query
-          required: false
-          description: Precio mínimo inicial (inclusive).
-          schema:
-            type: number
-            format: double
-            example: 50.0
-        - name: maxPrice
-          in: query
-          required: false
-          description: Precio máximo inicial (inclusive).
-          schema:
-            type: number
-            format: double
-            example: 200.0
-        - name: page
-          in: query
-          required: false
-          description: Número de página (empieza en 0).
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-        - name: size
-          in: query
-          required: false
-          description: Tamaño de página (entre 1 y 50).
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 50
-        - name: sortBy
-          in: query
-          required: false
-          description: Campo de ordenación.
-          schema:
-            type: string
-            enum: [createdAt, endsAt, startedAt, minPrize]
-            default: createdAt
-        - name: direction
-          in: query
-          required: false
-          description: Dirección de ordenación.
-          schema:
-            type: string
-            enum: [ASC, DESC]
-            default: DESC
-      responses:
-        '200':
-          description: Listado de subastas que cumplen los criterios.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AuctionResponse'
+  
 
   /api/auction/all:
     get:
-      summary: Obtener todas las subastas registradas
+      summary: Obtener el listado de subastas en curso
+      description: |
+        Devuelve un resumen de las subastas no canceladas y no finalizadas.
+        El filtrado se realiza en el cliente; el backend solo devuelve el listado.
       responses:
         '200':
-          description: Listado completo de subastas.
+          description: Listado de subastas.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AuctionResponse'
+                  $ref: '#/components/schemas/AuctionSummaryResponse'
 
   /api/auction/{id}:
     get:

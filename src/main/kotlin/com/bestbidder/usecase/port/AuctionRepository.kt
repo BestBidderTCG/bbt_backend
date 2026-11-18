@@ -1,7 +1,7 @@
 package com.bestbidder.usecase.port
 
 import com.bestbidder.domain.auction.Auction
-import com.bestbidder.usecase.auction.AuctionSearchCriteria
+import com.bestbidder.domain.auction.AuctionSummary
 import java.time.Instant
 import java.util.UUID
 
@@ -22,12 +22,7 @@ interface AuctionRepository {
     /**
      * Obtiene todas las subastas registradas.
      */
-    fun getAll(): List<Auction>
-
-    /**
-     * Retorna únicamente las subastas que se encuentran activas en el instante actual.
-     */
-    fun getInProgress(): List<Auction>
+    fun getAllSummaries(): List<AuctionSummary>
 
     /**
      * Comprueba si un creador ya tiene una subasta activa o pendiente asociada a una carta.
@@ -51,8 +46,6 @@ interface AuctionRepository {
      * Guarda o actualiza una subasta en el almacén de datos.
      */
     fun save(auction: Auction): Auction
-
-    fun search(criteria: AuctionSearchCriteria): List<Auction>
 
     fun hasActiveAuctionsAsCreator(userId: UUID): Boolean
 }

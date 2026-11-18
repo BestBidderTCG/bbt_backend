@@ -1,9 +1,6 @@
 package com.bestbidder.adapter.persistence.auction
 
-import com.bestbidder.usecase.auction.AuctionSearchCriteria
 import jakarta.persistence.LockModeType
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
@@ -14,33 +11,28 @@ import java.util.UUID
 interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     @Query(
         """
-        SELECT a FROM AuctionEntity a
-        WHERE (:#{#criteria.query} IS NULL OR LOWER(a.description) LIKE LOWER(CONCAT('%', :#{#criteria.query}, '%')) 
-               OR LOWER(a.card.name) LIKE LOWER(CONCAT('%', :#{#criteria.query}, '%')))
-          AND (:#{#criteria.onlyActive} IS NULL 
-               OR (:#{#criteria.onlyActive} = true AND a.isCancelled = false AND a.endsAt > CURRENT_TIMESTAMP)
-               OR (:#{#criteria.onlyActive} = false AND (a.isCancelled = true OR a.endsAt <= CURRENT_TIMESTAMP)))
-          AND (:#{#criteria.creator} IS NULL OR a.creator.username = :#{#criteria.creator})
-          AND (:#{#criteria.cardId} IS NULL OR a.card.id = :#{#criteria.cardId})
-          AND (:#{#criteria.minPrice} IS NULL OR a.minPrize >= :#{#criteria.minPrice})
-          AND (:#{#criteria.maxPrice} IS NULL OR a.minPrize <= :#{#criteria.maxPrice})
-        """,
-    )
-    fun search(
-        @Param("criteria") criteria: AuctionSearchCriteria,
-        pageable: Pageable,
-    ): Page<AuctionEntity>
-
-    @Query(
-        """
-        SELECT a FROM AuctionEntity a 
-        WHERE a.isCancelled = false 
-          AND a.startedAt <= CURRENT_TIMESTAMP 
-          AND a.endsAt > CURRENT_TIMESTAMP 
+        SELECT new com.bestbidder.adapter.persistence.auction.AuctionSummaryRow(
+            a.id,
+            c.name,
+            c.image,
+            COALESCE(MAX(b.amount), a.minPrize),
+            a.endsAt,
+            c.state,
+            c.category,
+            c.collection
+        )
+        FROM AuctionEntity a
+        JOIN a.card c
+        LEFT JOIN BidEntity b ON b.auction = a
+        WHERE a.isCancelled = false
+          AND a.endsAt > :now
+        GROUP BY a.id, c.name, c.image, a.minPrize, a.endsAt, c.state, c.category, c.collection
         ORDER BY a.endsAt ASC
         """,
     )
-    fun findInProgress(): List<AuctionEntity>
+    fun findAllSummaries(
+        @Param("now") now: Instant,
+    ): List<AuctionSummaryRow>
 
     @Query(
         """

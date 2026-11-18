@@ -14,7 +14,7 @@ class GetAuctionUseCase(
         return auctionRepository.getById(id)
     }
 
-    fun getAll(): List<AuctionSummary> {
-        return auctionRepository.getAllSummaries()
+    fun getAll(sort: AuctionSort = AuctionSort.ENDING_SOON): List<AuctionSummary> {
+        return auctionRepository.getAllSummaries(sort)
     }
 }

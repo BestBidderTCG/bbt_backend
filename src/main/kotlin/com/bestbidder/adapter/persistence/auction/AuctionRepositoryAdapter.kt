@@ -4,6 +4,7 @@ import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -25,9 +26,20 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findByIdForUpdate(id)?.toDomain()
     }
 
-    override fun getAllSummaries(): List<AuctionSummary> {
+    override fun getAllSummaries(sort: AuctionSort): List<AuctionSummary> {
         val now = Instant.now()
-        return jpaAuctionRepository.findAllSummaries(now).map { it.toSummary(now) }
+        val rows =
+            when (sort) {
+                AuctionSort.ENDING_SOON -> jpaAuctionRepository.findSummariesEndingSoon(now)
+                AuctionSort.ENDING_LATE -> jpaAuctionRepository.findSummariesEndingLate(now)
+                AuctionSort.PRICE_ASC -> jpaAuctionRepository.findSummariesPriceAsc(now)
+                AuctionSort.PRICE_DESC -> jpaAuctionRepository.findSummariesPriceDesc(now)
+                AuctionSort.NAME_ASC -> jpaAuctionRepository.findSummariesNameAsc(now)
+                AuctionSort.NAME_DESC -> jpaAuctionRepository.findSummariesNameDesc(now)
+                AuctionSort.NUMBER_ASC -> jpaAuctionRepository.findSummariesNumberAsc(now)
+                AuctionSort.NUMBER_DESC -> jpaAuctionRepository.findSummariesNumberDesc(now)
+            }
+        return rows.map { it.toSummary(now) }
     }
 
     override fun existsByCreatorAndCard(

@@ -7,6 +7,7 @@ import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
+import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
@@ -228,9 +229,10 @@ class AuctionControllerTest {
                     cardState = CardState.NEW,
                     cardCategory = "Pokémon",
                     cardCollection = null,
+                    cardNumber = 5,
                 )
 
-            `when`(getAuctionUseCase.getAll()).thenReturn(listOf(summary))
+            `when`(getAuctionUseCase.getAll(AuctionSort.ENDING_SOON)).thenReturn(listOf(summary))
 
             mockMvc.perform(get("/api/auction/all"))
                 .andExpect(status().isOk)
@@ -242,6 +244,25 @@ class AuctionControllerTest {
                 .andExpect(jsonPath("$[0].remaining_days").value(3))
                 .andExpect(jsonPath("$[0].card_state").value("NEW"))
                 .andExpect(jsonPath("$[0].card_category").value("Pokémon"))
+                .andExpect(jsonPath("$[0].card_number").value(5))
+        }
+
+        @Test
+        @DisplayName("GET /api/auction/all?sort=PRICE_ASC - Debe pasar la ordenación al caso de uso")
+        fun `should pass sort param to use case`() {
+            `when`(getAuctionUseCase.getAll(AuctionSort.PRICE_ASC)).thenReturn(emptyList())
+
+            mockMvc.perform(get("/api/auction/all").param("sort", "PRICE_ASC"))
+                .andExpect(status().isOk)
+
+            verify(getAuctionUseCase).getAll(AuctionSort.PRICE_ASC)
+        }
+
+        @Test
+        @DisplayName("GET /api/auction/all?sort=INVALIDO - Debe retornar 400")
+        fun `should return 400 when sort param is invalid`() {
+            mockMvc.perform(get("/api/auction/all").param("sort", "INVALIDO"))
+                .andExpect(status().isBadRequest)
         }
     }
 

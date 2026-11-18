@@ -18,6 +18,7 @@ data class AuctionSummary(
     val cardState: CardState,
     val cardCategory: String,
     val cardCollection: String?,
+    val cardNumber: Int?,
 )
 
 fun remainingDaysUntil(

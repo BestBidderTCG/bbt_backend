@@ -13,6 +13,7 @@ data class AuctionSummaryResponse(
     val cardState: CardState,
     val cardCategory: String,
     val cardCollection: String?,
+    val cardNumber: Int?,
 ) {
     companion object {
         fun fromDomain(summary: AuctionSummary) =
@@ -25,6 +26,7 @@ data class AuctionSummaryResponse(
                 cardState = summary.cardState,
                 cardCategory = summary.cardCategory,
                 cardCollection = summary.cardCollection,
+                cardNumber = summary.cardNumber,
             )
     }
 }

@@ -15,6 +15,7 @@ data class AuctionSummaryRow(
     val cardState: CardState,
     val cardCategory: String,
     val cardCollection: String?,
+    val cardNumber: Int?,
 ) {
     fun toSummary(now: Instant): AuctionSummary =
         AuctionSummary(
@@ -26,5 +27,6 @@ data class AuctionSummaryRow(
             cardState = cardState,
             cardCategory = cardCategory,
             cardCollection = cardCollection,
+            cardNumber = cardNumber,
         )
 }

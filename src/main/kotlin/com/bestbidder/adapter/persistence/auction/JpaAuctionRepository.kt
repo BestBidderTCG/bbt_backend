@@ -185,4 +185,17 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         @Param("id") id: UUID,
         @Param("viewerId") viewerId: UUID,
     ): AuctionDetailRow?
+
+    @Query(
+        """
+        SELECT a FROM AuctionEntity a
+        WHERE a.card.id = :cardId
+          AND a.isCancelled = false
+          AND a.endsAt > :now
+        """,
+    )
+    fun findActiveOrUpcomingByCardId(
+        @Param("cardId") cardId: UUID,
+        @Param("now") now: Instant,
+    ): AuctionEntity?
 }

@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.card
 
+import com.bestbidder.adapter.web.card.dto.CardDetailResponse
 import com.bestbidder.adapter.web.card.dto.CardSummaryResponse
 import com.bestbidder.adapter.web.card.dto.CreateCardRequest
 import com.bestbidder.adapter.web.card.dto.UpdateCardRequest
@@ -10,6 +11,7 @@ import com.bestbidder.usecase.card.CreateCardUseCase
 import com.bestbidder.usecase.card.DeleteCardUseCase
 import com.bestbidder.usecase.card.GetCardUseCase
 import com.bestbidder.usecase.card.UpdateCardUseCase
+import com.bestbidder.usecase.port.CardAuctionPort
 import com.bestbidder.usecase.port.FileStoragePort
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
@@ -32,6 +34,7 @@ import java.util.UUID
  */
 @RestController
 @RequestMapping("/api/card")
+@Suppress("LongParameterList")
 class CardController(
     private val createCardUseCase: CreateCardUseCase,
     private val getCardUseCase: GetCardUseCase,
@@ -39,6 +42,7 @@ class CardController(
     private val updateCardUseCase: UpdateCardUseCase,
     private val fileStoragePort: FileStoragePort,
     private val objectMapper: ObjectMapper,
+    private val cardAuctionPort: CardAuctionPort,
 ) {
     /**
      * Crea y guarda una nueva carta asignando la propiedad al usuario autenticado.
@@ -85,9 +89,10 @@ class CardController(
     @GetMapping("/{id}")
     fun getCardById(
         @PathVariable id: UUID,
-    ): ResponseEntity<Card> {
+    ): ResponseEntity<CardDetailResponse> {
         val card = getCardUseCase.getById(id) ?: throw IllegalArgumentException("No existe la carta")
-        return ResponseEntity.ok(card)
+        val activeAuction = cardAuctionPort.findActiveOrUpcomingByCardId(id)
+        return ResponseEntity.ok(CardDetailResponse.fromDomain(card, activeAuction))
     }
 
     /**

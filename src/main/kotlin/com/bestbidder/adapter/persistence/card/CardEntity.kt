@@ -12,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -38,6 +39,8 @@ class CardEntity(
     val state: CardState,
     @Column(nullable = true, length = 500)
     val description: String? = null,
+    @Column(nullable = false)
+    val createdAt: Instant = Instant.now(),
 ) {
     fun toDomain(): Card =
         Card(
@@ -50,6 +53,7 @@ class CardEntity(
             num = num,
             state = state,
             description = description,
+            createdAt = createdAt,
         )
 
     companion object {
@@ -67,6 +71,7 @@ class CardEntity(
                 num = if (card.num == 0) null else card.num,
                 state = card.state,
                 description = card.description?.ifBlank { null },
+                createdAt = card.createdAt,
             )
     }
 }

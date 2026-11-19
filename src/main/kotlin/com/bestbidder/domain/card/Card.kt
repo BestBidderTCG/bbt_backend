@@ -1,5 +1,6 @@
 package com.bestbidder.domain.card
 
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -15,4 +16,5 @@ data class Card(
     val num: Int? = null,
     val state: CardState,
     val description: String? = null,
+    val createdAt: Instant = Instant.now(),
 )

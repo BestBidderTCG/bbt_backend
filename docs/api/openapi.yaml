@@ -535,6 +535,63 @@ components:
         description:
           type: string
           nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CardAuctionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ UPCOMING, IN_PROGRESS ]
+          example: "IN_PROGRESS"
+
+    CardDetailResponse:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          ownerId:
+            type: string
+            format: uuid
+          name:
+            type: string
+            example: "Piplup"
+          image:
+            type: string
+            example: "/uploads/piplup.png"
+          category:
+            type: string
+            example: "Pokemon"
+          collection:
+            type: string
+            nullable: true
+            example: "Pokemon 151"
+          num:
+            type: string
+            nullable: true
+            example: "393"
+          state:
+            type: string
+            enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
+            example: "GOOD"
+          description:
+            type: string
+            nullable: true
+            example: "Carta Piplup."
+          createdAt:
+            type: string
+            format: date-time
+          auction:
+            allOf:
+              - $ref: '#/components/schemas/CardAuctionResponse'
+            nullable: true
+            description: Subasta activa o programada asociada a la carta, o null si está disponible.
 
     PlaceBidRequest:
       type: object
@@ -1045,6 +1102,8 @@ paths:
   /api/card/{id}:
     get:
       summary: Obtener detalle completo de una carta por su ID
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -1058,9 +1117,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardResponse'
+                $ref: '#/components/schemas/CardDetailResponse'
         '400':
           description: No existe ninguna carta con ese ID.
+        '401':
+          description: No autorizado.
 
     put:
       summary: Editar una carta existente

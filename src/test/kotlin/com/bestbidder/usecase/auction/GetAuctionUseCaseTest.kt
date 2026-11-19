@@ -3,8 +3,8 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionCreator
 import com.bestbidder.domain.auction.AuctionDetail
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
@@ -55,7 +55,7 @@ class GetAuctionUseCaseTest {
         currentBid: Double = 80.0,
         remainingDays: Int = 3,
         cardNumber: Int? = null,
-    ) = AuctionSummary(
+    ) = AuctionListItem(
         id = UUID.randomUUID(),
         cardName = cardName,
         cardImage = "${cardName.lowercase()}.png",

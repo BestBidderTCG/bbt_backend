@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.UUID
 
 private const val SUMMARY_SELECT = """
-    SELECT new com.bestbidder.adapter.persistence.auction.AuctionSummaryRow(
+    SELECT new com.bestbidder.adapter.persistence.auction.AuctionListItemRow(
         a.id, c.name, c.image, COALESCE(MAX(b.amount), a.minPrize),
         a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num
     )
@@ -25,52 +25,52 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     @Query("$SUMMARY_SELECT ORDER BY a.endsAt ASC")
     fun findSummariesEndingSoon(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY a.endsAt DESC")
     fun findSummariesEndingLate(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY a.startedAt DESC")
     fun findSummariesRecentFirst(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY a.startedAt ASC")
     fun findSummariesOldestFirst(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY COALESCE(MAX(b.amount), a.minPrize) ASC, a.endsAt ASC")
     fun findSummariesPriceAsc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY COALESCE(MAX(b.amount), a.minPrize) DESC, a.endsAt ASC")
     fun findSummariesPriceDesc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY LOWER(c.name) ASC, a.endsAt ASC")
     fun findSummariesNameAsc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY LOWER(c.name) DESC, a.endsAt ASC")
     fun findSummariesNameDesc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY c.num ASC NULLS LAST, a.endsAt ASC")
     fun findSummariesNumberAsc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query("$SUMMARY_SELECT ORDER BY c.num DESC NULLS LAST, a.endsAt ASC")
     fun findSummariesNumberDesc(
         @Param("now") now: Instant,
-    ): List<AuctionSummaryRow>
+    ): List<AuctionListItemRow>
 
     @Query(
         """

@@ -4,7 +4,7 @@ import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionDetail
-import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.port.AuctionRepository
@@ -40,7 +40,7 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findByIdForUpdate(id)?.toDomain()
     }
 
-    override fun getAllSummaries(sort: AuctionSort): List<AuctionSummary> {
+    override fun getAllSummaries(sort: AuctionSort): List<AuctionListItem> {
         val now = Instant.now()
         val rows =
             when (sort) {

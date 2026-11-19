@@ -1,11 +1,11 @@
 package com.bestbidder.adapter.web.auction.dto
 
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.CardState
 import java.util.UUID
 
-data class AuctionSummaryResponse(
+data class AuctionListItemResponse(
     val id: UUID,
     val cardName: String,
     val cardImage: String,
@@ -18,8 +18,8 @@ data class AuctionSummaryResponse(
     val status: AuctionStatus,
 ) {
     companion object {
-        fun fromDomain(summary: AuctionSummary) =
-            AuctionSummaryResponse(
+        fun fromDomain(summary: AuctionListItem) =
+            AuctionListItemResponse(
                 id = summary.id,
                 cardName = summary.cardName,
                 cardImage = summary.cardImage,

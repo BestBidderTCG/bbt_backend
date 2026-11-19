@@ -247,7 +247,7 @@ components:
           maximum: 7
           example: 3
 
-    AuctionSummaryResponse:
+    AuctionListItemResponse:
       type: object
       description: Resumen de una subasta para el listado principal.
       properties:

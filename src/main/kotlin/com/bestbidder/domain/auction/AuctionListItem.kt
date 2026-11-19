@@ -9,7 +9,7 @@ import kotlin.math.ceil
 private const val SECONDS_PER_DAY = 86_400.0
 private const val MAX_AUCTION_DAYS = 7
 
-data class AuctionSummary(
+data class AuctionListItem(
     val id: UUID,
     val cardName: String,
     val cardImage: String,

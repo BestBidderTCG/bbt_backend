@@ -5,8 +5,8 @@ import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionCreator
 import com.bestbidder.domain.auction.AuctionDetail
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
@@ -224,7 +224,7 @@ class AuctionControllerTest {
         @DisplayName("GET /api/auction/all - Debe retornar 200 OK con el listado completo")
         fun `should return 200 OK with all auctions`() {
             val summary =
-                AuctionSummary(
+                AuctionListItem(
                     id = UUID.randomUUID(),
                     cardName = "Pikachu Illustrator",
                     cardImage = "pikachu.png",

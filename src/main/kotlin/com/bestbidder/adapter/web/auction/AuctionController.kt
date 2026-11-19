@@ -1,8 +1,8 @@
 package com.bestbidder.adapter.web.auction
 
 import com.bestbidder.adapter.web.auction.dto.AuctionDetailResponse
+import com.bestbidder.adapter.web.auction.dto.AuctionListItemResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
-import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.adapter.web.auction.dto.UserAuctionSummaryResponse
 import com.bestbidder.infrastructure.security.AuthenticatedUser
@@ -83,8 +83,8 @@ class AuctionController(
     @GetMapping("/all")
     fun getAll(
         @RequestParam(defaultValue = "ENDING_SOON") sort: AuctionSort,
-    ): ResponseEntity<List<AuctionSummaryResponse>> {
-        val auctions = getAuctionUseCase.getAll(sort).map { AuctionSummaryResponse.fromDomain(it) }
+    ): ResponseEntity<List<AuctionListItemResponse>> {
+        val auctions = getAuctionUseCase.getAll(sort).map { AuctionListItemResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 

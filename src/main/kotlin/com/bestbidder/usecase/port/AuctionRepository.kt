@@ -2,7 +2,7 @@ package com.bestbidder.usecase.port
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionDetail
-import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
 import java.time.Instant
@@ -30,7 +30,7 @@ interface AuctionRepository {
     /**
      * Obtiene todas las subastas registradas.
      */
-    fun getAllSummaries(sort: AuctionSort): List<AuctionSummary>
+    fun getAllSummaries(sort: AuctionSort): List<AuctionListItem>
 
     /**
      * Obtiene las subastas creadas por el usuario logueado.

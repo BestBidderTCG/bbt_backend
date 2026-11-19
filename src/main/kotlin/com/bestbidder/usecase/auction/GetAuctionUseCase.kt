@@ -2,7 +2,7 @@ package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionDetail
-import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Service
@@ -23,7 +23,7 @@ class GetAuctionUseCase(
         return auctionRepository.getDetailById(id, viewerId)
     }
 
-    fun getAll(sort: AuctionSort = AuctionSort.ENDING_SOON): List<AuctionSummary> {
+    fun getAll(sort: AuctionSort = AuctionSort.ENDING_SOON): List<AuctionListItem> {
         return auctionRepository.getAllSummaries(sort)
     }
 

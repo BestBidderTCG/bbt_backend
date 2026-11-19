@@ -98,10 +98,10 @@ class UserController(
     @GetMapping("/me/deletion-check")
     fun checkDeletion(): AccountDeletionCheckResponse {
         val principal = getCurrentUser()
-        val blockers = checkAccountDeletionUseCase.execute(principal.id)
+        val result = checkAccountDeletionUseCase.execute(principal.id)
         return AccountDeletionCheckResponse(
-            canDelete = blockers.isEmpty(),
-            blockers = blockers,
+            hasActiveAuction = result.hasActiveAuction,
+            isWinningAuction = result.isWinningAuction,
         )
     }
 }

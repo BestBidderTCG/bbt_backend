@@ -162,15 +162,18 @@ components:
 
     AccountDeletionCheckResponse:
       type: object
+      required:
+          - hasActiveAuction
+          - isWinningAuction
       properties:
-        canDelete:
-          type: boolean
-          example: false
-        blockers:
-          type: array
-          items:
-            type: string
-          example: [ "tienes subastas activas o pendientes de comenzar" ]
+          hasActiveAuction:
+            type: boolean
+            description: Indica si el usuario tiene subastas como creador.
+            example: true
+          isWinningAuction:
+            type: boolean
+            description: Indica si el usuario es el mayor pujador en alguna subasta activa.
+            example: false
 
 
     AuctionResponse:
@@ -668,19 +671,19 @@ paths:
 
   /api/users/me/deletion-check:
       get:
-        summary: Comprobar si la cuenta se puede eliminar
-        description: Devuelve un booleano indicando si el usuario puede borrar su cuenta o si está bloqueado por subastas o pujas.
+        summary: Comprobar las condiciones para eliminar la cuenta
+        description: Devuelve dos booleanos indicando si el usuario tiene subastas como creador o es el mayor pujador en una subasta activa.
         security:
-          - bearerAuth: [ ]
+            - bearerAuth: [ ]
         responses:
-          '200':
-            description: Resultado de la comprobación.
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/AccountDeletionCheckResponse'
-          '401':
-            description: No autorizado.
+            '200':
+              description: Resultado de la comprobación.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/AccountDeletionCheckResponse'
+            '401':
+              description: No autorizado.
 
 
   /api/auth/check-email:

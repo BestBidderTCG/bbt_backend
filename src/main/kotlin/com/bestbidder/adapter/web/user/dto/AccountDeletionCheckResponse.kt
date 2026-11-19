@@ -1,6 +1,6 @@
 package com.bestbidder.adapter.web.user.dto
 
 data class AccountDeletionCheckResponse(
-    val canDelete: Boolean,
-    val blockers: List<String>,
+    val hasActiveAuction: Boolean,
+    val isWinningAuction: Boolean,
 )

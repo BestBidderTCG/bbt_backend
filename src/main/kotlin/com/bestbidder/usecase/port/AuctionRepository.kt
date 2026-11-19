@@ -3,7 +3,7 @@ package com.bestbidder.usecase.port
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionListItem
-import com.bestbidder.domain.auction.UserAuctionSummary
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
 import java.time.Instant
 import java.util.UUID
@@ -35,7 +35,7 @@ interface AuctionRepository {
     /**
      * Obtiene las subastas creadas por el usuario logueado.
      */
-    fun getUserAuctions(id: UUID): List<UserAuctionSummary>
+    fun getUserAuctions(id: UUID): List<AuctionSummary>
 
     /**
      * Comprueba si un creador ya tiene una subasta activa o pendiente asociada a una carta.

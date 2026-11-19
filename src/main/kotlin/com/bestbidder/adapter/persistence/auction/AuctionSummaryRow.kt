@@ -1,11 +1,11 @@
 package com.bestbidder.adapter.persistence.auction
 
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.UserAuctionSummary
+import com.bestbidder.domain.auction.AuctionSummary
 import java.time.Instant
 import java.util.UUID
 
-data class UserAuctionSummaryRow(
+data class AuctionSummaryRow(
     val id: UUID,
     val cardName: String,
     val cardImage: String,
@@ -15,7 +15,7 @@ data class UserAuctionSummaryRow(
     val endsAt: Instant,
     val winnerUsername: String?,
 ) {
-    fun toSummary(now: Instant): UserAuctionSummary {
+    fun toSummary(now: Instant): AuctionSummary {
         val status =
             when {
                 !endsAt.isAfter(now) -> AuctionStatus.FINISHED
@@ -23,7 +23,7 @@ data class UserAuctionSummaryRow(
                 else -> AuctionStatus.IN_PROGRESS
             }
 
-        return UserAuctionSummary(
+        return AuctionSummary(
             id = id,
             cardName = cardName,
             cardImage = cardImage,

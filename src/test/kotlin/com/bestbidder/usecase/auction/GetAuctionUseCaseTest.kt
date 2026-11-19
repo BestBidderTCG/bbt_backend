@@ -5,7 +5,7 @@ import com.bestbidder.domain.auction.AuctionCreator
 import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.UserAuctionSummary
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionRepository
@@ -72,7 +72,7 @@ class GetAuctionUseCaseTest {
         cardName: String = "Gengar",
         status: AuctionStatus = AuctionStatus.IN_PROGRESS,
         winnerUsername: String? = null,
-    ) = UserAuctionSummary(
+    ) = AuctionSummary(
         id = UUID.randomUUID(),
         cardName = cardName,
         cardImage = "${cardName.lowercase()}.png",

@@ -283,7 +283,7 @@ components:
           nullable: true
           example: "Base Set 1999"
         
-    UserAuctionSummaryResponse:
+    AuctionSummaryResponse:
       type: object
       description: Resumen de una subasta del usuario autenticado (incluye finalizadas).
       properties:
@@ -887,7 +887,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AuctionSummaryResponse'
+                  $ref: '#/components/schemas/AuctionListItemResponse'
         '400':
           description: Valor de `sort` no válido.
 
@@ -909,7 +909,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserAuctionSummaryResponse'
+                  $ref: '#/components/schemas/AuctionSummaryResponse'
         '401':
           description: No autenticado o token inválido
 

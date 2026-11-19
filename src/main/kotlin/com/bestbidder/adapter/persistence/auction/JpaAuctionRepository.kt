@@ -128,7 +128,7 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
 
     @Query(
         """
-    SELECT new com.bestbidder.adapter.persistence.auction.UserAuctionSummaryRow(
+    SELECT new com.bestbidder.adapter.persistence.auction.AuctionSummaryRow(
         a.id,
         c.name,
         c.image,
@@ -149,7 +149,7 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     )
     fun findUserAuction(
         @Param("userId") userId: UUID,
-    ): List<UserAuctionSummaryRow>
+    ): List<AuctionSummaryRow>
 
     @Query(
         """

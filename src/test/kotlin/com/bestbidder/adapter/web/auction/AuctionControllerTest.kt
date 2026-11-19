@@ -7,7 +7,7 @@ import com.bestbidder.domain.auction.AuctionCreator
 import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
-import com.bestbidder.domain.auction.UserAuctionSummary
+import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
@@ -279,7 +279,7 @@ class AuctionControllerTest {
         @DisplayName("Debe retornar 200 OK con las subastas del usuario autenticado")
         fun `should return 200 OK with user auctions`() {
             val summary =
-                UserAuctionSummary(
+                AuctionSummary(
                     id = UUID.randomUUID(),
                     cardName = "Charizard",
                     cardImage = "charizard.png",
@@ -329,7 +329,7 @@ class AuctionControllerTest {
         @DisplayName("Debe devolver winner_username null si la subasta no tiene ganador")
         fun `should return null winner when auction has no winner`() {
             val summary =
-                UserAuctionSummary(
+                AuctionSummary(
                     id = UUID.randomUUID(),
                     cardName = "Pikachu",
                     cardImage = "pikachu.png",
@@ -358,7 +358,7 @@ class AuctionControllerTest {
             val statuses = AuctionStatus.values().toList()
             val summaries =
                 statuses.map {
-                    UserAuctionSummary(
+                    AuctionSummary(
                         id = UUID.randomUUID(),
                         cardName = "Carta $it",
                         cardImage = "carta.png",

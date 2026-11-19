@@ -2,7 +2,7 @@ package com.bestbidder.domain.auction
 
 import java.util.UUID
 
-data class UserAuctionSummary(
+data class AuctionSummary(
     val id: UUID,
     val cardName: String,
     val cardImage: String,

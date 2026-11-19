@@ -3,6 +3,7 @@ package com.bestbidder.infrastructure.config
 import com.bestbidder.infrastructure.security.JwtAuthFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -35,6 +36,7 @@ class SecurityConfig(
                         "/api/auth/check-username",
                         "/error",
                     ).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)

@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.port.AuctionRepository
@@ -13,6 +14,13 @@ class GetAuctionUseCase(
 ) {
     fun getById(id: UUID): Auction? {
         return auctionRepository.getById(id)
+    }
+
+    fun getDetail(
+        id: UUID,
+        viewerId: UUID?,
+    ): AuctionDetail? {
+        return auctionRepository.getDetailById(id, viewerId)
     }
 
     fun getAll(sort: AuctionSort = AuctionSort.ENDING_SOON): List<AuctionSummary> {

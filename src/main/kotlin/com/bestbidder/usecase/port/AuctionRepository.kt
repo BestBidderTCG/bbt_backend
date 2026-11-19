@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.port
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
@@ -15,6 +16,11 @@ interface AuctionRepository {
      * Obtiene una subasta por su identificador único.
      */
     fun getById(id: UUID): Auction?
+
+    fun getDetailById(
+        id: UUID,
+        viewerId: UUID?,
+    ): AuctionDetail?
 
     /**
      * Obtiene una subasta bloqueando el registro para escritura hasta el fin de la transacción.

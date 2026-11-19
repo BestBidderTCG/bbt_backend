@@ -150,4 +150,39 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     fun findUserAuction(
         @Param("userId") userId: UUID,
     ): List<UserAuctionSummaryRow>
+
+    @Query(
+        """
+    SELECT new com.bestbidder.adapter.persistence.auction.AuctionDetailRow(
+        a.id,
+        c.name,
+        c.image,
+        c.collection,
+        c.num,
+        c.state,
+        a.minPrize,
+        (SELECT MAX(b.amount) FROM BidEntity b WHERE b.auction = a),
+        (SELECT COUNT(b2) FROM BidEntity b2 WHERE b2.auction = a),
+        a.startedAt,
+        a.endsAt,
+        a.description,
+        a.isCancelled,
+        u.id,
+        u.username,
+        u.avatarNum,
+        CASE WHEN EXISTS (
+            SELECT 1 FROM FavoriteAuctionEntity f
+            WHERE f.auction = a AND f.user.id = :viewerId
+        ) THEN TRUE ELSE FALSE END
+    )
+    FROM AuctionEntity a
+    JOIN a.card c
+    JOIN a.creator u
+    WHERE a.id = :id
+    """,
+    )
+    fun findDetailById(
+        @Param("id") id: UUID,
+        @Param("viewerId") viewerId: UUID,
+    ): AuctionDetailRow?
 }

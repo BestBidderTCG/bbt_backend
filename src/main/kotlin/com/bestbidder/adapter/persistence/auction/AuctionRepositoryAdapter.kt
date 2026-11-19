@@ -3,6 +3,7 @@ package com.bestbidder.adapter.persistence.auction
 import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
@@ -21,6 +22,18 @@ class AuctionRepositoryAdapter(
         return jpaAuctionRepository.findById(id)
             .map { it.toDomain() }
             .orElse(null)
+    }
+
+    override fun getDetailById(
+        id: UUID,
+        viewerId: UUID?,
+    ): AuctionDetail? {
+        val row = jpaAuctionRepository.findDetailById(id, viewerId ?: NO_VIEWER) ?: return null
+        return row.toDetail(Instant.now(), viewerId)
+    }
+
+    private companion object {
+        val NO_VIEWER: UUID = UUID(0L, 0L)
     }
 
     override fun getByIdForUpdate(id: UUID): Auction? {

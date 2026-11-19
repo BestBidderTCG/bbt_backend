@@ -1,6 +1,8 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionCreator
+import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
@@ -80,6 +82,28 @@ class GetAuctionUseCaseTest {
         startedAt = 1_700_000_000_000,
         endsAt = 1_700_259_200_000,
         winnerUsername = winnerUsername,
+    )
+
+    private fun buildSampleDetail(
+        creator: AuctionCreator? = AuctionCreator(UUID.randomUUID(), "paula", 1),
+        isFavorite: Boolean? = false,
+    ) = AuctionDetail(
+        id = UUID.randomUUID(),
+        status = AuctionStatus.IN_PROGRESS,
+        cardName = "Gengar",
+        cardImage = "gengar.png",
+        cardCollection = null,
+        cardNumber = null,
+        cardState = CardState.POOR,
+        minPrize = 80.0,
+        increment = 1.0,
+        lastBid = null,
+        bidCount = 0,
+        startedAt = Instant.now(),
+        endsAt = Instant.now().plusSeconds(3600),
+        description = null,
+        creator = creator,
+        isFavorite = isFavorite,
     )
 
     @Test
@@ -172,5 +196,41 @@ class GetAuctionUseCaseTest {
 
         assertTrue(result.isEmpty())
         verify(auctionRepository, times(1)).getUserAuctions(userId)
+    }
+
+    @Test
+    @DisplayName("Debe obtener el detalle de una subasta delegando en el repositorio")
+    fun `should get auction detail`() {
+        val auctionId = UUID.randomUUID()
+        val viewerId = UUID.randomUUID()
+        val detail = buildSampleDetail(isFavorite = true)
+        `when`(auctionRepository.getDetailById(auctionId, viewerId)).thenReturn(detail)
+
+        val result = useCase.getDetail(auctionId, viewerId)
+
+        assertEquals(detail, result)
+        verify(auctionRepository, times(1)).getDetailById(auctionId, viewerId)
+    }
+
+    @Test
+    @DisplayName("Debe pasar viewerId null al repositorio si no hay usuario autenticado")
+    fun `should get auction detail without viewer`() {
+        val auctionId = UUID.randomUUID()
+        `when`(auctionRepository.getDetailById(auctionId, null))
+            .thenReturn(buildSampleDetail(isFavorite = null))
+
+        val result = useCase.getDetail(auctionId, null)
+
+        assertNull(result?.isFavorite)
+        verify(auctionRepository, times(1)).getDetailById(auctionId, null)
+    }
+
+    @Test
+    @DisplayName("Debe retornar null si la subasta no existe")
+    fun `should return null detail when auction not found`() {
+        val auctionId = UUID.randomUUID()
+        `when`(auctionRepository.getDetailById(auctionId, null)).thenReturn(null)
+
+        assertNull(useCase.getDetail(auctionId, null))
     }
 }

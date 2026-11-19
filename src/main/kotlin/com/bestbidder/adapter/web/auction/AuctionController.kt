@@ -1,5 +1,6 @@
 package com.bestbidder.adapter.web.auction
 
+import com.bestbidder.adapter.web.auction.dto.AuctionDetailResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
@@ -62,6 +63,18 @@ class AuctionController(
             )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(AuctionResponse.fromDomain(auction))
+    }
+
+    /**
+     * Recupera el detalle de una subasta. Si hay usuario autenticado, indica si es favorita.
+     */
+    @GetMapping("/{id}")
+    fun getById(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal principal: AuthenticatedUser?,
+    ): ResponseEntity<AuctionDetailResponse> {
+        val detail = getAuctionUseCase.getDetail(id, principal?.id) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(AuctionDetailResponse.fromDomain(detail))
     }
 
     /**

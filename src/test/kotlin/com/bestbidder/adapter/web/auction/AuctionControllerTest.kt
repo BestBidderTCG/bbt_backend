@@ -3,6 +3,8 @@ package com.bestbidder.adapter.web.auction
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionCreator
+import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
 import com.bestbidder.domain.auction.UserAuctionSummary
@@ -454,6 +456,86 @@ class AuctionControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].creator_username").value("user2"))
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/auction/{id}")
+    inner class AuctionDetailTests {
+        private fun buildDetail(
+            creator: AuctionCreator?,
+            isFavorite: Boolean?,
+        ) = AuctionDetail(
+            id = UUID.randomUUID(),
+            status = AuctionStatus.IN_PROGRESS,
+            cardName = "Pikachu Illustrator",
+            cardImage = "pikachu.png",
+            cardCollection = "Promo",
+            cardNumber = 5,
+            cardState = CardState.NEW,
+            minPrize = 100.0,
+            increment = 1.0,
+            lastBid = 150.0,
+            bidCount = 3,
+            startedAt = now,
+            endsAt = now.plusSeconds(3600),
+            description = "Estado impecable",
+            creator = creator,
+            isFavorite = isFavorite,
+        )
+
+        @Test
+        @DisplayName("Debe retornar 200 con creador e isFavorite si lo consulta otro usuario")
+        fun `should return detail with creator and favorite`() {
+            val creator = AuctionCreator(UUID.randomUUID(), "user2", 4)
+            val detail = buildDetail(creator, true)
+            `when`(getAuctionUseCase.getDetail(detail.id, defaultUserId)).thenReturn(detail)
+
+            mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(detail.id.toString()))
+                .andExpect(jsonPath("$.card_name").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$.last_bid").value(150.0))
+                .andExpect(jsonPath("$.bid_count").value(3))
+                .andExpect(jsonPath("$.creator.username").value("user2"))
+                .andExpect(jsonPath("$.creator.avatar_num").value(4))
+                .andExpect(jsonPath("$.is_favorite").value(true))
+        }
+
+        @Test
+        @DisplayName("Debe retornar creador e isFavorite null si quien consulta es el propietario")
+        fun `should return null creator and favorite for owner`() {
+            val detail = buildDetail(creator = null, isFavorite = null)
+            `when`(getAuctionUseCase.getDetail(detail.id, defaultUserId)).thenReturn(detail)
+
+            mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.creator").doesNotExist())
+                .andExpect(jsonPath("$.is_favorite").doesNotExist())
+        }
+
+        @Test
+        @DisplayName("Debe llamar al caso de uso con viewerId null si no hay usuario autenticado")
+        fun `should call use case with null viewer when anonymous`() {
+            val detail = buildDetail(AuctionCreator(UUID.randomUUID(), "user2", null), null)
+            `when`(getAuctionUseCase.getDetail(detail.id, null)).thenReturn(detail)
+
+            mockMvc.perform(get("/api/auction/${detail.id}"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.creator.username").value("user2"))
+                .andExpect(jsonPath("$.is_favorite").doesNotExist())
+
+            verify(getAuctionUseCase, times(1)).getDetail(detail.id, null)
+        }
+
+        @Test
+        @DisplayName("Debe retornar 404 si la subasta no existe")
+        fun `should return 404 when auction does not exist`() {
+            val id = UUID.randomUUID()
+            `when`(getAuctionUseCase.getDetail(id, defaultUserId)).thenReturn(null)
+
+            mockMvc.perform(get("/api/auction/$id").with(authentication(authToken)))
+                .andExpect(status().isNotFound)
         }
     }
 }

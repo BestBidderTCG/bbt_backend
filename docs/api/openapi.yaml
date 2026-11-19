@@ -326,6 +326,96 @@ components:
           description: Username del ganador. Solo se informa si la subasta ha finalizado y tiene pujas.
           example: "user1"
 
+    AuctionCreatorResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          example: "paula"
+        avatarNum:
+          type: integer
+          nullable: true
+          example: 3
+
+    AuctionDetailResponse:
+      type: object
+      description: Detalle completo de una subasta.
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS, FINISHED, CANCELLED]
+          example: "IN_PROGRESS"
+        cardName:
+          type: string
+          example: "Charizard Base Set"
+        cardImage:
+          type: string
+          example: "/uploads/charizard.png"
+        cardCollection:
+          type: string
+          nullable: true
+          example: "Base Set 1999"
+        cardNumber:
+          type: integer
+          nullable: true
+          example: 4
+        cardState:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        minPrize:
+          type: number
+          format: double
+          example: 80.0
+        increment:
+          type: number
+          format: double
+          description: |
+            Incremento aplicable según la última puja o, si no hay pujas, según el precio mínimo.
+            La primera puja válida es el propio precio mínimo (sin sumar incremento).
+          example: 5.0
+        lastBid:
+          type: number
+          format: double
+          nullable: true
+          description: Importe de la última puja. Null si aún no hay pujas.
+          example: 120.0
+        bidCount:
+          type: integer
+          format: int64
+          example: 3
+        startedAt:
+          type: integer
+          format: int64
+          description: Fecha de inicio en milisegundos desde epoch.
+          example: 1700000000000
+        endsAt:
+          type: integer
+          format: int64
+          description: Fecha de fin en milisegundos desde epoch.
+          example: 1700259200000
+        description:
+          type: string
+          nullable: true
+          example: "Carta en perfecto estado, funda incluida."
+        creator:
+          allOf:
+            - $ref: '#/components/schemas/AuctionCreatorResponse'
+          nullable: true
+          description: Datos del creador. Null si quien consulta es el propietario de la subasta.
+        isFavorite:
+          type: boolean
+          nullable: true
+          description: |
+            Si la subasta está en favoritos del usuario autenticado.
+            Null si quien consulta es el propietario o no está autenticado.
+
     CreateCardRequest:
       type: object
       required:
@@ -825,7 +915,20 @@ paths:
 
   /api/auction/{id}:
     get:
-      summary: Obtener una subasta por su ID
+      tags:
+        - Auction
+      summary: Obtener el detalle de una subasta por su ID
+      description: |
+        Endpoint público. Si se envía un token válido, la respuesta se adapta a quien consulta:
+
+        | Quién consulta | `creator` | `isFavorite` |
+        |---|---|---|
+        | El propietario | `null` | `null` |
+        | Otro usuario autenticado | datos del creador | `true` / `false` |
+        | Sin autenticar | datos del creador | `null` |
+      security:
+        - {}
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -839,7 +942,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuctionResponse'
+                $ref: '#/components/schemas/AuctionDetailResponse'
         '404':
           description: Subasta no encontrada.
 

@@ -4,6 +4,20 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 object BidIncrementPolicy {
+    /**
+     * Incremento aplicable según el importe de referencia (última puja o precio mínimo).
+     */
+    fun incrementFor(amount: Double): Double =
+        when {
+            amount < 1.0 -> 0.10
+            amount < 5.0 -> 0.25
+            amount < 25.0 -> 0.50
+            amount < 100.0 -> 1.00
+            amount < 250.0 -> 5.00
+            amount < 500.0 -> 10.00
+            else -> 25.00
+        }
+
     fun calculateMinimumNextBid(
         minPrize: Double,
         currentHighestBid: Double?,
@@ -12,18 +26,7 @@ object BidIncrementPolicy {
             return minPrize
         }
 
-        val increment =
-            when {
-                currentHighestBid < 1.0 -> 0.10
-                currentHighestBid < 5.0 -> 0.25
-                currentHighestBid < 25.0 -> 0.50
-                currentHighestBid < 100.0 -> 1.00
-                currentHighestBid < 250.0 -> 5.00
-                currentHighestBid < 500.0 -> 10.00
-                else -> 25.00
-            }
-
-        return BigDecimal(currentHighestBid + increment)
+        return BigDecimal.valueOf(currentHighestBid + incrementFor(currentHighestBid))
             .setScale(2, RoundingMode.HALF_UP)
             .toDouble()
     }

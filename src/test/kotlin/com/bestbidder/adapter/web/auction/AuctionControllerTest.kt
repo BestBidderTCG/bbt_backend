@@ -5,6 +5,7 @@ import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
@@ -266,6 +267,121 @@ class AuctionControllerTest {
         fun `should return 400 when sort param is invalid`() {
             mockMvc.perform(get("/api/auction/all").param("sort", "INVALIDO"))
                 .andExpect(status().isBadRequest)
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/auction/user/my-auctions")
+    inner class MyAuctionsTests {
+        @Test
+        @DisplayName("Debe retornar 200 OK con las subastas del usuario autenticado")
+        fun `should return 200 OK with user auctions`() {
+            val summary =
+                UserAuctionSummary(
+                    id = UUID.randomUUID(),
+                    cardName = "Charizard",
+                    cardImage = "charizard.png",
+                    status = AuctionStatus.FINISHED,
+                    minPrize = 10.0,
+                    currentBid = 25.0,
+                    startedAt = 1_700_000_000_000,
+                    endsAt = 1_700_086_400_000,
+                    winnerUsername = "ganador",
+                )
+
+            `when`(getAuctionUseCase.getUserAuctions(defaultUserId)).thenReturn(listOf(summary))
+
+            mockMvc.perform(
+                get("/api/auction/user/my-auctions")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(summary.id.toString()))
+                .andExpect(jsonPath("$[0].card_name").value("Charizard"))
+                .andExpect(jsonPath("$[0].card_image").value("charizard.png"))
+                .andExpect(jsonPath("$[0].status").value("FINISHED"))
+                .andExpect(jsonPath("$[0].min_prize").value(10.0))
+                .andExpect(jsonPath("$[0].current_bid").value(25.0))
+                .andExpect(jsonPath("$[0].started_at").value(1_700_000_000_000))
+                .andExpect(jsonPath("$[0].ends_at").value(1_700_086_400_000))
+                .andExpect(jsonPath("$[0].winner_username").value("ganador"))
+
+            verify(getAuctionUseCase, times(1)).getUserAuctions(defaultUserId)
+        }
+
+        @Test
+        @DisplayName("Debe retornar 200 OK y lista vacía si el usuario no tiene subastas")
+        fun `should return 200 OK with empty list when user has no auctions`() {
+            `when`(getAuctionUseCase.getUserAuctions(defaultUserId)).thenReturn(emptyList())
+
+            mockMvc.perform(
+                get("/api/auction/user/my-auctions")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(0))
+        }
+
+        @Test
+        @DisplayName("Debe devolver winner_username null si la subasta no tiene ganador")
+        fun `should return null winner when auction has no winner`() {
+            val summary =
+                UserAuctionSummary(
+                    id = UUID.randomUUID(),
+                    cardName = "Pikachu",
+                    cardImage = "pikachu.png",
+                    status = AuctionStatus.IN_PROGRESS,
+                    minPrize = 5.0,
+                    currentBid = 5.0,
+                    startedAt = 1_700_000_000_000,
+                    endsAt = 1_700_086_400_000,
+                    winnerUsername = null,
+                )
+
+            `when`(getAuctionUseCase.getUserAuctions(defaultUserId)).thenReturn(listOf(summary))
+
+            mockMvc.perform(
+                get("/api/auction/user/my-auctions")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[0].winner_username").doesNotExist())
+        }
+
+        @Test
+        @DisplayName("Debe devolver las subastas en los distintos estados")
+        fun `should return auctions in every status`() {
+            val statuses = AuctionStatus.values().toList()
+            val summaries =
+                statuses.map {
+                    UserAuctionSummary(
+                        id = UUID.randomUUID(),
+                        cardName = "Carta $it",
+                        cardImage = "carta.png",
+                        status = it,
+                        minPrize = 1.0,
+                        currentBid = 1.0,
+                        startedAt = 1_700_000_000_000,
+                        endsAt = 1_700_086_400_000,
+                        winnerUsername = null,
+                    )
+                }
+
+            `when`(getAuctionUseCase.getUserAuctions(defaultUserId)).thenReturn(summaries)
+
+            val result =
+                mockMvc.perform(
+                    get("/api/auction/user/my-auctions")
+                        .with(authentication(authToken)),
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.length()").value(statuses.size))
+
+            statuses.forEachIndexed { index, s ->
+                result.andExpect(jsonPath("$[$index].status").value(s.name))
+            }
         }
     }
 

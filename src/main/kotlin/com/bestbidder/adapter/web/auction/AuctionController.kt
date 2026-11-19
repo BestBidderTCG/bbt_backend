@@ -3,6 +3,7 @@ package com.bestbidder.adapter.web.auction
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
+import com.bestbidder.adapter.web.auction.dto.UserAuctionSummaryResponse
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
@@ -71,6 +72,17 @@ class AuctionController(
         @RequestParam(defaultValue = "ENDING_SOON") sort: AuctionSort,
     ): ResponseEntity<List<AuctionSummaryResponse>> {
         val auctions = getAuctionUseCase.getAll(sort).map { AuctionSummaryResponse.fromDomain(it) }
+        return ResponseEntity.ok(auctions)
+    }
+
+    /**
+     * Recupera el listado de mis subastas.
+     */
+    @GetMapping("/user/my-auctions")
+    fun getMyAuctions(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+    ): ResponseEntity<List<UserAuctionSummaryResponse>> {
+        val auctions = getAuctionUseCase.getUserAuctions(principal.id).map { UserAuctionSummaryResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)
     }
 

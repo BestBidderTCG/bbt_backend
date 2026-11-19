@@ -32,6 +32,16 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         @Param("now") now: Instant,
     ): List<AuctionSummaryRow>
 
+    @Query("$SUMMARY_SELECT ORDER BY a.startedAt DESC")
+    fun findSummariesRecentFirst(
+        @Param("now") now: Instant,
+    ): List<AuctionSummaryRow>
+
+    @Query("$SUMMARY_SELECT ORDER BY a.startedAt ASC")
+    fun findSummariesOldestFirst(
+        @Param("now") now: Instant,
+    ): List<AuctionSummaryRow>
+
     @Query("$SUMMARY_SELECT ORDER BY COALESCE(MAX(b.amount), a.minPrize) ASC, a.endsAt ASC")
     fun findSummariesPriceAsc(
         @Param("now") now: Instant,
@@ -115,4 +125,29 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     fun findByIdForUpdate(
         @Param("id") id: UUID,
     ): AuctionEntity?
+
+    @Query(
+        """
+    SELECT new com.bestbidder.adapter.persistence.auction.UserAuctionSummaryRow(
+        a.id,
+        c.name,
+        c.image,
+        a.minPrize,
+        COALESCE((SELECT MAX(b.amount) FROM BidEntity b WHERE b.auction = a), a.minPrize),
+        a.startedAt,
+        a.endsAt,
+        (SELECT b2.bidder.username FROM BidEntity b2
+         WHERE b2.auction = a
+           AND b2.amount = (SELECT MAX(b3.amount) FROM BidEntity b3 WHERE b3.auction = a))
+        )
+        FROM AuctionEntity a
+        JOIN a.card c
+        WHERE a.creator.id = :userId
+        AND a.isCancelled = false
+        ORDER BY a.endsAt DESC
+        """,
+    )
+    fun findUserAuction(
+        @Param("userId") userId: UUID,
+    ): List<UserAuctionSummaryRow>
 }

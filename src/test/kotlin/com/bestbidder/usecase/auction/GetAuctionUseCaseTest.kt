@@ -3,12 +3,14 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -64,6 +66,22 @@ class GetAuctionUseCaseTest {
         status = AuctionStatus.IN_PROGRESS,
     )
 
+    private fun buildSampleUserSummary(
+        cardName: String = "Gengar",
+        status: AuctionStatus = AuctionStatus.IN_PROGRESS,
+        winnerUsername: String? = null,
+    ) = UserAuctionSummary(
+        id = UUID.randomUUID(),
+        cardName = cardName,
+        cardImage = "${cardName.lowercase()}.png",
+        status = status,
+        minPrize = 80.0,
+        currentBid = 120.0,
+        startedAt = 1_700_000_000_000,
+        endsAt = 1_700_259_200_000,
+        winnerUsername = winnerUsername,
+    )
+
     @Test
     @DisplayName("Debe obtener una subasta por su ID si existe")
     fun `should get auction by id`() {
@@ -115,5 +133,44 @@ class GetAuctionUseCaseTest {
 
         assertEquals("Abra", result.first().cardName)
         verify(auctionRepository, times(1)).getAllSummaries(AuctionSort.PRICE_ASC)
+    }
+
+    @Test
+    @DisplayName("Debe obtener las subastas del usuario delegando en el repositorio")
+    fun `should get user auctions`() {
+        val userId = UUID.randomUUID()
+        val summaries =
+            listOf(
+                buildSampleUserSummary(cardName = "Gengar", status = AuctionStatus.IN_PROGRESS),
+                buildSampleUserSummary(
+                    cardName = "Charizard",
+                    status = AuctionStatus.FINISHED,
+                    winnerUsername = "ganador",
+                ),
+            )
+        `when`(auctionRepository.getUserAuctions(userId)).thenReturn(summaries)
+
+        val result = useCase.getUserAuctions(userId)
+
+        assertEquals(2, result.size)
+        assertEquals("Gengar", result[0].cardName)
+        assertEquals(AuctionStatus.IN_PROGRESS, result[0].status)
+        assertNull(result[0].winnerUsername)
+        assertEquals("Charizard", result[1].cardName)
+        assertEquals(AuctionStatus.FINISHED, result[1].status)
+        assertEquals("ganador", result[1].winnerUsername)
+        verify(auctionRepository, times(1)).getUserAuctions(userId)
+    }
+
+    @Test
+    @DisplayName("Debe retornar lista vacía si el usuario no tiene subastas")
+    fun `should return empty list when user has no auctions`() {
+        val userId = UUID.randomUUID()
+        `when`(auctionRepository.getUserAuctions(userId)).thenReturn(emptyList())
+
+        val result = useCase.getUserAuctions(userId)
+
+        assertTrue(result.isEmpty())
+        verify(auctionRepository, times(1)).getUserAuctions(userId)
     }
 }

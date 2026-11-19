@@ -279,6 +279,49 @@ components:
           type: string
           nullable: true
           example: "Base Set 1999"
+        
+    UserAuctionSummaryResponse:
+      type: object
+      description: Resumen de una subasta del usuario autenticado (incluye finalizadas).
+      properties:
+        id:
+          type: string
+          format: uuid
+        cardName:
+          type: string
+          example: "Charizard Base Set"
+        cardImage:
+          type: string
+          example: "/uploads/charizard.png"
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS, FINISHED]
+          description: Estado calculado a partir de las fechas de inicio y fin.
+          example: "FINISHED"
+        minPrize:
+          type: number
+          format: double
+          example: 80.0
+        currentBid:
+          type: number
+          format: double
+          description: Importe de la puja más alta, o el precio mínimo si no hay pujas.
+          example: 650.0
+        startedAt:
+          type: integer
+          format: int64
+          description: Fecha de inicio en milisegundos desde epoch.
+          example: 1700000000000
+        endsAt:
+          type: integer
+          format: int64
+          description: Fecha de fin en milisegundos desde epoch.
+          example: 1700259200000
+        winnerUsername:
+          type: string
+          nullable: true
+          description: Username del ganador. Solo se informa si la subasta ha finalizado y tiene pujas.
+          example: "user1"
 
     CreateCardRequest:
       type: object
@@ -754,6 +797,28 @@ paths:
                   $ref: '#/components/schemas/AuctionSummaryResponse'
         '400':
           description: Valor de `sort` no válido.
+
+  /api/auction/user/my-auctions:
+    get:
+      tags:
+        - Auction
+      summary: Listar mis subastas
+      description: |
+        Devuelve las subastas creadas por el usuario autenticado, ordenadas por fecha de fin descendente.
+        Incluye las pendientes de comenzar, en curso y finalizadas. Excluye las canceladas.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de subastas del usuario (vacío si no tiene ninguna).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserAuctionSummaryResponse'
+        '401':
+          description: No autenticado o token inválido
 
   /api/auction/{id}:
     get:

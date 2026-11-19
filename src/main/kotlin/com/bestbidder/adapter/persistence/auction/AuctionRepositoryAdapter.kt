@@ -4,6 +4,7 @@ import com.bestbidder.adapter.persistence.card.JpaCardRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.UserAuctionSummary
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.port.AuctionRepository
 import org.springframework.stereotype.Repository
@@ -41,6 +42,12 @@ class AuctionRepositoryAdapter(
                 AuctionSort.NUMBER_ASC -> jpaAuctionRepository.findSummariesNumberAsc(now)
                 AuctionSort.NUMBER_DESC -> jpaAuctionRepository.findSummariesNumberDesc(now)
             }
+        return rows.map { it.toSummary(now) }
+    }
+
+    override fun getUserAuctions(id: UUID): List<UserAuctionSummary> {
+        val now = Instant.now()
+        val rows = jpaAuctionRepository.findUserAuction(id)
         return rows.map { it.toSummary(now) }
     }
 

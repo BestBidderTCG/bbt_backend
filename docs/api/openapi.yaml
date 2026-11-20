@@ -625,6 +625,54 @@ components:
         createdAt:
           type: string
           format: date-time
+    
+        AuctionHistoryResponse:
+      type: object
+      description: Una puja dentro del historial de una subasta, con los datos públicos del pujador.
+      properties:
+        bidderId:
+          type: string
+          format: uuid
+        bidderName:
+          type: string
+          example: "david_85"
+        bidderAvatar:
+          type: string
+          example: "3"
+        amount:
+          type: number
+          format: double
+          example: 95.0
+
+    BidderHistoryResponse:
+      type: object
+      description: Resumen de la participación del usuario autenticado en una subasta.
+      properties:
+        auctionId:
+          type: string
+          format: uuid
+        cardName:
+          type: string
+          example: "Charizard Base Set"
+        cardImage:
+          type: string
+          example: "/uploads/charizard.png"
+        amount:
+          type: number
+          format: double
+          description: Importe de la puja más alta del usuario en esa subasta.
+          example: 300.0
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS, ENDED, CANCELLED]
+          example: "IN_PROGRESS"
+        iAmWinning:
+          type: boolean
+          nullable: true
+          description: |
+            Si la puja más alta del usuario es también la más alta de la subasta.
+            Null si la subasta está cancelada.
+          example: true
 
     ErrorResponse:
       type: object
@@ -1216,6 +1264,7 @@ paths:
   /api/bid/history/{auctionId}:
     get:
       summary: Obtener historial de pujas de una subasta
+      description: Devuelve las pujas de la subasta ordenadas de mayor a menor importe, con nombre y avatar del pujador.
       parameters:
         - name: auctionId
           in: path
@@ -1225,13 +1274,33 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Listado ordenado de pujas de la subasta.
+          description: Listado ordenado de pujas de la subasta (vacío si no hay pujas).
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/BidResponse'
+                  $ref: '#/components/schemas/AuctionHistoryResponse'
+                  
+  /api/bid/user/my-bids:
+    get:
+      summary: Listar las subastas en las que he pujado
+      description: |
+        Devuelve una entrada por subasta en la que el usuario autenticado ha pujado,
+        ordenadas por la fecha de su última puja (más reciente primero).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Historial de participación del usuario (vacío si no ha pujado nunca).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BidderHistoryResponse'
+        '401':
+          description: No autenticado o token inválido.
   
   /api/auction/{id}/favorite:
     post:

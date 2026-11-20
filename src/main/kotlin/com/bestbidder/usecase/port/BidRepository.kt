@@ -1,6 +1,8 @@
 package com.bestbidder.usecase.port
 
+import com.bestbidder.domain.bid.AuctionHistory
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.domain.bid.BidderHistory
 import java.util.UUID
 
 /**
@@ -23,4 +25,8 @@ interface BidRepository {
     fun save(bid: Bid): Bid
 
     fun isHighestBidderInActiveAuction(bidderId: UUID): Boolean
+
+    fun getBidHistoryByUser(bidderId: UUID): List<BidderHistory>
+
+    fun getBidHistoryByAuction(auctionId: UUID): List<AuctionHistory>
 }

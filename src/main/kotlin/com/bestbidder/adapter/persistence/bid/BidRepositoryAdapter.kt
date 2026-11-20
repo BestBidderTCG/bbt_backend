@@ -2,7 +2,9 @@ package com.bestbidder.adapter.persistence.bid
 
 import com.bestbidder.adapter.persistence.auction.JpaAuctionRepository
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
+import com.bestbidder.domain.bid.AuctionHistory
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.domain.bid.BidderHistory
 import com.bestbidder.usecase.port.BidRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -33,4 +35,10 @@ class BidRepositoryAdapter(
     override fun isHighestBidderInActiveAuction(bidderId: UUID): Boolean =
         jpaBidRepository
             .existsHighestBidInActiveAuction(bidderId)
+
+    override fun getBidHistoryByUser(bidderId: UUID): List<BidderHistory> =
+        jpaBidRepository.findBidHistoryByBidderId(bidderId).map { it.toDomain() }
+
+    override fun getBidHistoryByAuction(auctionId: UUID): List<AuctionHistory> =
+        jpaBidRepository.findBidHistoryByAuctionId(auctionId).map { it.toDomain() }
 }

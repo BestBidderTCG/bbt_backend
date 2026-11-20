@@ -1,9 +1,11 @@
 package com.bestbidder.adapter.web.bid
 
+import com.bestbidder.adapter.web.bid.dto.AuctionHistoryResponse
+import com.bestbidder.adapter.web.bid.dto.BidderHistoryResponse
 import com.bestbidder.adapter.web.bid.dto.PlaceBidRequest
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.infrastructure.security.AuthenticatedUser
-import com.bestbidder.usecase.bid.GetBidsByAuctionUseCase
+import com.bestbidder.usecase.bid.GetBidsUseCase
 import com.bestbidder.usecase.bid.PlaceBidUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,7 +25,7 @@ import java.util.UUID
 @RequestMapping("/api/bid")
 class BidController(
     private val placeBidUseCase: PlaceBidUseCase,
-    private val getBidsByAuctionUseCase: GetBidsByAuctionUseCase,
+    private val getBidsUseCase: GetBidsUseCase,
 ) {
     /**
      * Procesa y registra una puja en una subasta especificada en la ruta.
@@ -51,8 +53,25 @@ class BidController(
     @GetMapping("/history/{auctionId}")
     fun getAuctionHistory(
         @PathVariable auctionId: UUID,
-    ): ResponseEntity<List<Bid>> {
-        val history = getBidsByAuctionUseCase.execute(auctionId)
+    ): ResponseEntity<List<AuctionHistoryResponse>> {
+        val history =
+            getBidsUseCase
+                .byAuction(auctionId)
+                .map { AuctionHistoryResponse.fromDomain(it) }
         return ResponseEntity.ok(history)
+    }
+
+    /**
+     * Recupera el historial de pujas del usuario autenticado.
+     */
+    @GetMapping("/user/my-bids")
+    fun getMyBids(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+    ): ResponseEntity<List<BidderHistoryResponse>> {
+        val bids =
+            getBidsUseCase
+                .byBidder(principal.id)
+                .map { BidderHistoryResponse.fromDomain(it) }
+        return ResponseEntity.ok(bids)
     }
 }

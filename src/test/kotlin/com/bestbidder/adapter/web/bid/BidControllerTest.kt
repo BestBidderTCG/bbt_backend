@@ -2,9 +2,12 @@ package com.bestbidder.adapter.web.bid
 
 import com.bestbidder.adapter.web.bid.dto.PlaceBidRequest
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
+import com.bestbidder.domain.auction.AuctionStatus
+import com.bestbidder.domain.bid.AuctionHistory
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.domain.bid.BidderHistory
 import com.bestbidder.infrastructure.security.AuthenticatedUser
-import com.bestbidder.usecase.bid.GetBidsByAuctionUseCase
+import com.bestbidder.usecase.bid.GetBidsUseCase
 import com.bestbidder.usecase.bid.PlaceBidUseCase
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
@@ -41,7 +44,7 @@ class BidControllerTest {
     private lateinit var placeBidUseCase: PlaceBidUseCase
 
     @MockBean
-    private lateinit var getBidsByAuctionUseCase: GetBidsByAuctionUseCase
+    private lateinit var getBidsUseCase: GetBidsUseCase
 
     private val auctionId = UUID.randomUUID()
     private val userId = UUID.randomUUID()
@@ -130,21 +133,69 @@ class BidControllerTest {
     @DisplayName("GET /api/bid/history/{auctionId}")
     inner class GetHistoryTests {
         @Test
-        @DisplayName("Debe retornar 200 OK con el historial de pujas")
-        fun `should return 200 OK with bid history`() {
-            val bid1 = Bid(auctionId = auctionId, bidderId = userId, bidderUsername = "pujador1", amount = 200.0)
-            val bid2 = Bid(auctionId = auctionId, bidderId = UUID.randomUUID(), bidderUsername = "pujador2", amount = 150.0)
+        @DisplayName("Debe retornar 200 OK con el historial de pujas de la subasta")
+        fun `should return 200 OK with auction bid history`() {
+            val bidder2Id = UUID.randomUUID()
+            val h1 =
+                AuctionHistory(
+                    bidderId = userId,
+                    bidderName = "pujador1",
+                    bidderAvatar = "a1.png",
+                    amount = 200.0,
+                )
+            val h2 =
+                AuctionHistory(
+                    bidderId = bidder2Id,
+                    bidderName = "pujador2",
+                    bidderAvatar = "a2.png",
+                    amount = 150.0,
+                )
 
-            `when`(getBidsByAuctionUseCase.execute(auctionId)).thenReturn(listOf(bid1, bid2))
+            `when`(getBidsUseCase.byAuction(auctionId)).thenReturn(listOf(h1, h2))
 
             mockMvc.perform(get("/api/bid/history/$auctionId"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].bidderId").value(userId.toString()))
+                .andExpect(jsonPath("$[0].bidderName").value("pujador1"))
+                .andExpect(jsonPath("$[0].bidderAvatar").value("a1.png"))
                 .andExpect(jsonPath("$[0].amount").value(200.0))
-                .andExpect(jsonPath("$[0].bidderUsername").value("pujador1"))
+                .andExpect(jsonPath("$[1].bidderName").value("pujador2"))
                 .andExpect(jsonPath("$[1].amount").value(150.0))
 
-            verify(getBidsByAuctionUseCase, times(1)).execute(auctionId)
+            verify(getBidsUseCase, times(1)).byAuction(auctionId)
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/bid/user/my-bids")
+    inner class GetMyBidsTests {
+        @Test
+        @DisplayName("Debe retornar 200 OK con el historial de pujas del usuario autenticado")
+        fun `should return 200 OK with my bids`() {
+            setAuthenticatedUser(userId, "pujador1")
+            val h1 =
+                BidderHistory(
+                    auctionId = auctionId,
+                    cardName = "Charizard",
+                    cardImage = "charizard.png",
+                    amount = 300.0,
+                    status = AuctionStatus.IN_PROGRESS,
+                    iAmWinning = true,
+                )
+
+            `when`(getBidsUseCase.byBidder(userId)).thenReturn(listOf(h1))
+
+            mockMvc.perform(get("/api/bid/user/my-bids"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].auctionId").value(auctionId.toString()))
+                .andExpect(jsonPath("$[0].cardName").value("Charizard"))
+                .andExpect(jsonPath("$[0].amount").value(300.0))
+                .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[0].iAmWinning").value(true))
+
+            verify(getBidsUseCase, times(1)).byBidder(userId)
         }
     }
 }

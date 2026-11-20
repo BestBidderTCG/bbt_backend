@@ -6,7 +6,7 @@ import java.util.UUID
 data class AuctionHistoryResponse(
     val bidderId: UUID,
     val bidderName: String,
-    val bidderAvatar: String,
+    val bidderAvatar: Int,
     val amount: Double,
 ) {
     companion object {

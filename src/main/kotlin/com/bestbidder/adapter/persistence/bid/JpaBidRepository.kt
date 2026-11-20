@@ -35,19 +35,14 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
         c.name,
         c.image,
         MAX(b.amount),
+        a.isCancelled,
+        a.startedAt,
+        a.endsAt,
         CASE
-            WHEN a.isCancelled = true THEN com.bestbidder.domain.auction.AuctionStatus.CANCELLED
-            WHEN a.endsAt <= CURRENT_TIMESTAMP THEN com.bestbidder.domain.auction.AuctionStatus.ENDED
-            WHEN a.startedAt <= CURRENT_TIMESTAMP THEN com.bestbidder.domain.auction.AuctionStatus.ACTIVE
-            ELSE com.bestbidder.domain.auction.AuctionStatus.UPCOMING
-        END,
-        CASE
-            WHEN a.isCancelled = true THEN null
-            ELSE (
-                MAX(b.amount) = (
-                    SELECT MAX(b2.amount) FROM BidEntity b2 WHERE b2.auction.id = a.id
-                )
-            )
+            WHEN MAX(b.amount) = (
+                SELECT MAX(b2.amount) FROM BidEntity b2 WHERE b2.auction.id = a.id
+            ) THEN true
+            ELSE false
         END
     )
     FROM BidEntity b
@@ -67,7 +62,7 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
         SELECT new com.bestbidder.adapter.persistence.bid.AuctionHistoryRow(
             b.bidder.id,
             b.bidder.username,
-            b.bidder.avatar,
+            b.bidder.avatarNum,
             b.amount
         )
         FROM BidEntity b

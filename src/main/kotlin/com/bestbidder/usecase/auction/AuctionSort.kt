@@ -11,4 +11,5 @@ enum class AuctionSort {
     NAME_DESC,
     NUMBER_ASC,
     NUMBER_DESC,
+    POPULARITY,
 }

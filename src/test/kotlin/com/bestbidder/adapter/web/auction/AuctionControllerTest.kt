@@ -15,6 +15,7 @@ import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
+import com.bestbidder.usecase.auction.RegisterAuctionViewUseCase
 import com.bestbidder.usecase.port.CardRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
@@ -63,6 +64,9 @@ class AuctionControllerTest {
 
     @MockBean
     private lateinit var manageFavoriteAuctionUseCase: ManageFavoriteAuctionUseCase
+
+    @MockBean
+    private lateinit var registerAuctionViewUseCase: RegisterAuctionViewUseCase
 
     private val now = Instant.now()
     private val defaultUserId = UUID.randomUUID()
@@ -536,6 +540,42 @@ class AuctionControllerTest {
 
             mockMvc.perform(get("/api/auction/$id").with(authentication(authToken)))
                 .andExpect(status().isNotFound)
+        }
+
+        @Test
+        @DisplayName("Registra la visita cuando consulta otro usuario")
+        fun `should register view when viewer is not owner`() {
+            val detail = buildDetail(AuctionCreator(UUID.randomUUID(), "user2", 4), false)
+            `when`(getAuctionUseCase.getDetail(detail.id, defaultUserId)).thenReturn(detail)
+
+            mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
+                .andExpect(status().isOk)
+
+            verify(registerAuctionViewUseCase, times(1)).register(detail.id, defaultUserId)
+        }
+
+        @Test
+        @DisplayName("No registra la visita del propietario")
+        fun `should not register view when viewer is owner`() {
+            val detail = buildDetail(creator = null, isFavorite = null)
+            `when`(getAuctionUseCase.getDetail(detail.id, defaultUserId)).thenReturn(detail)
+
+            mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
+                .andExpect(status().isOk)
+
+            verify(registerAuctionViewUseCase, never()).register(detail.id, defaultUserId)
+        }
+
+        @Test
+        @DisplayName("No registra nada si la subasta no existe")
+        fun `should not register view when auction not found`() {
+            val id = UUID.randomUUID()
+            `when`(getAuctionUseCase.getDetail(id, defaultUserId)).thenReturn(null)
+
+            mockMvc.perform(get("/api/auction/$id").with(authentication(authToken)))
+                .andExpect(status().isNotFound)
+
+            verify(registerAuctionViewUseCase, never()).register(id, defaultUserId)
         }
     }
 }

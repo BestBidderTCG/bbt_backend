@@ -30,14 +30,14 @@ class GetBidsUseCaseTest {
                 AuctionHistory(
                     bidderId = UUID.randomUUID(),
                     bidderName = "user1",
-                    bidderAvatar = "a1.png",
+                    bidderAvatar = 1,
                     amount = 200.0,
                 )
             val h2 =
                 AuctionHistory(
                     bidderId = UUID.randomUUID(),
                     bidderName = "user2",
-                    bidderAvatar = "a2.png",
+                    bidderAvatar = 2,
                     amount = 150.0,
                 )
 

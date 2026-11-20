@@ -3,6 +3,7 @@ package com.bestbidder.adapter.persistence.auction
 import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.Instant
@@ -11,7 +12,7 @@ import java.util.UUID
 private const val SUMMARY_SELECT = """
     SELECT new com.bestbidder.adapter.persistence.auction.AuctionListItemRow(
         a.id, c.name, c.image, COALESCE(MAX(b.amount), a.minPrize),
-        a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num
+        a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num, a.viewCount
     )
     FROM AuctionEntity a
     JOIN a.card c
@@ -69,6 +70,11 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
 
     @Query("$SUMMARY_SELECT ORDER BY c.num DESC NULLS LAST, a.endsAt ASC")
     fun findSummariesNumberDesc(
+        @Param("now") now: Instant,
+    ): List<AuctionListItemRow>
+
+    @Query("$SUMMARY_SELECT ORDER BY a.viewCount DESC NULLS LAST, a.endsAt ASC")
+    fun findSummariesPopulariry(
         @Param("now") now: Instant,
     ): List<AuctionListItemRow>
 
@@ -198,4 +204,10 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         @Param("cardId") cardId: UUID,
         @Param("now") now: Instant,
     ): AuctionEntity?
+
+    @Modifying
+    @Query("UPDATE AuctionEntity a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
+    fun incrementViewCount(
+        @Param("id") id: UUID,
+    ): Int
 }

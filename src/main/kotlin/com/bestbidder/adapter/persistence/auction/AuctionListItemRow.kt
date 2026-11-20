@@ -18,6 +18,7 @@ data class AuctionListItemRow(
     val cardCategory: String,
     val cardCollection: String?,
     val cardNumber: Int?,
+    val viewCount: Long,
 ) {
     fun toSummary(now: Instant): AuctionListItem =
         AuctionListItem(

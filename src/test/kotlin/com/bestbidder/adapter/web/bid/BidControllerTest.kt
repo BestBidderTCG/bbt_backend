@@ -140,14 +140,14 @@ class BidControllerTest {
                 AuctionHistory(
                     bidderId = userId,
                     bidderName = "pujador1",
-                    bidderAvatar = "a1.png",
+                    bidderAvatar = 1,
                     amount = 200.0,
                 )
             val h2 =
                 AuctionHistory(
                     bidderId = bidder2Id,
                     bidderName = "pujador2",
-                    bidderAvatar = "a2.png",
+                    bidderAvatar = 2,
                     amount = 150.0,
                 )
 

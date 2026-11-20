@@ -7,6 +7,7 @@ import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.bid.BidderHistory
 import com.bestbidder.usecase.port.BidRepository
 import org.springframework.stereotype.Repository
+import java.time.Instant
 import java.util.UUID
 
 @Repository
@@ -36,8 +37,10 @@ class BidRepositoryAdapter(
         jpaBidRepository
             .existsHighestBidInActiveAuction(bidderId)
 
-    override fun getBidHistoryByUser(bidderId: UUID): List<BidderHistory> =
-        jpaBidRepository.findBidHistoryByBidderId(bidderId).map { it.toDomain() }
+    override fun getBidHistoryByUser(bidderId: UUID): List<BidderHistory> {
+        val now = Instant.now()
+        return jpaBidRepository.findBidHistoryByBidderId(bidderId).map { it.toDomain(now) }
+    }
 
     override fun getBidHistoryByAuction(auctionId: UUID): List<AuctionHistory> =
         jpaBidRepository.findBidHistoryByAuctionId(auctionId).map { it.toDomain() }

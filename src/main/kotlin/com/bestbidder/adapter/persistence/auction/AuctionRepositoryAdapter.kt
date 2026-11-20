@@ -54,6 +54,7 @@ class AuctionRepositoryAdapter(
                 AuctionSort.NAME_DESC -> jpaAuctionRepository.findSummariesNameDesc(now)
                 AuctionSort.NUMBER_ASC -> jpaAuctionRepository.findSummariesNumberAsc(now)
                 AuctionSort.NUMBER_DESC -> jpaAuctionRepository.findSummariesNumberDesc(now)
+                AuctionSort.POPULARITY -> jpaAuctionRepository.findSummariesPopulariry(now)
             }
         return rows.map { it.toSummary(now) }
     }

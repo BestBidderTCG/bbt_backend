@@ -39,6 +39,8 @@ class AuctionEntity(
     val endsAt: Instant,
     @Column(name = "is_cancelled", nullable = false)
     val isCancelled: Boolean = false,
+    @Column(name = "view_count", nullable = false, updatable = false)
+    val viewCount: Long = 0,
 ) {
     fun toDomain(): Auction {
         return Auction(

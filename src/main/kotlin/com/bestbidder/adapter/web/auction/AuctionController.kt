@@ -10,6 +10,7 @@ import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
+import com.bestbidder.usecase.auction.RegisterAuctionViewUseCase
 import com.bestbidder.usecase.port.CardRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,6 +35,7 @@ class AuctionController(
     private val getAuctionUseCase: GetAuctionUseCase,
     private val cardRepository: CardRepository,
     private val manageFavoriteAuctionUseCase: ManageFavoriteAuctionUseCase,
+    private val registerAuctionViewUseCase: RegisterAuctionViewUseCase,
 ) {
     /**
      * Registra una nueva subasta asociada a una carta previamente guardada.
@@ -71,9 +73,14 @@ class AuctionController(
     @GetMapping("/{id}")
     fun getById(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal principal: AuthenticatedUser?,
+        @AuthenticationPrincipal principal: AuthenticatedUser,
     ): ResponseEntity<AuctionDetailResponse> {
-        val detail = getAuctionUseCase.getDetail(id, principal?.id) ?: return ResponseEntity.notFound().build()
+        val detail = getAuctionUseCase.getDetail(id, principal.id) ?: return ResponseEntity.notFound().build()
+
+        // creator == null significa que quien consulta es el propietario: sus visitas no cuentan
+        if (detail.creator != null) {
+            registerAuctionViewUseCase.register(id, principal.id)
+        }
         return ResponseEntity.ok(AuctionDetailResponse.fromDomain(detail))
     }
 
@@ -82,7 +89,7 @@ class AuctionController(
      */
     @GetMapping("/all")
     fun getAll(
-        @RequestParam(defaultValue = "ENDING_SOON") sort: AuctionSort,
+        @RequestParam(defaultValue = "POPULARITY") sort: AuctionSort,
     ): ResponseEntity<List<AuctionListItemResponse>> {
         val auctions = getAuctionUseCase.getAll(sort).map { AuctionListItemResponse.fromDomain(it) }
         return ResponseEntity.ok(auctions)

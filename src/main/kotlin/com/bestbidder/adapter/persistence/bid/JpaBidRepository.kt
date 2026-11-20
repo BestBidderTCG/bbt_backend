@@ -16,7 +16,6 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
         """
     SELECT COUNT(b) > 0 FROM BidEntity b
     WHERE b.bidder.id = :bidderId
-      AND b.auction.isCancelled = false
       AND b.auction.startedAt <= CURRENT_TIMESTAMP
       AND b.auction.endsAt > CURRENT_TIMESTAMP
       AND b.amount = (
@@ -35,7 +34,6 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
         c.name,
         c.image,
         MAX(b.amount),
-        a.isCancelled,
         a.startedAt,
         a.endsAt,
         CASE
@@ -49,7 +47,7 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
     JOIN b.auction a
     JOIN a.card c
     WHERE b.bidder.id = :bidderId
-    GROUP BY a.id, c.name, c.image, a.isCancelled, a.startedAt, a.endsAt
+    GROUP BY a.id, c.name, c.image, a.startedAt, a.endsAt
     ORDER BY MAX(b.timestamp) DESC
     """,
     )

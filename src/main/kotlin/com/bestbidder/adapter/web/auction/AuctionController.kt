@@ -5,9 +5,12 @@ import com.bestbidder.adapter.web.auction.dto.AuctionListItemResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
+import com.bestbidder.adapter.web.auction.dto.EditAuctionRequest
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
+import com.bestbidder.usecase.auction.EditAuctionCommand
+import com.bestbidder.usecase.auction.EditAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
 import com.bestbidder.usecase.auction.RegisterAuctionViewUseCase
@@ -17,6 +20,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -36,6 +40,7 @@ class AuctionController(
     private val cardRepository: CardRepository,
     private val manageFavoriteAuctionUseCase: ManageFavoriteAuctionUseCase,
     private val registerAuctionViewUseCase: RegisterAuctionViewUseCase,
+    private val editAuctionUseCase: EditAuctionUseCase,
 ) {
     /**
      * Registra una nueva subasta asociada a una carta previamente guardada.
@@ -65,6 +70,29 @@ class AuctionController(
             )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(AuctionResponse.fromDomain(auction))
+    }
+
+    /**
+     * Edita una subasta que aún no ha empezado. Solo el creador puede hacerlo.
+     */
+    @PatchMapping("/{id}")
+    fun edit(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+        @RequestBody request: EditAuctionRequest,
+    ): ResponseEntity<AuctionResponse> {
+        val auction =
+            editAuctionUseCase.edit(
+                EditAuctionCommand(
+                    auctionId = id,
+                    requesterUserId = principal.id,
+                    description = request.description,
+                    minPrize = request.minPrize,
+                    startedAt = request.startedAt,
+                    durationInDays = request.durationInDays,
+                ),
+            )
+        return ResponseEntity.ok(AuctionResponse.fromDomain(auction))
     }
 
     /**

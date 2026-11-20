@@ -11,7 +11,6 @@ data class BidderHistoryRow(
     val cardName: String,
     val cardImage: String,
     val amount: Double,
-    val isCancelled: Boolean,
     val startedAt: Instant,
     val endsAt: Instant,
     val iAmWinning: Boolean,
@@ -19,7 +18,6 @@ data class BidderHistoryRow(
     fun toDomain(now: Instant): BidderHistory {
         val status =
             when {
-                isCancelled -> AuctionStatus.CANCELLED
                 endsAt <= now -> AuctionStatus.FINISHED
                 startedAt <= now -> AuctionStatus.IN_PROGRESS
                 else -> AuctionStatus.UPCOMING
@@ -31,7 +29,7 @@ data class BidderHistoryRow(
             cardImage = cardImage,
             amount = amount,
             status = status,
-            iAmWinning = if (isCancelled) null else iAmWinning,
+            iAmWinning = iAmWinning,
         )
     }
 }

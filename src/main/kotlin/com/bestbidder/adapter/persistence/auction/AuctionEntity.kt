@@ -37,8 +37,6 @@ class AuctionEntity(
     val durationInDays: Int,
     @Column(name = "ends_at", nullable = false)
     val endsAt: Instant,
-    @Column(name = "is_cancelled", nullable = false)
-    val isCancelled: Boolean = false,
     @Column(name = "view_count", nullable = false, updatable = false)
     val viewCount: Long = 0,
 ) {
@@ -52,7 +50,6 @@ class AuctionEntity(
             minPrize = this.minPrize,
             startedAt = this.startedAt,
             durationInDays = this.durationInDays,
-            isCancelled = this.isCancelled,
         )
     }
 
@@ -71,7 +68,6 @@ class AuctionEntity(
                 startedAt = domain.startedAt.truncatedTo(ChronoUnit.MINUTES),
                 durationInDays = domain.durationInDays,
                 endsAt = domain.endsAt.truncatedTo(ChronoUnit.MINUTES),
-                isCancelled = domain.isCancelled,
             )
         }
     }

@@ -1,6 +1,7 @@
 package com.bestbidder.adapter.web.auction
 
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
+import com.bestbidder.adapter.web.auction.dto.EditAuctionRequest
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.auction.AuctionCreator
@@ -13,6 +14,8 @@ import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
+import com.bestbidder.usecase.auction.EditAuctionCommand
+import com.bestbidder.usecase.auction.EditAuctionUseCase
 import com.bestbidder.usecase.auction.GetAuctionUseCase
 import com.bestbidder.usecase.auction.ManageFavoriteAuctionUseCase
 import com.bestbidder.usecase.auction.RegisterAuctionViewUseCase
@@ -37,6 +40,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -67,6 +71,9 @@ class AuctionControllerTest {
 
     @MockBean
     private lateinit var registerAuctionViewUseCase: RegisterAuctionViewUseCase
+
+    @MockBean
+    private lateinit var editAuctionUseCase: EditAuctionUseCase
 
     private val now = Instant.now()
     private val defaultUserId = UUID.randomUUID()
@@ -576,6 +583,108 @@ class AuctionControllerTest {
                 .andExpect(status().isNotFound)
 
             verify(registerAuctionViewUseCase, never()).register(id, defaultUserId)
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /api/auction/{id}")
+    inner class EditAuctionTests {
+        @Test
+        @DisplayName("Debe retornar 200 OK cuando la edición es exitosa")
+        fun `should return 200 OK when auction edit is successful`() {
+            val auctionId = UUID.randomUUID()
+            val newStart = now.plusSeconds(7200)
+            val request =
+                EditAuctionRequest(
+                    description = "Descripción actualizada",
+                    minPrize = 750.0,
+                    startedAt = newStart,
+                    durationInDays = 5,
+                )
+
+            val updatedAuction =
+                Auction(
+                    id = auctionId,
+                    creatorId = defaultUserId,
+                    creatorUsername = "paula",
+                    card = sampleCard,
+                    description = request.description,
+                    minPrize = request.minPrize!!,
+                    startedAt = request.startedAt!!,
+                    durationInDays = request.durationInDays!!,
+                )
+
+            `when`(
+                editAuctionUseCase.edit(
+                    EditAuctionCommand(
+                        auctionId = auctionId,
+                        requesterUserId = defaultUserId,
+                        description = request.description,
+                        minPrize = request.minPrize,
+                        startedAt = request.startedAt,
+                        durationInDays = request.durationInDays,
+                    ),
+                ),
+            ).thenReturn(updatedAuction)
+
+            mockMvc.perform(
+                patch("/api/auction/$auctionId")
+                    .with(authentication(authToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(auctionId.toString()))
+                .andExpect(jsonPath("$.description").value("Descripción actualizada"))
+                .andExpect(jsonPath("$.min_prize").value(750.0))
+                .andExpect(jsonPath("$.duration_in_days").value(5))
+
+            verify(editAuctionUseCase, times(1)).edit(
+                EditAuctionCommand(
+                    auctionId = auctionId,
+                    requesterUserId = defaultUserId,
+                    description = request.description,
+                    minPrize = request.minPrize,
+                    startedAt = request.startedAt,
+                    durationInDays = request.durationInDays,
+                ),
+            )
+        }
+
+        @Test
+        @DisplayName("Debe retornar 400 Bad Request cuando el caso de uso lanza IllegalArgumentException")
+        fun `should return 400 Bad Request when edit fails with IllegalArgumentException`() {
+            val auctionId = UUID.randomUUID()
+            val request = EditAuctionRequest(minPrize = 0.0)
+
+            `when`(editAuctionUseCase.edit(any()))
+                .thenThrow(IllegalArgumentException("El precio mínimo debe ser mayor que 0"))
+
+            mockMvc.perform(
+                patch("/api/auction/$auctionId")
+                    .with(authentication(authToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isBadRequest)
+        }
+
+        @Test
+        @DisplayName("Debe retornar 409 Conflict cuando la subasta ya ha comenzado")
+        fun `should return 409 Conflict when auction has already started`() {
+            val auctionId = UUID.randomUUID()
+            val request = EditAuctionRequest(description = "Tarde")
+
+            `when`(editAuctionUseCase.edit(any()))
+                .thenThrow(IllegalStateException("Solo se pueden editar subastas que aún no han empezado"))
+
+            mockMvc.perform(
+                patch("/api/auction/$auctionId")
+                    .with(authentication(authToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isConflict)
         }
     }
 }

@@ -66,23 +66,6 @@ class AuctionTest {
     }
 
     @Test
-    @DisplayName("Debe retornar CANCELLED cuando isCancelled es true")
-    fun `should return CANCELLED when isCancelled is true`() {
-        val auction =
-            Auction(
-                creatorId = userId,
-                creatorUsername = "paula",
-                card = sampleCard,
-                minPrize = 100.0,
-                startedAt = now.minus(1, ChronoUnit.DAYS),
-                durationInDays = 3,
-                isCancelled = true,
-            )
-
-        assertEquals(AuctionStatus.CANCELLED, auction.getStatusAt(now))
-    }
-
-    @Test
     @DisplayName("Debe retornar UPCOMING cuando la fecha de inicio es futura")
     fun `should return UPCOMING when startedAt is in the future`() {
         val futureStart = now.plus(1, ChronoUnit.HOURS)

@@ -18,7 +18,6 @@ data class Auction(
     val minPrize: Double,
     val startedAt: Instant,
     val durationInDays: Int,
-    val isCancelled: Boolean = false,
 ) {
     /**
      * Fecha exacta de finalización calculada a partir de la fecha de inicio y la duración.
@@ -45,7 +44,6 @@ data class Auction(
      * Útil para tests unitarios o simulaciones de tiempo.
      */
     fun getStatusAt(now: Instant): AuctionStatus {
-        if (isCancelled) return AuctionStatus.CANCELLED
         if (now.isBefore(startedAt)) return AuctionStatus.UPCOMING
         if (now.isBefore(endsAt)) return AuctionStatus.IN_PROGRESS
         return AuctionStatus.FINISHED
@@ -58,9 +56,4 @@ data class Auction(
         val currentStatus = getStatusAt(now)
         return currentStatus == AuctionStatus.UPCOMING || currentStatus == AuctionStatus.IN_PROGRESS
     }
-
-    /**
-     * Indica que la subasta está cancelada.
-     */
-    fun cancel(): Auction = copy(isCancelled = true)
 }

@@ -17,7 +17,7 @@ private const val SUMMARY_SELECT = """
     FROM AuctionEntity a
     JOIN a.card c
     LEFT JOIN BidEntity b ON b.auction = a
-    WHERE a.isCancelled = false AND a.endsAt > :now
+    WHERE a.endsAt > :now
     GROUP BY a.id, c.name, c.image, a.minPrize, a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num
 """
 
@@ -83,7 +83,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         SELECT COUNT(a) > 0 FROM AuctionEntity a 
         WHERE a.creator.username = :creator 
           AND a.card.id = :cardId 
-          AND a.isCancelled = false 
           AND a.endsAt > CURRENT_TIMESTAMP
         """,
     )
@@ -95,7 +94,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     @Query(
         """
         SELECT a FROM AuctionEntity a 
-        WHERE a.isCancelled = false 
           AND a.startedAt = :now 
         """,
     )
@@ -106,8 +104,7 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     @Query(
         """
         SELECT a FROM AuctionEntity a 
-        WHERE a.isCancelled = false 
-          AND a.endsAt = :now
+        WHERE a.endsAt = :now
         """,
     )
     fun findJustExpired(
@@ -118,7 +115,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         """
     SELECT COUNT(a) > 0 FROM AuctionEntity a
     WHERE a.creator.id = :userId
-      AND a.isCancelled = false
       AND a.endsAt > CURRENT_TIMESTAMP
     """,
     )
@@ -149,7 +145,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         FROM AuctionEntity a
         JOIN a.card c
         WHERE a.creator.id = :userId
-        AND a.isCancelled = false
         ORDER BY a.endsAt DESC
         """,
     )
@@ -172,7 +167,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         a.startedAt,
         a.endsAt,
         a.description,
-        a.isCancelled,
         u.id,
         u.username,
         u.avatarNum,
@@ -196,7 +190,6 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         """
         SELECT a FROM AuctionEntity a
         WHERE a.card.id = :cardId
-          AND a.isCancelled = false
           AND a.endsAt > :now
         """,
     )

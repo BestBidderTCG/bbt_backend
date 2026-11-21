@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 echo "Levantando PostgreSQL..."
 docker compose up -d
 

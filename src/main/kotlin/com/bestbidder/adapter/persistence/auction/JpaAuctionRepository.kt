@@ -94,7 +94,7 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     @Query(
         """
         SELECT a FROM AuctionEntity a 
-          AND a.startedAt = :now 
+          WHERE a.startedAt = :now 
         """,
     )
     fun findJustStarted(

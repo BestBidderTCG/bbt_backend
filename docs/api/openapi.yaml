@@ -3,10 +3,11 @@ openapi: 3.0.3
 info:
   title: BestBidder TCG API
   version: 0.2.0
-  description: Contrato de la API de BestBidder TCG.
+  description: Contrato completo de la API de BestBidder TCG sincronizado con el código fuente.
 
 servers:
   - url: http://localhost:8080
+    description: Servidor local
 
 components:
   securitySchemes:
@@ -26,10 +27,11 @@ components:
         identifier:
           type: string
           description: "Puede ser el email o el username"
-          example: "david@test.com"
+          example: "user1"
         password:
           type: string
           format: password
+          example: "user11"
 
     RegisterRequest:
       type: object
@@ -59,19 +61,19 @@ components:
         id:
           type: string
           format: uuid
-          example: "97aee725-e493-4603-9b8f-d9fc87af37bb"
+          example: "11111111-1111-1111-1111-111111111111"
         email:
           type: string
-          example: "david@test.com"
+          example: "user1@example.com"
         username:
           type: string
-          example: "david_85"
+          example: "user1"
         description:
           type: string
           nullable: true
+          example: "Coleccionista principal"
         avatarNum:
           type: integer
-          nullable: false
           example: 1
         createdAt:
           type: string
@@ -136,45 +138,42 @@ components:
           maxLength: 50
 
     ExistsResponse:
-       type: object
-       properties:
-          exists:
-            type: boolean
-            example: false
+      type: object
+      properties:
+        exists:
+          type: boolean
+          example: false
 
     DeletionStatusResponse:
       type: object
       properties:
         status:
           type: string
-          enum: [ ACTIVE, PENDING_DELETION, DELETED ]
+          enum: [ACTIVE, PENDING_DELETION, DELETED]
           example: "PENDING_DELETION"
         deletionRequestedAt:
           type: string
           format: date-time
           nullable: true
-          example: "2023-11-16T10:00:00Z"
         scheduledPurgeAt:
           type: string
           format: date-time
           nullable: true
-          example: "2023-12-01T10:00:00Z"
 
     AccountDeletionCheckResponse:
       type: object
       required:
-          - hasActiveAuction
-          - isWinningAuction
+        - hasActiveAuction
+        - isWinningAuction
       properties:
-          hasActiveAuction:
-            type: boolean
-            description: Indica si el usuario tiene subastas como creador.
-            example: true
-          isWinningAuction:
-            type: boolean
-            description: Indica si el usuario es el mayor pujador en alguna subasta activa.
-            example: false
-
+        hasActiveAuction:
+          type: boolean
+          description: Indica si el usuario tiene subastas como creador.
+          example: true
+        isWinningAuction:
+          type: boolean
+          description: Indica si el usuario es el mayor pujador en alguna subasta activa.
+          example: false
 
     AuctionResponse:
       type: object
@@ -187,7 +186,7 @@ components:
           format: uuid
         creatorUsername:
           type: string
-          example: "paula"
+          example: "user1"
         card:
           $ref: '#/components/schemas/CardResponse'
         description:
@@ -227,7 +226,7 @@ components:
           format: uuid
         creator_username:
           type: string
-          example: "paula"
+          example: "user1"
         card_id:
           type: string
           format: uuid
@@ -246,7 +245,7 @@ components:
           minimum: 1
           maximum: 7
           example: 3
-    
+
     EditAuctionRequest:
       type: object
       description: Campos editables de una subasta que aún no ha comenzado. Todos los campos son opcionales.
@@ -273,17 +272,17 @@ components:
 
     AuctionListItemResponse:
       type: object
-      description: Resumen de una subasta para el listado principal.
+      description: Resumen de una subasta para el listado principal o favoritos.
       properties:
         id:
           type: string
           format: uuid
         cardName:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         cardImage:
           type: string
-          example: "/uploads/charizard.png"
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
         currentBid:
           type: number
           format: double
@@ -305,8 +304,8 @@ components:
         cardCollection:
           type: string
           nullable: true
-          example: "Base Set 1999"
-        
+          example: "Pokémon 151"
+
     AuctionSummaryResponse:
       type: object
       description: Resumen de una subasta del usuario autenticado (incluye finalizadas).
@@ -316,10 +315,10 @@ components:
           format: uuid
         cardName:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         cardImage:
           type: string
-          example: "/uploads/charizard.png"
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
         status:
           type: string
           enum: [UPCOMING, IN_PROGRESS, FINISHED]
@@ -348,7 +347,7 @@ components:
           type: string
           nullable: true
           description: Username del ganador. Solo se informa si la subasta ha finalizado y tiene pujas.
-          example: "user1"
+          example: "user2"
 
     AuctionCreatorResponse:
       type: object
@@ -358,11 +357,11 @@ components:
           format: uuid
         username:
           type: string
-          example: "paula"
+          example: "user1"
         avatarNum:
           type: integer
           nullable: true
-          example: 3
+          example: 1
 
     AuctionDetailResponse:
       type: object
@@ -377,18 +376,18 @@ components:
           example: "IN_PROGRESS"
         cardName:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         cardImage:
           type: string
-          example: "/uploads/charizard.png"
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
         cardCollection:
           type: string
           nullable: true
-          example: "Base Set 1999"
+          example: "Pokémon 151"
         cardNumber:
           type: integer
           nullable: true
-          example: 4
+          example: 6
         cardState:
           type: string
           enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
@@ -449,82 +448,93 @@ components:
       properties:
         name:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         category:
           type: string
-          example: "Pokemon"
+          enum: [Pokémon, Riftbound, Magic]
+          example: "Pokémon"
         collection:
           type: string
           nullable: true
-          example: "Pokemon 151"
+          example: "Pokémon 151"
         num:
           type: integer
           nullable: true
-          example: 4
+          example: 6
         state:
           type: string
-          enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
           example: "NEAR_MINT"
         description:
           type: string
           nullable: true
-          example: "Primera edición en funda protectora."
+          example: "Carta mítica en excelente estado."
 
     UpdateCardRequest:
-        type: object
-        properties:
-          name:
-            type: string
-            example: "Charizard Base Set Editado"
-          category:
-            type: string
-            example: "Pokemon"
-          collection:
-            type: string
-            nullable: true
-            example: "Pokemon 151"
-          num:
-            type: integer
-            nullable: true
-            example: 4
-          state:
-            type: string
-            enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
-            example: "NEAR_MINT"
-          description:
-            type: string
-            nullable: true
-            example: "Descripción actualizada"
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Charizard ex Editado"
+        category:
+          type: string
+          enum: [Pokémon, Riftbound, Magic]
+          nullable: true
+          example: "Pokémon"
+        collection:
+          type: string
+          nullable: true
+          example: "Pokémon 151"
+        num:
+          type: integer
+          nullable: true
+          example: 6
+        state:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        description:
+          type: string
+          nullable: true
+          example: "Descripción actualizada"
 
     CardSummaryResponse:
-        type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          name:
-            type: string
-            example: "Charizard Base Set"
-          category:
-            type: string
-            example: "Pokemon"
-          image:
-            type: string
-            example: "/uploads/imagen.png"
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Charizard ex"
+        category:
+          type: string
+          example: "Pokémon"
+        image:
+          type: string
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
 
     CatalogResponse:
-        type: object
-        additionalProperties:
-          type: array
-          items:
-            type: string
-        example:
-          Pokemon:
-            - "Destinos de paldea"
-            - "Brecha Paradojica"
-            - "Pokemon 151"
-          Magic:
-            - "Alpha / Beta / Unlimited (1993)"
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+      example:
+        Pokémon:
+          - "Destinos de Paldea"
+          - "Brecha Paradójica"
+          - "Pokémon 151"
+          - "Evoluciones de Paldea"
+          - "Surging Sparks"
+        Riftbound:
+          - "Riftbound: Origins"
+          - "Spiritforged"
+          - "Unleashed"
+        Magic:
+          - "Alpha / Beta / Unlimited"
+          - "Ciclo de Urza (1998-1999)"
+          - "Wilds of Eldraine"
 
     CardResponse:
       type: object
@@ -537,21 +547,21 @@ components:
           format: uuid
         name:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         image:
           type: string
-          example: "https://example.com/charizard.png"
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
         category:
           type: string
           example: "Pokémon"
         collection:
           type: string
           nullable: true
-          example: "Base Set 1999"
+          example: "Pokémon 151"
         num:
-          type: string
+          type: integer
           nullable: true
-          example: "4/102"
+          example: 6
         state:
           type: string
           enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
@@ -559,6 +569,7 @@ components:
         description:
           type: string
           nullable: true
+          example: "Carta mítica en excelente estado."
         createdAt:
           type: string
           format: date-time
@@ -571,51 +582,51 @@ components:
           format: uuid
         status:
           type: string
-          enum: [ UPCOMING, IN_PROGRESS ]
+          enum: [UPCOMING, IN_PROGRESS]
           example: "IN_PROGRESS"
 
     CardDetailResponse:
-        type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          ownerId:
-            type: string
-            format: uuid
-          name:
-            type: string
-            example: "Piplup"
-          image:
-            type: string
-            example: "/uploads/piplup.png"
-          category:
-            type: string
-            example: "Pokemon"
-          collection:
-            type: string
-            nullable: true
-            example: "Pokemon 151"
-          num:
-            type: string
-            nullable: true
-            example: "393"
-          state:
-            type: string
-            enum: [ NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR ]
-            example: "GOOD"
-          description:
-            type: string
-            nullable: true
-            example: "Carta Piplup."
-          createdAt:
-            type: string
-            format: date-time
-          auction:
-            allOf:
-              - $ref: '#/components/schemas/CardAuctionResponse'
-            nullable: true
-            description: Subasta activa o programada asociada a la carta, o null si está disponible.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Pikachu ex"
+        image:
+          type: string
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/dddddddd-dddd-dddd-dddd-dddddddddddd.jpg"
+        category:
+          type: string
+          example: "Pokémon"
+        collection:
+          type: string
+          nullable: true
+          example: "Surging Sparks"
+        num:
+          type: integer
+          nullable: true
+          example: 238
+        state:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        description:
+          type: string
+          nullable: true
+          example: "Habilidad Corazón Resuelto: si tiene todos sus PS y quedaría Fuera de Combate, conserva 10 PS."
+        createdAt:
+          type: string
+          format: date-time
+        auction:
+          allOf:
+            - $ref: '#/components/schemas/CardAuctionResponse'
+          nullable: true
+          description: Subasta activa o programada asociada a la carta, o null si está disponible.
 
     PlaceBidRequest:
       type: object
@@ -641,7 +652,7 @@ components:
           format: uuid
         bidderUsername:
           type: string
-          example: "david_85"
+          example: "user2"
         amount:
           type: number
           format: double
@@ -649,8 +660,8 @@ components:
         createdAt:
           type: string
           format: date-time
-    
-        AuctionHistoryResponse:
+
+    AuctionHistoryResponse:
       type: object
       description: Una puja dentro del historial de una subasta, con los datos públicos del pujador.
       properties:
@@ -659,10 +670,10 @@ components:
           format: uuid
         bidderName:
           type: string
-          example: "david_85"
+          example: "user2"
         bidderAvatar:
           type: string
-          example: "3"
+          example: "2"
         amount:
           type: number
           format: double
@@ -677,10 +688,10 @@ components:
           format: uuid
         cardName:
           type: string
-          example: "Charizard Base Set"
+          example: "Charizard ex"
         cardImage:
           type: string
-          example: "/uploads/charizard.png"
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
         amount:
           type: number
           format: double
@@ -726,7 +737,6 @@ paths:
                   status:
                     type: string
                     example: OK
-  
 
   /api/auth/register:
     post:
@@ -801,153 +811,6 @@ paths:
         '204':
           description: Sesión cerrada correctamente.
 
-  /api/users/me:
-    get:
-      summary: Obtener mi perfil
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Perfil obtenido.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          description: No autorizado.
-    patch:
-      summary: Editar mi perfil
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserProfileRequest'
-      responses:
-        '200':
-          description: Perfil actualizado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: Datos inválidos.
-        '401':
-          description: No autorizado.
-
-    delete:
-      summary: Solicitar eliminación de cuenta
-      description: |
-        Inicia el proceso de baja con un periodo de gracia de 15 días. 
-        Bloquea la operación con un error 409 si el usuario tiene subastas activas/pendientes o si es el mayor pujador de una subasta en curso.
-        Al solicitar la baja, se revocan todos los refresh tokens.
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '202':
-          description: Solicitud de eliminación aceptada.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeletionStatusResponse'
-        '401':
-          description: No autorizado.
-        '409':
-          description: No se puede eliminar la cuenta porque tiene subastas activas o pujas ganadoras.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/users/{id}:
-    get:
-      summary: Obtener perfil público de otro usuario
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Perfil público.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PublicUserResponse'
-        '401':
-          description: No autorizado.
-        '404':
-          description: Usuario no encontrado.
-
-  /api/users/me/password:
-    patch:
-      summary: Cambiar contraseña
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChangePasswordRequest'
-      responses:
-        '204':
-          description: Contraseña cambiada correctamente.
-        '400':
-          description: Nueva contraseña inválida.
-        '401':
-          description: Contraseña actual incorrecta o no autorizado.
-
-  /api/users/me/cancel-deletion:
-    post:
-      summary: Cancelar la eliminación de cuenta
-      description: Cancela el proceso de baja si el usuario se arrepiente. (Hacer login también cancela la baja).
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '204':
-          description: Eliminación cancelada correctamente. La cuenta vuelve a estado ACTIVE.
-        '401':
-          description: No autorizado.
-
-  /api/users/me/deletion-status:
-      get:
-        summary: Consultar estado de eliminación de la cuenta
-        description: Devuelve si la cuenta está activa, pendiente de borrado (con su fecha límite) o si ya ha sido purgada.
-        security:
-          - bearerAuth: [ ]
-        responses:
-          '200':
-            description: Estado obtenido correctamente.
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/DeletionStatusResponse'
-          '401':
-            description: No autorizado.
-
-  /api/users/me/deletion-check:
-      get:
-        summary: Comprobar las condiciones para eliminar la cuenta
-        description: Devuelve dos booleanos indicando si el usuario tiene subastas como creador o es el mayor pujador en una subasta activa.
-        security:
-            - bearerAuth: [ ]
-        responses:
-            '200':
-              description: Resultado de la comprobación.
-              content:
-                application/json:
-                  schema:
-                    $ref: '#/components/schemas/AccountDeletionCheckResponse'
-            '401':
-              description: No autorizado.
-
-
   /api/auth/check-email:
     get:
       summary: Comprobar si un email ya está registrado
@@ -982,8 +845,151 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExistsResponse'
-  
-  
+
+  /api/users/me:
+    get:
+      summary: Obtener mi perfil
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil obtenido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: No autorizado.
+    patch:
+      summary: Editar mi perfil
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+      responses:
+        '200':
+          description: Perfil actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Datos inválidos.
+        '401':
+          description: No autorizado.
+    delete:
+      summary: Solicitar eliminación de cuenta
+      description: |
+        Inicia el proceso de baja con un periodo de gracia de 15 días. 
+        Bloquea la operación con un error 409 si el usuario tiene subastas activas/pendientes o si es el mayor pujador de una subasta en curso.
+        Al solicitar la baja, se revocan todos los refresh tokens.
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Solicitud de eliminación aceptada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionStatusResponse'
+        '401':
+          description: No autorizado.
+        '409':
+          description: No se puede eliminar la cuenta porque tiene subastas activas o pujas ganadoras.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{id}:
+    get:
+      summary: Obtener perfil público de otro usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Perfil público.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUserResponse'
+        '401':
+          description: No autorizado.
+        '404':
+          description: Usuario no encontrado.
+
+  /api/users/me/password:
+    patch:
+      summary: Cambiar contraseña
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '204':
+          description: Contraseña cambiada correctamente.
+        '400':
+          description: Nueva contraseña inválida.
+        '401':
+          description: Contraseña actual incorrecta o no autorizado.
+
+  /api/users/me/cancel-deletion:
+    post:
+      summary: Cancelar la eliminación de cuenta
+      description: Cancela el proceso de baja si el usuario se arrepiente. (Hacer login también cancela la baja).
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Eliminación cancelada correctamente. La cuenta vuelve a estado ACTIVE.
+        '401':
+          description: No autorizado.
+
+  /api/users/me/deletion-status:
+    get:
+      summary: Consultar estado de eliminación de la cuenta
+      description: Devuelve si la cuenta está activa, pendiente de borrado (con su fecha límite) o si ya ha sido purgada.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estado obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionStatusResponse'
+        '401':
+          description: No autorizado.
+
+  /api/users/me/deletion-check:
+    get:
+      summary: Comprobar las condiciones para eliminar la cuenta
+      description: Devuelve dos booleanos indicando si el usuario tiene subastas como creador o es el mayor pujador en una subasta activa.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resultado de la comprobación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDeletionCheckResponse'
+        '401':
+          description: No autorizado.
 
   /api/auction/all:
     get:
@@ -1006,7 +1012,7 @@ paths:
             - NUMBER_ASC / NUMBER_DESC: número de carta ascendente / descendente (las cartas sin número van siempre al final)
           schema:
             type: string
-            enum: [ENDING_SOON, ENDING_LATE, PRICE_ASC, PRICE_DESC, NAME_ASC, NAME_DESC, NUMBER_ASC, NUMBER_DESC]
+            enum: [ENDING_SOON, ENDING_LATE, RECENT_FIRST, OLDEST_FIRST, PRICE_ASC, PRICE_DESC, NAME_ASC, NAME_DESC, NUMBER_ASC, NUMBER_DESC]
             default: ENDING_SOON
       responses:
         '200':
@@ -1040,7 +1046,26 @@ paths:
                 items:
                   $ref: '#/components/schemas/AuctionSummaryResponse'
         '401':
-          description: No autenticado o token inválido
+          description: No autenticado o token inválido.
+
+  /api/auction/user/favorites:
+    get:
+      tags:
+        - Auction
+      summary: Listar mis subastas favoritas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de subastas marcadas como favoritas por el usuario autenticado.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionListItemResponse'
+        '401':
+          description: No autorizado.
 
   /api/auction/{id}:
     get:
@@ -1074,53 +1099,74 @@ paths:
                 $ref: '#/components/schemas/AuctionDetailResponse'
         '404':
           description: Subasta no encontrada.
-  
     patch:
-        tags:
-          - Auction
-        summary: Editar una subasta pendiente de iniciar
-        description: |
-          Permite al creador de una subasta modificar sus datos siempre que la subasta aún no haya comenzado (`startedAt` en el futuro).
-          Solo se actualizan los campos enviados en el cuerpo de la petición.
-        security:
-          - bearerAuth: []
-        parameters:
-          - name: id
-            in: path
-            required: true
-            schema:
-              type: string
-              format: uuid
-        requestBody:
+      tags:
+        - Auction
+      summary: Editar una subasta pendiente de iniciar
+      description: |
+        Permite al creador de una subasta modificar sus datos siempre que la subasta aún no haya comenzado (`startedAt` en el futuro).
+        Solo se actualizan los campos enviados en el cuerpo de la petición.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
           required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditAuctionRequest'
+      responses:
+        '200':
+          description: Subasta actualizada correctamente.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EditAuctionRequest'
-        responses:
-          '200':
-            description: Subasta actualizada correctamente.
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/AuctionResponse'
-          '400':
-            description: Datos inválidos, subasta no encontrada o el usuario no es el creador.
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResponse'
-          '401':
-            description: No autorizado.
-          '409':
-            description: La subasta ya ha comenzado y no se puede editar.
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/AuctionResponse'
+        '400':
+          description: Datos inválidos, subasta no encontrada o el usuario no es el creador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autorizado.
+        '409':
+          description: La subasta ya ha comenzado y no se puede editar.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Auction
+      summary: Cancelar o eliminar una subasta
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Subasta cancelada correctamente.
+        '400':
+          description: Operación no permitida o subasta inexistente.
+        '401':
+          description: No autorizado.
 
   /api/auction/create:
     post:
+      tags:
+        - Auction
       summary: Crear una nueva subasta
       security:
         - bearerAuth: []
@@ -1141,11 +1187,141 @@ paths:
           description: Datos inválidos o ya existe una subasta activa para esa carta.
         '401':
           description: No autorizado.
-  
-  
-  
+
+  /api/auction/{id}/favorite:
+    post:
+      tags:
+        - Auction
+      summary: Añadir subasta a favoritos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Subasta añadida a favoritos.
+        '401':
+          description: No autorizado.
+    delete:
+      tags:
+        - Auction
+      summary: Quitar subasta de favoritos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Subasta eliminada de favoritos.
+        '401':
+          description: No autorizado.
+
+  /api/auction/{id}/view:
+    post:
+      tags:
+        - Auction
+      summary: Registrar visualización de una subasta
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Visualización registrada.
+
+  /api/auction/{id}/bid:
+    post:
+      tags:
+        - Bid
+      summary: Realizar una puja en una subasta
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceBidRequest'
+      responses:
+        '201':
+          description: Puja registrada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BidResponse'
+        '400':
+          description: Importe insuficiente o subasta no activa.
+        '401':
+          description: No autorizado.
+
+  /api/auction/{id}/bids:
+    get:
+      tags:
+        - Bid
+      summary: Obtener historial de pujas de una subasta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Historial de pujas ordenado.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionHistoryResponse'
+
+  /api/bids/my-history:
+    get:
+      tags:
+        - Bid
+      summary: Obtener historial de subastas en las que ha pujado el usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de participaciones del usuario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BidderHistoryResponse'
+        '401':
+          description: No autorizado.
+
   /api/card/catalog:
     get:
+      tags:
+        - Card
       summary: Obtener el catálogo estático de categorías y colecciones
       responses:
         '200':
@@ -1155,18 +1331,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogResponse'
 
+  /api/card/all:
+    get:
+      tags:
+        - Card
+      summary: Listar todas las cartas registradas
+      responses:
+        '200':
+          description: Listado completo de cartas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+
+  /api/card/user/my-cards:
+    get:
+      tags:
+        - Card
+      summary: Listar las cartas del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resumen de cartas del propietario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardSummaryResponse'
+        '401':
+          description: No autorizado.
+
   /api/card/create:
     post:
+      tags:
+        - Card
       summary: Crear y registrar una nueva carta
-      description: Asigna automáticamente la propiedad al usuario autenticado mediante el token JWT.
+      description: Asigna automáticamente la propiedad al usuario autenticado mediante el token JWT y sube la imagen a Cloudinary.
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - data
+                - image
               properties:
                 data:
                   $ref: '#/components/schemas/CreateCardRequest'
@@ -1182,46 +1397,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/CardResponse'
         '400':
-          description: Datos de la carta inválidos o categoría no permitida.
-        '401':
-          description: No autorizado.
-
-  /api/card/all:
-    get:
-      summary: Obtener todas las cartas registradas en el sistema
-      responses:
-        '200':
-          description: Listado completo de cartas.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardResponse'
-
-  /api/card/user/my-cards:
-    get:
-      summary: Obtener el resumen de las cartas del usuario autenticado
-      description: Devuelve solo id, nombre, categoría e imagen (optimizado para listados).
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Listado de cartas pertenecientes al usuario.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardSummaryResponse'
+          description: Datos inválidos o combinación categoría/colección no permitida en el catálogo.
         '401':
           description: No autorizado.
 
   /api/card/{id}:
     get:
-      summary: Obtener detalle completo de una carta por su ID
-      security:
-        - bearerAuth: [ ]
+      tags:
+        - Card
+      summary: Obtener el detalle de una carta por su ID
       parameters:
         - name: id
           in: path
@@ -1231,20 +1415,19 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Carta encontrada.
+          description: Detalle de la carta incluyendo subasta asociada si existe.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CardDetailResponse'
-        '400':
-          description: No existe ninguna carta con ese ID.
-        '401':
-          description: No autorizado.
-
+        '404':
+          description: Carta no encontrada.
     put:
+      tags:
+        - Card
       summary: Editar una carta existente
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1264,7 +1447,7 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: (Opcional) Nueva imagen para la carta.
+                  description: Nueva imagen opcional de la carta.
       responses:
         '200':
           description: Carta actualizada correctamente.
@@ -1273,16 +1456,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/CardResponse'
         '400':
-          description: Datos inválidos, categoría no permitida o carta no encontrada.
+          description: Datos inválidos o el usuario no es el propietario.
         '401':
           description: No autorizado.
-        '403':
-          description: No tienes permiso para editar esta carta.
-
     delete:
+      tags:
+        - Card
       summary: Eliminar una carta
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1294,155 +1476,6 @@ paths:
         '204':
           description: Carta eliminada correctamente.
         '400':
-          description: Carta no encontrada.
+          description: No se puede eliminar (por ejemplo, tiene subasta activa o no eres el propietario).
         '401':
           description: No autorizado.
-        '403':
-          description: No tienes permiso para borrar esta carta.
-
-  /api/bid/{auctionId}:
-    post:
-      summary: Realizar una puja en una subasta
-      description: Registra una puja del usuario autenticado sobre la subasta indicada.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: auctionId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlaceBidRequest'
-      responses:
-        '201':
-          description: Puja registrada exitosamente.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BidResponse'
-        '400':
-          description: Importe insuficiente, subasta inactiva o el pujador es el creador.
-        '401':
-          description: No autorizado.
-
-  /api/bid/history/{auctionId}:
-    get:
-      summary: Obtener historial de pujas de una subasta
-      description: Devuelve las pujas de la subasta ordenadas de mayor a menor importe, con nombre y avatar del pujador.
-      parameters:
-        - name: auctionId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Listado ordenado de pujas de la subasta (vacío si no hay pujas).
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AuctionHistoryResponse'
-                  
-  /api/bid/user/my-bids:
-    get:
-      summary: Listar las subastas en las que he pujado
-      description: |
-        Devuelve una entrada por subasta en la que el usuario autenticado ha pujado,
-        ordenadas por la fecha de su última puja (más reciente primero).
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Historial de participación del usuario (vacío si no ha pujado nunca).
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BidderHistoryResponse'
-        '401':
-          description: No autenticado o token inválido.
-  
-  /api/auction/{id}/favorite:
-    post:
-      tags:
-        - Auction
-      summary: Añadir una subasta a favoritos
-      description: Marca una subasta como favorita para el usuario autenticado. Es idempotente y no permite guardar subastas propias.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: UUID de la subasta
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '201':
-          description: Subasta añadida a favoritos correctamente
-        '400':
-          description: Subasta inexistente o intento de añadir una subasta propia a favoritos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: No autenticado o token inválido
-        '403':
-          description: Acceso denegado
-
-    delete:
-      tags:
-        - Auction
-      summary: Eliminar una subasta de favoritos
-      description: Elimina la subasta de la lista de favoritos del usuario autenticado.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: UUID de la subasta
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Subasta eliminada de favoritos correctamente
-        '401':
-          description: No autenticado o token inválido
-        '403':
-          description: Acceso denegado
-
-  /api/auction/favorites:
-    get:
-      tags:
-        - Auction
-      summary: Listar subastas favoritas del usuario
-      description: Devuelve todas las subastas marcadas como favoritas por el usuario autenticado.
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Listado de subastas favoritas obtenido correctamente
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AuctionResponse'
-        '401':
-          description: No autenticado o token inválido
-        '403':
-          description: Acceso denegado

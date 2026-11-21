@@ -59,10 +59,12 @@ class CardController(
             "La categoría o colección enviada no es válida"
         }
 
-        val imageUrl = fileStoragePort.store(imageFile)
+        val cardId = UUID.randomUUID()
+        val imageUrl = fileStoragePort.store(imageFile, cardId)
 
         val card =
             createCardUseCase.execute(
+                id = cardId,
                 ownerId = principal.id,
                 name = request.name,
                 image = imageUrl,
@@ -136,7 +138,7 @@ class CardController(
 
         val imageUrl =
             if (imageFile != null) {
-                fileStoragePort.store(imageFile)
+                fileStoragePort.store(imageFile, id)
             } else {
                 existingCard.image
             }

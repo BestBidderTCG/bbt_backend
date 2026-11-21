@@ -29,7 +29,6 @@ class AuctionDetailRowTest {
             startedAt = now.minus(1, ChronoUnit.DAYS),
             endsAt = now.plus(1, ChronoUnit.DAYS),
             description = "desc",
-            isCancelled = false,
             creatorId = creatorId,
             creatorUsername = "paula",
             creatorAvatarNum = 3,
@@ -81,12 +80,10 @@ class AuctionDetailRowTest {
         val upcoming = buildRow().copy(startedAt = now.plusSeconds(60), endsAt = now.plusSeconds(3600))
         val inProgress = buildRow()
         val finished = buildRow().copy(startedAt = now.minusSeconds(3600), endsAt = now.minusSeconds(60))
-        val cancelled = buildRow().copy(isCancelled = true)
 
         assertEquals(AuctionStatus.UPCOMING, upcoming.toDetail(now, null).status)
         assertEquals(AuctionStatus.IN_PROGRESS, inProgress.toDetail(now, null).status)
         assertEquals(AuctionStatus.FINISHED, finished.toDetail(now, null).status)
-        assertEquals(AuctionStatus.CANCELLED, cancelled.toDetail(now, null).status)
     }
 
     @Test

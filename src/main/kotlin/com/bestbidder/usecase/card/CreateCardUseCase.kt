@@ -12,6 +12,7 @@ class CreateCardUseCase(
 ) {
     @Suppress("LongParameterList")
     fun execute(
+        id: UUID = UUID.randomUUID(),
         ownerId: UUID,
         name: String,
         image: String,
@@ -23,6 +24,7 @@ class CreateCardUseCase(
     ): Card {
         val newCard =
             Card(
+                id = id,
                 ownerId = ownerId,
                 name = name,
                 image = image,

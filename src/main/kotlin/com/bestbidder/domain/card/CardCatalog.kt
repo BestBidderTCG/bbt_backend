@@ -3,11 +3,13 @@ package com.bestbidder.domain.card
 object CardCatalog {
     val catalog: Map<String, List<String>> =
         mapOf(
-            "Pokemon" to
+            "Pokémon" to
                 listOf(
-                    "Destinos de paldea",
-                    "Brecha Paradojica", "Pokemon 151",
-                    "Evoluciones de Paldea", "Surging Sparks",
+                    "Destinos de Paldea",
+                    "Brecha Paradójica",
+                    "Pokémon 151",
+                    "Evoluciones de Paldea",
+                    "Surging Sparks",
                 ),
             "Riftbound" to
                 listOf(
@@ -17,17 +19,18 @@ object CardCatalog {
                 ),
             "Magic" to
                 listOf(
-                    "Alpha / Beta / Unlimited (1993)",
-                    "Ciclo de Urza (Saga, Legado y Destino, 1998-1999)",
+                    "Alpha / Beta / Unlimited",
+                    "Ciclo de Urza (1998-1999)",
                     "Wilds of Eldraine",
                 ),
         )
 
     fun isValid(
-        category: String,
+        category: String?,
         collection: String?,
     ): Boolean =
-        catalog[category]?.let { validCollections ->
-            collection == null || validCollections.contains(collection)
-        } ?: false
+        when {
+            category == null -> collection == null
+            else -> catalog[category]?.let { collection == null || it.contains(collection) } ?: false
+        }
 }

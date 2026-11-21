@@ -1,11 +1,15 @@
 package com.bestbidder.usecase.card
 
 import com.bestbidder.usecase.port.CardRepository
+import com.bestbidder.usecase.port.FileStoragePort
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class DeleteCardUseCase(private val cardRepository: CardRepository) {
+class DeleteCardUseCase(
+    private val cardRepository: CardRepository,
+    private val fileStoragePort: FileStoragePort,
+) {
     fun execute(
         cardId: UUID,
         ownerId: UUID,
@@ -19,5 +23,6 @@ class DeleteCardUseCase(private val cardRepository: CardRepository) {
         }
 
         cardRepository.delete(cardId)
+        fileStoragePort.delete(cardId)
     }
 }

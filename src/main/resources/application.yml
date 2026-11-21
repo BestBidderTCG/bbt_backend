@@ -1,22 +1,30 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/bestbidder
-    username: user
-    password: password
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/bestbidder}
+    username: ${DB_USER:user}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update # Esto crea las tablas automáticamente los @Entity
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: "cambiar-esto-por-una-clave-larga-de-al-menos-32-caracteres" #dialogar en lgun momento
+  secret: ${JWT_SECRET:cambiar-esto-por-una-clave-larga-de-al-menos-32-caracteres}
   access-token-expiration-ms: 900000
   refresh-token-expiration-days: 30
 
 bestbidder:
   auction:
     view-window-hours: 10
+    
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}

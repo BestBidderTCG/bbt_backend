@@ -84,7 +84,7 @@ class CardControllerTest {
             val request =
                 CreateCardRequest(
                     name = "Rayquaza Gold Star",
-                    category = "Pokemon",
+                    category = "Pokémon",
                     collection = "Evoluciones de Paldea",
                     num = 107,
                     state = CardState.NEW,
@@ -102,7 +102,7 @@ class CardControllerTest {
             val mockImageUrl = "/uploads/rayquaza.png"
 
             // Simular lo que devuelve el caso de uso y el FileStorage
-            `when`(fileStoragePort.store(any())).thenReturn(mockImageUrl)
+            `when`(fileStoragePort.store(any(), any())).thenReturn(mockImageUrl)
 
             val createdCard =
                 Card(
@@ -119,14 +119,15 @@ class CardControllerTest {
 
             `when`(
                 createCardUseCase.execute(
-                    ownerId = userId,
-                    name = request.name,
-                    image = mockImageUrl,
-                    category = request.category,
-                    collection = request.collection,
-                    num = request.num,
-                    state = request.state,
-                    description = request.description,
+                    id = any(),
+                    ownerId = eq(userId),
+                    name = eq(request.name),
+                    image = eq(mockImageUrl),
+                    category = eq(request.category),
+                    collection = eq(request.collection),
+                    num = eq(request.num),
+                    state = eq(request.state),
+                    description = eq(request.description),
                 ),
             ).thenReturn(createdCard)
 
@@ -157,14 +158,15 @@ class CardControllerTest {
                 .andExpect(jsonPath("$.image").value(mockImageUrl))
 
             verify(createCardUseCase, times(1)).execute(
-                ownerId = userId,
-                name = request.name,
-                image = mockImageUrl,
-                category = request.category,
-                collection = request.collection,
-                num = request.num,
-                state = request.state,
-                description = request.description,
+                id = any(),
+                ownerId = eq(userId),
+                name = eq(request.name),
+                image = eq(mockImageUrl),
+                category = eq(request.category),
+                collection = eq(request.collection),
+                num = eq(request.num),
+                state = eq(request.state),
+                description = eq(request.description),
             )
         }
     }
@@ -215,7 +217,7 @@ class CardControllerTest {
                     ownerId = userId,
                     name = "Rayquaza Original",
                     image = "/uploads/old-image.png",
-                    category = "Pokemon",
+                    category = "Pokémon",
                     collection = "Evoluciones de Paldea",
                     num = 107,
                     state = CardState.NEW,
@@ -232,7 +234,7 @@ class CardControllerTest {
             val newImageUrl = "/uploads/new-rayquaza.png"
 
             `when`(getCardUseCase.getById(cardId)).thenReturn(existingCard)
-            `when`(fileStoragePort.store(any())).thenReturn(newImageUrl)
+            `when`(fileStoragePort.store(any(), eq(cardId))).thenReturn(newImageUrl)
 
             val updatedCard =
                 existingCard.copy(

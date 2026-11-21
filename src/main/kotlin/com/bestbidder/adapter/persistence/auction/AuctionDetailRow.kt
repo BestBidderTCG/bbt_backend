@@ -21,7 +21,6 @@ data class AuctionDetailRow(
     val startedAt: Instant,
     val endsAt: Instant,
     val description: String?,
-    val isCancelled: Boolean,
     val creatorId: UUID,
     val creatorUsername: String,
     val creatorAvatarNum: Int?,
@@ -33,7 +32,6 @@ data class AuctionDetailRow(
     ): AuctionDetail {
         val status =
             when {
-                isCancelled -> AuctionStatus.CANCELLED
                 !endsAt.isAfter(now) -> AuctionStatus.FINISHED
                 startedAt.isAfter(now) -> AuctionStatus.UPCOMING
                 else -> AuctionStatus.IN_PROGRESS

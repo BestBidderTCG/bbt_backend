@@ -16,7 +16,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: ${JWT_SECRET:cambiar-esto-por-una-clave-larga-de-al-menos-32-caracteres}
+  secret: ${JWT_SECRET:}
   access-token-expiration-ms: 900000
   refresh-token-expiration-days: 30
 

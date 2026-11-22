@@ -257,7 +257,6 @@ class CardControllerTest {
                 multipart("/api/card/{id}", cardId)
                     .file(dataPart)
                     .file(mockFile)
-                    // TRUCO: multipart() crea POST por defecto, lo forzamos a PUT
                     .with { req ->
                         req.method = "PUT"
                         req

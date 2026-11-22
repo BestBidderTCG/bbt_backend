@@ -6,16 +6,20 @@ import java.util.UUID
 data class CardSummaryResponse(
     val id: UUID,
     val name: String,
-    val category: String,
     val image: String,
+    val category: String,
+    val inAuction: Boolean,
 ) {
     companion object {
-        fun fromDomain(card: Card) =
-            CardSummaryResponse(
-                id = card.id,
-                name = card.name,
-                category = card.category,
-                image = card.image,
-            )
+        fun fromDomain(
+            card: Card,
+            inAuction: Boolean,
+        ) = CardSummaryResponse(
+            id = card.id,
+            name = card.name,
+            image = card.image,
+            category = card.category,
+            inAuction = inAuction,
+        )
     }
 }

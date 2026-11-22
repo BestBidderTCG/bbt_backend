@@ -513,6 +513,10 @@ components:
         image:
           type: string
           example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
+        inAuction:
+          type: boolean
+          description: Indica si la carta está actualmente en una subasta activa o pendiente de iniciar.
+          example: true
 
     CatalogResponse:
       type: object

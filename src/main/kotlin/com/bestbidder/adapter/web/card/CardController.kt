@@ -97,15 +97,17 @@ class CardController(
         return ResponseEntity.ok(CardDetailResponse.fromDomain(card, activeAuction))
     }
 
-    /**
-     * Devuelve las cartas pertenecientes exclusivamente al usuario autenticado.
-     */
     @GetMapping("/user/my-cards")
     fun getMyCardsSummary(
         @AuthenticationPrincipal principal: AuthenticatedUser,
     ): ResponseEntity<List<CardSummaryResponse>> {
         val cards = getCardUseCase.getByOwner(principal.id)
-        return ResponseEntity.ok(cards.map { CardSummaryResponse.fromDomain(it) })
+        return ResponseEntity.ok(
+            cards.map { card ->
+                val inAuction = cardAuctionPort.findActiveOrUpcomingByCardId(card.id) != null
+                CardSummaryResponse.fromDomain(card, inAuction)
+            },
+        )
     }
 
     @DeleteMapping("/{id}")

@@ -41,7 +41,13 @@ class GetFollowUseCaseTest {
             avatarNum = 1,
         )
 
-    private val followed = FollowListItem(id = UUID.randomUUID(), username = "amigo", avatarNum = 2, followedByMe = true)
+    private val followed =
+        FollowListItem(
+            id = UUID.randomUUID(),
+            username = "amigo",
+            avatarNum = 2,
+            followedByMe = true,
+        )
 
     private fun auction(status: AuctionStatus) =
         AuctionListItem(

@@ -4,9 +4,12 @@ import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.user.User
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -27,7 +30,15 @@ class PlaceBidUseCaseTest {
     private val bidRepository: BidRepository = mock(BidRepository::class.java)
     private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
-    private val useCase = PlaceBidUseCase(auctionRepository, bidRepository, notificationPort, userRepository)
+    private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val useCase =
+        PlaceBidUseCase(
+            auctionRepository,
+            bidRepository,
+            notificationPort,
+            userRepository,
+            pushNotificationPort,
+        )
 
     private val creatorId = UUID.randomUUID()
     private val sampleCard =
@@ -54,14 +65,27 @@ class PlaceBidUseCaseTest {
             durationInDays = 1,
         )
 
+    private fun buildActiveUser(
+        id: UUID,
+        username: String,
+    ) = User(
+        id = id,
+        email = "$username@test.com",
+        passwordHash = "hash",
+        username = username,
+        description = null,
+        avatarNum = 1,
+    )
+
     @Test
-    @DisplayName("Debe registrar la puja si cumple con el incremento mínimo obligatorio según el rango")
+    @DisplayName("Debe registrar la puja y notificar por SSE y push al creador y al anterior mejor postor")
     fun `should place bid successfully when satisfying minimum bid increment`() {
         val auctionId = UUID.randomUUID()
         val previousBidderId = UUID.randomUUID()
         val newBidderId = UUID.randomUUID()
 
         val activeAuction = buildActiveAuction(auctionId)
+        val newBidder = buildActiveUser(newBidderId, "pujador2")
 
         val previousBid =
             Bid(
@@ -72,6 +96,7 @@ class PlaceBidUseCaseTest {
             )
 
         `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(userRepository.findById(newBidderId)).thenReturn(newBidder)
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(previousBid)
         `when`(bidRepository.save(any(Bid::class.java))).thenAnswer { it.arguments[0] as Bid }
 
@@ -93,6 +118,14 @@ class PlaceBidUseCaseTest {
             auctionId = auctionId,
             newAmount = 155.0,
             bidderUsername = "pujador2",
+        )
+        verify(pushNotificationPort, times(1)).send(
+            listOf(creatorId),
+            PushMessages.ownAuctionNewBid(auctionId, sampleCard.name, "pujador2", 155.0),
+        )
+        verify(pushNotificationPort, times(1)).send(
+            listOf(previousBidderId),
+            PushMessages.outbid(auctionId, sampleCard.name, 155.0),
         )
     }
 
@@ -154,6 +187,7 @@ class PlaceBidUseCaseTest {
             )
 
         `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(userRepository.findById(bidderId)).thenReturn(buildActiveUser(bidderId, "pujador1"))
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
 
         val exception =
@@ -174,6 +208,7 @@ class PlaceBidUseCaseTest {
     @DisplayName("Debe lanzar excepcion si el importe es menor al incremento mínimo permitido")
     fun `should throw exception when bid amount is below minimum increment`() {
         val auctionId = UUID.randomUUID()
+        val bidderId = UUID.randomUUID()
         val activeAuction = buildActiveAuction(auctionId)
 
         val currentHighestBid =
@@ -185,13 +220,14 @@ class PlaceBidUseCaseTest {
             )
 
         `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(userRepository.findById(bidderId)).thenReturn(buildActiveUser(bidderId, "pujador2"))
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
 
         val exception =
             assertThrows(IllegalArgumentException::class.java) {
                 useCase.execute(
                     auctionId = auctionId,
-                    bidderId = UUID.randomUUID(),
+                    bidderId = bidderId,
                     bidderUsername = "pujador2",
                     amount = 151.0,
                 )

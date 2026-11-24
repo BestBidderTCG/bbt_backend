@@ -3,8 +3,11 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.PushMessages
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.FavoriteAuctionRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -18,14 +21,23 @@ import java.util.UUID
 class StartPendingAuctionsUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
-    private val useCase = StartPendingAuctionsUseCase(auctionRepository, notificationPort)
+    private val favoriteAuctionRepository: FavoriteAuctionRepository = mock(FavoriteAuctionRepository::class.java)
+    private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val useCase =
+        StartPendingAuctionsUseCase(
+            auctionRepository,
+            notificationPort,
+            favoriteAuctionRepository,
+            pushNotificationPort,
+        )
 
     @Test
-    @DisplayName("Debe notificar activacion cuando existen subastas pendientes de iniciar")
+    @DisplayName("Debe notificar activacion por SSE y enviar push al creador y a favoritos")
     fun `should notify started auctions`() {
         val now = Instant.now().truncatedTo(ChronoUnit.MINUTES)
         val auctionId = UUID.randomUUID()
         val creatorId = UUID.randomUUID()
+        val favUserId = UUID.randomUUID()
 
         val auction =
             Auction(
@@ -47,10 +59,19 @@ class StartPendingAuctionsUseCaseTest {
             )
 
         `when`(auctionRepository.getJustStarted(now)).thenReturn(listOf(auction))
+        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId)).thenReturn(listOf(favUserId))
 
         useCase.execute(now)
 
         verify(auctionRepository, times(1)).getJustStarted(now)
         verify(notificationPort, times(1)).notifyAuctionStarted(auctionId)
+        verify(pushNotificationPort, times(1)).send(
+            listOf(creatorId),
+            PushMessages.ownAuctionStarted(auctionId, "Charizard"),
+        )
+        verify(pushNotificationPort, times(1)).send(
+            listOf(favUserId),
+            PushMessages.favoriteStarted(auctionId, "Charizard"),
+        )
     }
 }

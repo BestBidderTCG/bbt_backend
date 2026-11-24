@@ -1,5 +1,6 @@
 package com.bestbidder.infrastructure.notification
 
+import com.bestbidder.domain.bid.Bid
 import com.bestbidder.infrastructure.notification.dto.AuctionNotificationMessage
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import org.springframework.stereotype.Component
@@ -30,11 +31,16 @@ class AuctionNotificationAdapter : AuctionNotificationPort {
         sendToFrontend(message)
     }
 
-    override fun notifyAuctionExpired(auctionId: UUID) {
+    override fun notifyAuctionExpired(
+        auctionId: UUID,
+        winningBid: Bid?,
+    ) {
         val message =
             AuctionNotificationMessage(
                 status = "EXPIRED",
                 auctionId = auctionId,
+                amount = winningBid?.amount,
+                bidderUsername = winningBid?.bidderUsername,
             )
         sendToFrontend(message)
     }

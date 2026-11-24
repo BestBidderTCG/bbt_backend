@@ -2,10 +2,14 @@ package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.notification.PushMessages
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.FollowRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -15,12 +19,15 @@ import java.util.UUID
 class CreateAuctionUseCase(
     private val auctionRepository: AuctionRepository,
     private val userRepository: UserRepository,
+    private val followRepository: FollowRepository,
+    private val pushNotificationPort: PushNotificationPort,
 ) {
     private companion object {
         const val MIN_DURATION_DAYS = 1
         const val MINUTE_BLOCK_ALIGNMENT = 15
     }
 
+    @Transactional
     @Suppress("LongParameterList")
     fun create(
         creatorId: UUID,
@@ -73,6 +80,18 @@ class CreateAuctionUseCase(
                 durationInDays = durationInDays,
             )
 
-        return auctionRepository.save(newAuction)
+        val savedAuction = auctionRepository.save(newAuction)
+
+        val followerIds = followRepository.findFollowerIdsByUserId(creatorId)
+        pushNotificationPort.send(
+            followerIds,
+            PushMessages.followeeCreatedAuction(
+                auctionId = savedAuction.id,
+                creatorUsername = creatorUsername,
+                cardName = card.name,
+            ),
+        )
+
+        return savedAuction
     }
 }

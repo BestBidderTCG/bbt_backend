@@ -14,3 +14,4 @@ Thumbs.db
 *.log
 gradle.properties
 .env
+secrets/

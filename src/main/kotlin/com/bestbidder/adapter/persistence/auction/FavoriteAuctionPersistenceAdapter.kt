@@ -54,4 +54,10 @@ class FavoriteAuctionPersistenceAdapter(
     @Transactional(readOnly = true)
     override fun getFavoritesByUserId(userId: UUID): List<Auction> =
         jpaFavoriteRepository.findFavoriteAuctionsByUserId(userId).map { it.toDomain() }
+
+    @Transactional(readOnly = true)
+    override fun findUserIdsByAuctionId(auctionId: UUID): List<UUID> =
+        jpaFavoriteRepository.findUserIdsByAuctionId(
+            auctionId,
+        )
 }

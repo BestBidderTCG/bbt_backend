@@ -58,6 +58,9 @@ class FollowRepositoryAdapter(
             .map { it.toDomain() }
 
     @Transactional(readOnly = true)
+    override fun findFollowerIdsByUserId(userId: UUID): List<UUID> = jpaFollowRepository.findFollowerIdsByUserId(userId)
+
+    @Transactional(readOnly = true)
     override fun countFollowing(userId: UUID): Long = jpaFollowRepository.countFollowing(userId)
 
     @Transactional(readOnly = true)

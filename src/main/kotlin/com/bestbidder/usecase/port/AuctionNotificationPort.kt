@@ -1,5 +1,6 @@
 package com.bestbidder.usecase.port
 
+import com.bestbidder.domain.bid.Bid
 import java.util.UUID
 
 /**
@@ -16,8 +17,12 @@ interface AuctionNotificationPort {
 
     /**
      * Notifica que el tiempo límite de una subasta ha finalizado.
+     * [winningBid] es la puja más alta, o null si nadie pujó.
      */
-    fun notifyAuctionExpired(auctionId: UUID)
+    fun notifyAuctionExpired(
+        auctionId: UUID,
+        winningBid: Bid?,
+    )
 
     /**
      * Notifica que una subasta ha sido cancelada por su creador o un administrador.

@@ -20,4 +20,6 @@ interface FavoriteAuctionRepository {
     ): Boolean
 
     fun getFavoritesByUserId(userId: UUID): List<Auction>
+
+    fun findUserIdsByAuctionId(auctionId: UUID): List<UUID>
 }

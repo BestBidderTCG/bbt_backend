@@ -29,4 +29,14 @@ interface JpaFavoriteAuctionRepository : JpaRepository<FavoriteAuctionEntity, UU
     fun findFavoriteAuctionsByUserId(
         @Param("userId") userId: UUID,
     ): List<AuctionEntity>
+
+    @Query(
+        """
+        SELECT f.user.id FROM FavoriteAuctionEntity f
+        WHERE f.auction.id = :auctionId AND f.user.deletedAt IS NULL
+        """,
+    )
+    fun findUserIdsByAuctionId(
+        @Param("auctionId") auctionId: UUID,
+    ): List<UUID>
 }

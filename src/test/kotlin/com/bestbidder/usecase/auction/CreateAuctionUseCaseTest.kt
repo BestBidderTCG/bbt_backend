@@ -3,7 +3,11 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.user.User
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.FollowRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -25,7 +29,10 @@ import java.util.UUID
 class CreateAuctionUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
-    private val useCase = CreateAuctionUseCase(auctionRepository, userRepository)
+    private val followRepository: FollowRepository = mock(FollowRepository::class.java)
+    private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val useCase =
+        CreateAuctionUseCase(auctionRepository, userRepository, followRepository, pushNotificationPort)
 
     private fun getValidFutureStart(): Instant {
         val nowUtc = ZonedDateTime.now(ZoneOffset.UTC)
@@ -38,10 +45,20 @@ class CreateAuctionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debe crear y guardar la subasta con descripción si cumple todas las validaciones")
+    @DisplayName("Debe crear y guardar la subasta y notificar a los seguidores si cumple las validaciones")
     fun `should create auction successfully with description`() {
         val creatorId = UUID.randomUUID()
+        val followerId = UUID.randomUUID()
         val creatorUsername = "paula"
+        val creator =
+            User(
+                id = creatorId,
+                email = "paula@test.com",
+                passwordHash = "hash",
+                username = creatorUsername,
+                description = null,
+                avatarNum = 1,
+            )
         val card =
             Card(
                 id = UUID.randomUUID(),
@@ -54,8 +71,10 @@ class CreateAuctionUseCaseTest {
         val description = "Carta en perfecto estado PSA 10"
         val validStart = getValidFutureStart()
 
+        `when`(userRepository.findById(creatorId)).thenReturn(creator)
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card.id)).thenReturn(false)
         `when`(auctionRepository.save(any())).thenAnswer { invocation -> invocation.getArgument(0) as Auction }
+        `when`(followRepository.findFollowerIdsByUserId(creatorId)).thenReturn(listOf(followerId))
 
         val result =
             useCase.create(
@@ -76,6 +95,10 @@ class CreateAuctionUseCaseTest {
 
         verify(auctionRepository, times(1)).existsByCreatorAndCard(creatorUsername, card.id)
         verify(auctionRepository, times(1)).save(any())
+        verify(pushNotificationPort, times(1)).send(
+            listOf(followerId),
+            PushMessages.followeeCreatedAuction(result.id, creatorUsername, card.name),
+        )
     }
 
     @Test
@@ -83,6 +106,15 @@ class CreateAuctionUseCaseTest {
     fun `should throw exception when duplicate auction exists`() {
         val creatorId = UUID.randomUUID()
         val creatorUsername = "paula"
+        val creator =
+            User(
+                id = creatorId,
+                email = "paula@test.com",
+                passwordHash = "hash",
+                username = creatorUsername,
+                description = null,
+                avatarNum = 1,
+            )
         val card =
             Card(
                 id = UUID.randomUUID(),
@@ -94,6 +126,7 @@ class CreateAuctionUseCaseTest {
             )
         val validStart = getValidFutureStart()
 
+        `when`(userRepository.findById(creatorId)).thenReturn(creator)
         `when`(auctionRepository.existsByCreatorAndCard(creatorUsername, card.id)).thenReturn(true)
 
         val exception =

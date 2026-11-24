@@ -35,6 +35,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("com.cloudinary:cloudinary-http44:1.39.0")
 
+    implementation("com.google.firebase:firebase-admin:9.4.3")
+
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 

@@ -1,9 +1,11 @@
 package com.bestbidder.usecase.follow
 
 import com.bestbidder.domain.follow.Follow
+import com.bestbidder.domain.notification.PushMessages
 import com.bestbidder.domain.user.User
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.FollowRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -25,7 +27,8 @@ import java.util.UUID
 class ManageFollowUseCaseTest {
     private val followRepository: FollowRepository = mock(FollowRepository::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
-    private val useCase = ManageFollowUseCase(followRepository, userRepository)
+    private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val useCase = ManageFollowUseCase(followRepository, userRepository, pushNotificationPort)
 
     private val followerId = UUID.randomUUID()
     private val followeeId = UUID.randomUUID()
@@ -38,6 +41,16 @@ class ManageFollowUseCaseTest {
             username = "followee",
             description = null,
             avatarNum = 1,
+        )
+
+    private val follower =
+        User(
+            id = followerId,
+            email = "follower@test.com",
+            passwordHash = "hash",
+            username = "follower",
+            description = null,
+            avatarNum = 2,
         )
 
     // Mockito devuelve null en any()/capture(); estos helpers evitan el NPE de Kotlin con parámetros no nulos.
@@ -60,6 +73,7 @@ class ManageFollowUseCaseTest {
         @DisplayName("Debe crear el follow cuando el usuario existe y devolver true")
         fun `should follow when followee exists`() {
             `when`(userRepository.findById(followeeId)).thenReturn(followee)
+            `when`(userRepository.findById(followerId)).thenReturn(follower)
             `when`(followRepository.follow(anyObject())).thenReturn(true)
 
             val created = useCase.follow(followerId, followeeId)
@@ -72,6 +86,19 @@ class ManageFollowUseCaseTest {
         }
 
         @Test
+        @DisplayName("Debe enviar push al seguido cuando el follow es nuevo")
+        fun `should push the followee when follow is new`() {
+            `when`(userRepository.findById(followeeId)).thenReturn(followee)
+            `when`(userRepository.findById(followerId)).thenReturn(follower)
+            `when`(followRepository.follow(anyObject())).thenReturn(true)
+
+            useCase.follow(followerId, followeeId)
+
+            verify(pushNotificationPort, times(1))
+                .send(listOf(followeeId), PushMessages.newFollower(followerId, "follower"))
+        }
+
+        @Test
         @DisplayName("Debe devolver false cuando ya seguía al usuario")
         fun `should return false when already following`() {
             `when`(userRepository.findById(followeeId)).thenReturn(followee)
@@ -80,6 +107,7 @@ class ManageFollowUseCaseTest {
             val created = useCase.follow(followerId, followeeId)
 
             assertFalse(created)
+            verify(pushNotificationPort, never()).send(anyObject(), anyObject())
         }
 
         @Test

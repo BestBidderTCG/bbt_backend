@@ -1,11 +1,14 @@
 package com.bestbidder.usecase.bid
 
+import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.bid.BidIncrementPolicy
+import com.bestbidder.domain.notification.PushMessages
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +21,7 @@ class PlaceBidUseCase(
     private val bidRepository: BidRepository,
     private val notificationPort: AuctionNotificationPort,
     private val userRepository: UserRepository,
+    private val pushNotificationPort: PushNotificationPort,
 ) {
     @Transactional
     fun execute(
@@ -45,39 +49,65 @@ class PlaceBidUseCase(
 
         val previousBid = bidRepository.findHighestBidByAuctionId(auctionId)
 
-        // Validar que el usuario no sobrepuje su propia puja más alta
         require(previousBid?.bidderId != bidderId) {
             "No puedes pujar si ya tienes la puja más alta actual"
         }
 
-        val currentHighestBidAmount: Double? = previousBid?.amount
-
-        val minimumAllowedAmount: Double =
+        val minimumAllowedAmount =
             BidIncrementPolicy.calculateMinimumNextBid(
                 minPrize = auction.minPrize,
-                currentHighestBid = currentHighestBidAmount,
+                currentHighestBid = previousBid?.amount,
             )
 
         require(amount >= minimumAllowedAmount) {
             "El importe mínimo para pujar debe ser de $minimumAllowedAmount €"
         }
 
-        val newBid =
-            Bid(
-                auctionId = auctionId,
-                bidderId = bidderId,
-                bidderUsername = bidderUsername,
-                amount = amount,
+        val savedBid =
+            bidRepository.save(
+                Bid(
+                    auctionId = auctionId,
+                    bidderId = bidderId,
+                    bidderUsername = bidderUsername,
+                    amount = amount,
+                ),
             )
 
-        val savedBid = bidRepository.save(newBid)
-
-        notificationPort.notifyNewBidPlaced(
-            auctionId = auctionId,
-            newAmount = amount,
-            bidderUsername = bidderUsername,
-        )
+        notifyBidPlaced(auction, savedBid, previousBid)
 
         return savedBid
+    }
+
+    private fun notifyBidPlaced(
+        auction: Auction,
+        savedBid: Bid,
+        previousBid: Bid?,
+    ) {
+        notificationPort.notifyNewBidPlaced(
+            auctionId = auction.id,
+            newAmount = savedBid.amount,
+            bidderUsername = savedBid.bidderUsername,
+        )
+
+        pushNotificationPort.send(
+            listOf(auction.creatorId),
+            PushMessages.ownAuctionNewBid(
+                auctionId = auction.id,
+                cardName = auction.card.name,
+                bidderUsername = savedBid.bidderUsername,
+                amount = savedBid.amount,
+            ),
+        )
+
+        previousBid?.let { prev ->
+            pushNotificationPort.send(
+                listOf(prev.bidderId),
+                PushMessages.outbid(
+                    auctionId = auction.id,
+                    cardName = auction.card.name,
+                    newAmount = savedBid.amount,
+                ),
+            )
+        }
     }
 }

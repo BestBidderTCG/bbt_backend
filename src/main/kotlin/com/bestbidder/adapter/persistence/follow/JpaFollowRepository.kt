@@ -92,6 +92,16 @@ interface JpaFollowRepository : JpaRepository<FollowEntity, UUID> {
 
     @Query(
         """
+        SELECT f.follower.id FROM FollowEntity f
+        WHERE f.followee.id = :userId AND f.follower.deletedAt IS NULL
+        """,
+    )
+    fun findFollowerIdsByUserId(
+        @Param("userId") userId: UUID,
+    ): List<UUID>
+
+    @Query(
+        """
         SELECT COUNT(f) FROM FollowEntity f
         WHERE f.follower.id = :userId AND f.followee.deletedAt IS NULL
         """,

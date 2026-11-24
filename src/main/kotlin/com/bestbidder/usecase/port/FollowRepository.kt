@@ -55,6 +55,11 @@ interface FollowRepository {
         size: Int,
     ): List<FollowListItem>
 
+    /**
+     * IDs de todos los usuarios que siguen a [userId].
+     */
+    fun findFollowerIdsByUserId(userId: UUID): List<UUID>
+
     fun countFollowing(userId: UUID): Long
 
     fun countFollowers(userId: UUID): Long

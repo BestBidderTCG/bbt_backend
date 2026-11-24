@@ -23,8 +23,18 @@ jwt:
 bestbidder:
   auction:
     view-window-hours: 10
+  
+  push:
+    test-endpoint-enabled: ${PUSH_TEST_ENDPOINT:false}
     
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
+
+firebase:
+  enabled: ${FIREBASE_ENABLED:false}
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+  credentials-json: ${FIREBASE_CREDENTIALS_JSON:}
+
+  

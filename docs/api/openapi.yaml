@@ -713,6 +713,38 @@ components:
             Null si la subasta está cancelada.
           example: true
 
+    FollowListItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          example: "user2"
+        avatarNum:
+          type: integer
+          nullable: true
+          example: 2
+        followedByMe:
+          type: boolean
+          example: true
+
+    FollowStatsResponse:
+      type: object
+      properties:
+        followersCount:
+          type: integer
+          format: int64
+          example: 12
+        followingCount:
+          type: integer
+          format: int64
+          example: 8
+        following:
+          type: boolean
+          example: true
+
     ErrorResponse:
       type: object
       properties:
@@ -1481,5 +1513,237 @@ paths:
           description: Carta eliminada correctamente.
         '400':
           description: No se puede eliminar (por ejemplo, tiene subasta activa o no eres el propietario).
+        '401':
+          description: No autorizado.
+  
+  /api/social/{id}/follow:
+    post:
+      tags:
+        - Social
+      summary: Seguir a un usuario
+      description: Sigue a un usuario. Es idempotente y devuelve 201 aunque ya se siguiera.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Usuario seguido correctamente.
+        '401':
+          description: No autorizado.
+    delete:
+      tags:
+        - Social
+      summary: Dejar de seguir a un usuario
+      description: Deja de seguir a un usuario. Es idempotente.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Se dejó de seguir al usuario correctamente.
+        '401':
+          description: No autorizado.
+
+  /api/social/me/following:
+    get:
+      tags:
+        - Social
+      summary: Listar usuarios a los que sigo
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Listado paginado de usuarios seguidos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowListItemResponse'
+        '401':
+          description: No autorizado.
+
+  /api/social/me/followers:
+    get:
+      tags:
+        - Social
+      summary: Listar usuarios que me siguen
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Listado paginado de seguidores.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowListItemResponse'
+        '401':
+          description: No autorizado.
+
+  /api/social/me/following/auctions:
+    get:
+      tags:
+        - Social
+      summary: Listar subastas activas o próximas de usuarios seguidos
+      description: Subastas activas o próximas de los usuarios que sigues, filtrables opcionalmente por `status` (`UPCOMING` o `IN_PROGRESS`).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [UPCOMING, IN_PROGRESS]
+      responses:
+        '200':
+          description: Listado de subastas de usuarios seguidos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuctionListItemResponse'
+        '401':
+          description: No autorizado.
+
+  /api/social/{id}/following:
+    get:
+      tags:
+        - Social
+      summary: Listar usuarios a los que sigue otro usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Listado paginado de usuarios seguidos por el usuario indicado.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowListItemResponse'
+        '401':
+          description: No autorizado.
+
+  /api/social/{id}/followers:
+    get:
+      tags:
+        - Social
+      summary: Listar seguidores de otro usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Listado paginado de seguidores del usuario indicado.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowListItemResponse'
+        '401':
+          description: No autorizado.
+
+  /api/social/{id}/follow-stats:
+    get:
+      tags:
+        - Social
+      summary: Obtener contadores sociales de un perfil
+      description: Contadores sociales de un perfil y si el usuario autenticado lo sigue.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Estadísticas sociales del usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowStatsResponse'
         '401':
           description: No autorizado.

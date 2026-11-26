@@ -13,6 +13,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Repository
+@Suppress("TooManyFunctions")
 class AuctionRepositoryAdapter(
     private val jpaAuctionRepository: JpaAuctionRepository,
     private val jpaUserRepository: JpaUserRepository,
@@ -91,4 +92,6 @@ class AuctionRepositoryAdapter(
         val entity = AuctionEntity.fromDomain(auction, creatorRef, cardRef)
         return jpaAuctionRepository.save(entity).toDomain()
     }
+
+    override fun countByCreatorId(creatorId: UUID): Long = jpaAuctionRepository.countByCreatorId(creatorId)
 }

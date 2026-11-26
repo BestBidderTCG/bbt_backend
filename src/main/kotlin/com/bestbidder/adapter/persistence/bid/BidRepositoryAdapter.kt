@@ -44,4 +44,6 @@ class BidRepositoryAdapter(
 
     override fun getBidHistoryByAuction(auctionId: UUID): List<AuctionHistory> =
         jpaBidRepository.findBidHistoryByAuctionId(auctionId).map { it.toDomain() }
+
+    override fun countByBidderId(bidderId: UUID): Long = jpaBidRepository.countByBidderId(bidderId)
 }

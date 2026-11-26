@@ -11,6 +11,7 @@ import java.util.UUID
 /**
  * Puerto de persistencia para la gestión del ciclo de vida de las subastas.
  */
+@Suppress("TooManyFunctions")
 interface AuctionRepository {
     /**
      * Obtiene una subasta por su identificador único.
@@ -36,6 +37,8 @@ interface AuctionRepository {
      * Obtiene las subastas creadas por el usuario logueado.
      */
     fun getUserAuctions(id: UUID): List<AuctionSummary>
+
+    fun countByCreatorId(creatorId: UUID): Long
 
     /**
      * Comprueba si un creador ya tiene una subasta activa o pendiente asociada a una carta.

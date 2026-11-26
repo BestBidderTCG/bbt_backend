@@ -1,8 +1,11 @@
 package com.bestbidder.adapter.persistence.user
 
+import com.bestbidder.adapter.persistence.paymentcard.PaymentCardEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.time.Instant
 import java.time.LocalDateTime
@@ -33,4 +36,9 @@ class UserEntity(
     val deletionRequestedAt: Instant? = null,
     @Column(name = "deleted_at")
     val deletedAt: Instant? = null,
-)
+    @Column(nullable = false, columnDefinition = "double precision not null default 0")
+    val balance: Double = 0.0,
+) {
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var paymentCard: PaymentCardEntity? = null
+}

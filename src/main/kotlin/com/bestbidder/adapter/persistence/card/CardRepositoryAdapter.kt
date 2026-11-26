@@ -26,4 +26,6 @@ class CardRepositoryAdapter(
     override fun delete(id: UUID) {
         jpaCardRepository.deleteById(id)
     }
+
+    override fun countByOwnerId(OwnerId: UUID): Long = jpaCardRepository.countByOwnerId(OwnerId)
 }

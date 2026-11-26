@@ -78,6 +78,21 @@ components:
         createdAt:
           type: string
           format: date-time
+        auctionCount:
+          type: integer
+          format: int64
+          description: Número de subastas creadas por el usuario (incluye finalizadas).
+          example: 2
+        bidCount:
+          type: integer
+          format: int64
+          description: Número total de pujas realizadas por el usuario.
+          example: 5
+        cardCount:
+          type: integer
+          format: int64
+          description: Número de cartas del usuario.
+          example: 10
 
     PublicUserResponse:
       type: object
@@ -95,6 +110,21 @@ components:
         avatarNum:
           type: integer
           nullable: true
+        auctionCount:
+          type: integer
+          format: int64
+          description: Número de subastas creadas por el usuario (incluye finalizadas).
+          example: 2
+        bidCount:
+          type: integer
+          format: int64
+          description: Número total de pujas realizadas por el usuario.
+          example: 5
+        cardCount:
+          type: integer
+          format: int64
+          description: Número de cartas del usuario.
+          example: 10
 
     LoginResponse:
       type: object
@@ -744,6 +774,105 @@ components:
         following:
           type: boolean
           example: true
+        PaymentCardRequest:
+      type: object
+      description: |
+        Datos de la tarjeta. El número completo y el CVV solo se validan, nunca se guardan:
+        el servidor conserva únicamente el titular, los últimos 4 dígitos y la caducidad.
+      required:
+        - cardNumber
+        - holderName
+        - expiryMonth
+        - expiryYear
+        - cvv
+      properties:
+        cardNumber:
+          type: string
+          pattern: '^\d{16}$'
+          example: "1234123412341234"
+        holderName:
+          type: string
+          example: "Paula García"
+        expiryMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 12
+        expiryYear:
+          type: integer
+          example: 2028
+        cvv:
+          type: string
+          pattern: '^\d{3}$'
+          example: "123"
+
+    PaymentCardResponse:
+      type: object
+      properties:
+        holderName:
+          type: string
+          example: "user1"
+        maskedNumber:
+          type: string
+          example: "**** **** **** 1234"
+        expiryMonth:
+          type: integer
+          example: 12
+        expiryYear:
+          type: integer
+          example: 2028
+
+    TopUpRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: true
+          minimum: 0
+          maximum: 1000
+          description: Importe a recargar. Máximo 1000 € por recarga.
+          example: 50.0
+
+    BalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+          format: double
+          example: 150.0
+
+    WalletTransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [TOP_UP, BID_HOLD, BID_REFUND]
+          description: |
+            - TOP_UP: recarga de saldo
+            - BID_HOLD: saldo retenido al pujar
+            - BID_REFUND: saldo devuelto al ser superada la puja
+          example: "TOP_UP"
+        amount:
+          type: number
+          format: double
+          example: 50.0
+        balanceAfter:
+          type: number
+          format: double
+          description: Saldo del usuario tras el movimiento.
+          example: 150.0
+        description:
+          type: string
+          example: "Recarga con tarjeta **** **** **** 1234"
+        createdAt:
+          type: string
+          format: date-time
 
     ErrorResponse:
       type: object
@@ -1309,9 +1438,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/BidResponse'
         '400':
-          description: Importe insuficiente o subasta no activa.
+          description: Importe inferior al mínimo, subasta no activa, el creador no puede pujar o ya tienes la puja más alta.
         '401':
           description: No autorizado.
+        '409':
+          description: |
+            Conflicto. Dos casos:
+            - Saldo insuficiente para pujar.
+            - Puja desactualizada: alguien ha pujado igual o más mientras el usuario estaba en la pantalla.
+              El mensaje incluye el nuevo mínimo para pujar.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/auction/{id}/bids:
     get:
@@ -1795,3 +1934,152 @@ paths:
           description: No autorizado.
         '404':
           description: Usuario no encontrado.
+  
+    /api/payment-card:
+    get:
+      tags:
+        - PaymentCard
+      summary: Obtener mi tarjeta
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tarjeta enmascarada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCardResponse'
+        '401':
+          description: No autorizado.
+        '404':
+          description: El usuario no tiene tarjeta registrada.
+    post:
+      tags:
+        - PaymentCard
+      summary: Registrar mi tarjeta
+      description: Cada usuario solo puede tener una tarjeta.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCardRequest'
+      responses:
+        '201':
+          description: Tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCardResponse'
+        '400':
+          description: Datos inválidos (número, CVV, fecha o tarjeta caducada).
+        '401':
+          description: No autorizado.
+        '409':
+          description: El usuario ya tiene una tarjeta registrada.
+    put:
+      tags:
+        - PaymentCard
+      summary: Editar mi tarjeta
+      description: Como no se guarda el número ni el CVV, hay que enviar todos los datos de nuevo.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCardRequest'
+      responses:
+        '200':
+          description: Tarjeta actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCardResponse'
+        '400':
+          description: Datos inválidos.
+        '401':
+          description: No autorizado.
+        '404':
+          description: El usuario no tiene tarjeta registrada.
+    delete:
+      tags:
+        - PaymentCard
+      summary: Borrar mi tarjeta
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Tarjeta borrada.
+        '401':
+          description: No autorizado.
+        '404':
+          description: El usuario no tiene tarjeta registrada.
+
+  /api/wallet/balance:
+    get:
+      tags:
+        - Wallet
+      summary: Consultar mi saldo
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Saldo actual.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '401':
+          description: No autorizado.
+
+  /api/wallet/top-up:
+    post:
+      tags:
+        - Wallet
+      summary: Recargar saldo
+      description: Requiere tener una tarjeta registrada. El cobro es simulado.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopUpRequest'
+      responses:
+        '201':
+          description: Recarga realizada. Devuelve el movimiento creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransactionResponse'
+        '400':
+          description: Importe no válido (menor o igual que 0, o superior a 1000 €).
+        '401':
+          description: No autorizado.
+        '404':
+          description: El usuario no tiene tarjeta registrada.
+
+  /api/wallet/transactions:
+    get:
+      tags:
+        - Wallet
+      summary: Historial de movimientos de saldo
+      description: Ordenado del más reciente al más antiguo.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Listado de movimientos (vacío si no hay ninguno).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WalletTransactionResponse'
+        '401':
+          description: No autorizado.

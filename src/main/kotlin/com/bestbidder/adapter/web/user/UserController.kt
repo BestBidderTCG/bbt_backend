@@ -29,6 +29,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/users")
+@Suppress("LongParameterList")
 class UserController(
     private val getUserUseCase: GetUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
@@ -43,14 +44,17 @@ class UserController(
 
     @GetMapping("/me")
     fun me(): UserResponse {
-        val principal = getCurrentUser()
-        return UserResponse.fromDomain(getUserUseCase.getById(principal.id))
+        val profile = getUserUseCase.getProfile(getCurrentUser().id)
+        return UserResponse.fromDomain(profile.user, profile.stats)
     }
 
     @GetMapping("/{id}")
     fun byId(
         @PathVariable id: UUID,
-    ): PublicUserResponse = PublicUserResponse.fromDomain(getUserUseCase.getById(id))
+    ): PublicUserResponse {
+        val profile = getUserUseCase.getProfile(id)
+        return PublicUserResponse.fromDomain(profile.user, profile.stats)
+    }
 
     @PatchMapping("/me")
     fun update(

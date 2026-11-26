@@ -2,18 +2,23 @@ package com.bestbidder.usecase.bid
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.bid.Bid
+import com.bestbidder.domain.bid.exceptions.BidOutbidException
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.domain.notification.PushMessages
 import com.bestbidder.domain.user.User
+import com.bestbidder.domain.wallet.WalletTransaction
+import com.bestbidder.domain.wallet.exceptions.InsufficientBalanceException
 import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
 import com.bestbidder.usecase.port.PushNotificationPort
 import com.bestbidder.usecase.port.UserRepository
+import com.bestbidder.usecase.port.WalletTransactionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
@@ -30,14 +35,17 @@ class PlaceBidUseCaseTest {
     private val bidRepository: BidRepository = mock(BidRepository::class.java)
     private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
+    private val walletTransactionRepository: WalletTransactionRepository =
+        mock(WalletTransactionRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
     private val useCase =
         PlaceBidUseCase(
-            auctionRepository,
-            bidRepository,
-            notificationPort,
-            userRepository,
-            pushNotificationPort,
+            auctionRepository = auctionRepository,
+            bidRepository = bidRepository,
+            notificationPort = notificationPort,
+            userRepository = userRepository,
+            walletTransactionRepository = walletTransactionRepository,
+            pushNotificationPort = pushNotificationPort,
         )
 
     private val creatorId = UUID.randomUUID()
@@ -78,7 +86,7 @@ class PlaceBidUseCaseTest {
     )
 
     @Test
-    @DisplayName("Debe registrar la puja y notificar por SSE y push al creador y al anterior mejor postor")
+    @DisplayName("Debe registrar la puja, mover el saldo y notificar por SSE y push")
     fun `should place bid successfully when satisfying minimum bid increment`() {
         val auctionId = UUID.randomUUID()
         val previousBidderId = UUID.randomUUID()
@@ -98,6 +106,8 @@ class PlaceBidUseCaseTest {
         `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
         `when`(userRepository.findById(newBidderId)).thenReturn(newBidder)
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(previousBid)
+        `when`(userRepository.deductBalance(newBidderId, 155.0)).thenReturn(45.0)
+        `when`(userRepository.addBalance(previousBidderId, 150.0)).thenReturn(200.0)
         `when`(bidRepository.save(any(Bid::class.java))).thenAnswer { it.arguments[0] as Bid }
 
         val result =
@@ -114,6 +124,10 @@ class PlaceBidUseCaseTest {
 
         verify(auctionRepository, times(1)).getByIdForUpdate(auctionId)
         verify(bidRepository, times(1)).save(any(Bid::class.java))
+        verify(userRepository, times(1)).deductBalance(newBidderId, 155.0)
+        verify(userRepository, times(1)).addBalance(previousBidderId, 150.0)
+        // Una transacción de retención (nuevo pujador) y una de devolución (anterior)
+        verify(walletTransactionRepository, times(2)).save(any(WalletTransaction::class.java))
         verify(notificationPort, times(1)).notifyNewBidPlaced(
             auctionId = auctionId,
             newAmount = 155.0,
@@ -234,6 +248,75 @@ class PlaceBidUseCaseTest {
             }
 
         assertEquals("El importe mínimo para pujar debe ser de 155.0 €", exception.message)
+        verify(bidRepository, never()).save(any(Bid::class.java))
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepcion si el saldo es insuficiente y no guardar nada")
+    fun `should throw exception when balance is insufficient`() {
+        val auctionId = UUID.randomUUID()
+        val bidderId = UUID.randomUUID()
+        val activeAuction = buildActiveAuction(auctionId)
+
+        val currentHighestBid =
+            Bid(
+                auctionId = auctionId,
+                bidderId = UUID.randomUUID(),
+                bidderUsername = "pujador1",
+                amount = 150.0,
+            )
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(userRepository.findById(bidderId)).thenReturn(buildActiveUser(bidderId, "pujador2"))
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
+        // null = el UPDATE atómico no ha encontrado saldo suficiente
+        `when`(userRepository.deductBalance(bidderId, 155.0)).thenReturn(null)
+
+        assertThrows(InsufficientBalanceException::class.java) {
+            useCase.execute(
+                auctionId = auctionId,
+                bidderId = bidderId,
+                bidderUsername = "pujador2",
+                amount = 155.0,
+            )
+        }
+
+        verify(bidRepository, never()).save(any(Bid::class.java))
+        verify(walletTransactionRepository, never()).save(any(WalletTransaction::class.java))
+        verify(userRepository, never()).addBalance(any(UUID::class.java), org.mockito.ArgumentMatchers.anyDouble())
+    }
+
+    @Test
+    @DisplayName("Debe lanzar BidOutbidException con el nuevo mínimo si alguien ya pujó igual o más")
+    fun `should throw outbid exception when bid is not higher than current highest`() {
+        val auctionId = UUID.randomUUID()
+        val bidderId = UUID.randomUUID()
+        val activeAuction = buildActiveAuction(auctionId)
+
+        val currentHighestBid =
+            Bid(
+                auctionId = auctionId,
+                bidderId = UUID.randomUUID(),
+                bidderUsername = "pujador1",
+                amount = 150.0,
+            )
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(activeAuction)
+        `when`(userRepository.findById(bidderId)).thenReturn(buildActiveUser(bidderId, "pujador2"))
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(currentHighestBid)
+
+        val exception =
+            assertThrows(BidOutbidException::class.java) {
+                useCase.execute(
+                    auctionId = auctionId,
+                    bidderId = bidderId,
+                    bidderUsername = "pujador2",
+                    amount = 150.0,
+                )
+            }
+
+        assertTrue(exception.message!!.contains("155.0"))
+        verify(userRepository, never()).deductBalance(bidderId, 150.0)
         verify(bidRepository, never()).save(any(Bid::class.java))
     }
 }

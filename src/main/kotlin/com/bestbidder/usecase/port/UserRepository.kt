@@ -39,4 +39,20 @@ interface UserRepository {
     fun findByEmail(email: String): User?
 
     fun findPendingDeletionBefore(cutoff: Instant): List<User>
+
+    /**
+     * Descuenta saldo de forma atómica. Devuelve el nuevo saldo, o null si no hay saldo suficiente.
+     */
+    fun deductBalance(
+        userId: UUID,
+        amount: Double,
+    ): Double?
+
+    /**
+     * Suma saldo de forma atómica y devuelve el nuevo saldo.
+     */
+    fun addBalance(
+        userId: UUID,
+        amount: Double,
+    ): Double
 }

@@ -29,6 +29,4 @@ interface BidRepository {
     fun getBidHistoryByUser(bidderId: UUID): List<BidderHistory>
 
     fun getBidHistoryByAuction(auctionId: UUID): List<AuctionHistory>
-
-    fun countByBidderId(bidderId: UUID): Long
 }

@@ -44,16 +44,16 @@ class UserController(
 
     @GetMapping("/me")
     fun me(): UserResponse {
-        val profile = getUserUseCase.getProfile(getCurrentUser().id)
-        return UserResponse.fromDomain(profile.user, profile.stats)
+        val profile = getUserUseCase.getById(getCurrentUser().id)
+        return UserResponse.fromDomain(profile)
     }
 
     @GetMapping("/{id}")
     fun byId(
         @PathVariable id: UUID,
     ): PublicUserResponse {
-        val profile = getUserUseCase.getProfile(id)
-        return PublicUserResponse.fromDomain(profile.user, profile.stats)
+        val profile = getUserUseCase.getById(id)
+        return PublicUserResponse.fromDomain(profile)
     }
 
     @PatchMapping("/me")

@@ -38,8 +38,6 @@ interface AuctionRepository {
      */
     fun getUserAuctions(id: UUID): List<AuctionSummary>
 
-    fun countByCreatorId(creatorId: UUID): Long
-
     /**
      * Comprueba si un creador ya tiene una subasta activa o pendiente asociada a una carta.
      */

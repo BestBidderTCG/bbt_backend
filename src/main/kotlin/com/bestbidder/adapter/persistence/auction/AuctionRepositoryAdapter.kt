@@ -92,6 +92,4 @@ class AuctionRepositoryAdapter(
         val entity = AuctionEntity.fromDomain(auction, creatorRef, cardRef)
         return jpaAuctionRepository.save(entity).toDomain()
     }
-
-    override fun countByCreatorId(creatorId: UUID): Long = jpaAuctionRepository.countByCreatorId(creatorId)
 }

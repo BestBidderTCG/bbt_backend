@@ -1,7 +1,6 @@
 package com.bestbidder.adapter.web.user.dto
 
 import com.bestbidder.domain.user.User
-import com.bestbidder.domain.user.UserStats
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -54,15 +53,6 @@ data class UserResponse(
 ) {
     companion object {
         fun fromDomain(user: User): UserResponse =
-            fromDomain(
-                user = user,
-                stats = UserStats(auctionCount = 0L, bidCount = 0L, cardCount = 0L),
-            )
-
-        fun fromDomain(
-            user: User,
-            stats: UserStats,
-        ): UserResponse =
             UserResponse(
                 id = user.id,
                 email = user.email,
@@ -70,9 +60,6 @@ data class UserResponse(
                 description = user.description,
                 avatarNum = user.avatarNum,
                 createdAt = user.createdAt,
-                auctionCount = stats.auctionCount,
-                bidCount = stats.bidCount,
-                cardCount = stats.cardCount,
             )
     }
 }
@@ -83,30 +70,15 @@ data class PublicUserResponse(
     val email: String,
     val description: String?,
     val avatarNum: Int?,
-    val auctionCount: Long = 0L,
-    val bidCount: Long = 0L,
-    val cardCount: Long = 0L,
 ) {
     companion object {
         fun fromDomain(user: User): PublicUserResponse =
-            fromDomain(
-                user = user,
-                stats = UserStats(auctionCount = 0L, bidCount = 0L, cardCount = 0L),
-            )
-
-        fun fromDomain(
-            user: User,
-            stats: UserStats,
-        ): PublicUserResponse =
             PublicUserResponse(
                 id = user.id,
                 username = user.username,
                 email = user.email,
                 description = user.description,
                 avatarNum = user.avatarNum,
-                auctionCount = stats.auctionCount,
-                bidCount = stats.bidCount,
-                cardCount = stats.cardCount,
             )
     }
 }

@@ -3,7 +3,6 @@ package com.bestbidder.adapter.web.user
 import com.bestbidder.adapter.web.exception.GlobalExceptionHandler
 import com.bestbidder.adapter.web.user.dto.UpdateUserProfileRequest
 import com.bestbidder.domain.user.User
-import com.bestbidder.domain.user.UserStats
 import com.bestbidder.domain.user.exceptions.AccountDeletionBlockedException
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.user.AccountDeletionCheckResult
@@ -13,7 +12,6 @@ import com.bestbidder.usecase.user.CheckAccountDeletionUseCase
 import com.bestbidder.usecase.user.GetUserUseCase
 import com.bestbidder.usecase.user.RequestAccountDeletionUseCase
 import com.bestbidder.usecase.user.UpdateUserUseCase
-import com.bestbidder.usecase.user.UserProfile
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -80,7 +78,6 @@ class UserControllerTest {
             description = "Hola",
             avatarNum = 1,
         )
-    private val stats = UserStats(auctionCount = 2, bidCount = 5, cardCount = 10)
 
     private val authUser = AuthenticatedUser(userId, "david_85")
     private val authToken = UsernamePasswordAuthenticationToken(authUser, null, emptyList())
@@ -89,9 +86,9 @@ class UserControllerTest {
     @DisplayName("GET /api/users/me")
     inner class GetMeTests {
         @Test
-        @DisplayName("Debe retornar 200 OK con los datos y las estadísticas del usuario autenticado")
+        @DisplayName("Debe retornar 200 OK con los datos del usuario autenticado")
         fun `should return user profile`() {
-            `when`(getUserUseCase.getProfile(userId)).thenReturn(UserProfile(mockUser, stats))
+            `when`(getUserUseCase.getById(userId)).thenReturn(mockUser)
 
             mockMvc.perform(
                 get("/api/users/me")
@@ -101,9 +98,6 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("david@test.com"))
                 .andExpect(jsonPath("$.username").value("david_85"))
                 .andExpect(jsonPath("$.avatarNum").value(1))
-                .andExpect(jsonPath("$.auctionCount").value(2))
-                .andExpect(jsonPath("$.bidCount").value(5))
-                .andExpect(jsonPath("$.cardCount").value(10))
         }
     }
 
@@ -111,9 +105,9 @@ class UserControllerTest {
     @DisplayName("GET /api/users/{id}")
     inner class GetByIdTests {
         @Test
-        @DisplayName("Debe retornar el perfil público con las estadísticas")
-        fun `should return public profile with stats`() {
-            `when`(getUserUseCase.getProfile(userId)).thenReturn(UserProfile(mockUser, stats))
+        @DisplayName("Debe retornar el perfil público")
+        fun `should return public profile`() {
+            `when`(getUserUseCase.getById(userId)).thenReturn(mockUser)
 
             mockMvc.perform(
                 get("/api/users/$userId")
@@ -121,9 +115,6 @@ class UserControllerTest {
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.username").value("david_85"))
-                .andExpect(jsonPath("$.auctionCount").value(2))
-                .andExpect(jsonPath("$.bidCount").value(5))
-                .andExpect(jsonPath("$.cardCount").value(10))
         }
     }
 
@@ -131,13 +122,13 @@ class UserControllerTest {
     @DisplayName("PATCH /api/users/me")
     inner class UpdateProfileTests {
         @Test
-        @DisplayName("Debe retornar 200 OK al actualizar el perfil, manteniendo las estadísticas")
+        @DisplayName("Debe retornar 200 OK al actualizar el perfil")
         fun `should update user profile`() {
             val request = UpdateUserProfileRequest(description = "Nueva", avatarNum = 2)
             val updatedUser = mockUser.copy(description = "Nueva", avatarNum = 2)
 
             `when`(updateUserUseCase.updateProfile(userId, "Nueva", 2)).thenReturn(updatedUser)
-            `when`(getUserUseCase.getProfile(userId)).thenReturn(UserProfile(updatedUser, stats))
+            `when`(getUserUseCase.getById(userId)).thenReturn(updatedUser)
 
             mockMvc.perform(
                 patch("/api/users/me")
@@ -148,7 +139,6 @@ class UserControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.description").value("Nueva"))
                 .andExpect(jsonPath("$.avatarNum").value(2))
-                .andExpect(jsonPath("$.auctionCount").value(2))
         }
     }
 

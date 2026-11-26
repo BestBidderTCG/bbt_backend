@@ -203,6 +203,4 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
     fun incrementViewCount(
         @Param("id") id: UUID,
     ): Int
-
-    fun countByCreatorId(creatorId: UUID): Long
 }

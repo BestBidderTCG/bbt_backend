@@ -78,21 +78,6 @@ components:
         createdAt:
           type: string
           format: date-time
-        auctionCount:
-          type: integer
-          format: int64
-          description: Número de subastas creadas por el usuario (incluye finalizadas).
-          example: 2
-        bidCount:
-          type: integer
-          format: int64
-          description: Número total de pujas realizadas por el usuario.
-          example: 5
-        cardCount:
-          type: integer
-          format: int64
-          description: Número de cartas del usuario.
-          example: 10
 
     PublicUserResponse:
       type: object
@@ -110,21 +95,6 @@ components:
         avatarNum:
           type: integer
           nullable: true
-        auctionCount:
-          type: integer
-          format: int64
-          description: Número de subastas creadas por el usuario (incluye finalizadas).
-          example: 2
-        bidCount:
-          type: integer
-          format: int64
-          description: Número total de pujas realizadas por el usuario.
-          example: 5
-        cardCount:
-          type: integer
-          format: int64
-          description: Número de cartas del usuario.
-          example: 10
 
     LoginResponse:
       type: object

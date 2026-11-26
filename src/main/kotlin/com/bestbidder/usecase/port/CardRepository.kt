@@ -28,6 +28,4 @@ interface CardRepository {
     fun save(card: Card): Card
 
     fun delete(id: UUID)
-
-    fun countByOwnerId(ownerId: UUID): Long
 }

@@ -5,6 +5,4 @@ import java.util.UUID
 
 interface JpaCardRepository : JpaRepository<CardEntity, UUID> {
     fun findByOwnerId(ownerId: UUID): List<CardEntity>
-
-    fun countByOwnerId(ownerId: UUID): Long
 }

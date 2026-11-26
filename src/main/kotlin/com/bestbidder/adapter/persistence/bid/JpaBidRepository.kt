@@ -71,6 +71,4 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
     fun findBidHistoryByAuctionId(
         @Param("auctionId") auctionId: UUID,
     ): List<AuctionHistoryRow>
-
-    fun countByBidderId(bidderId: UUID): Long
 }

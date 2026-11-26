@@ -178,9 +178,34 @@ class GetFollowUseCaseTest {
         }
 
         @Test
+        @DisplayName("Debe devolver contadores propios con following=false cuando consulta su propio perfil")
+        fun `should return own stats`() {
+            `when`(userRepository.findById(userId)).thenReturn(user)
+            `when`(followRepository.countFollowers(userId)).thenReturn(8L)
+            `when`(followRepository.countFollowing(userId)).thenReturn(5L)
+            `when`(followRepository.isFollowing(userId, userId)).thenReturn(false)
+
+            val stats = useCase.getStats(userId, userId)
+
+            assertEquals(8L, stats.followersCount)
+            assertEquals(5L, stats.followingCount)
+            assertFalse(stats.following)
+        }
+
+        @Test
         @DisplayName("Debe lanzar UserNotFoundException cuando el usuario no existe")
         fun `should throw when user does not exist`() {
             `when`(userRepository.findById(userId)).thenReturn(null)
+
+            assertThrows(UserNotFoundException::class.java) {
+                useCase.getStats(userId, viewerId)
+            }
+        }
+
+        @Test
+        @DisplayName("Debe lanzar UserNotFoundException cuando la cuenta está eliminada")
+        fun `should throw when user is deleted`() {
+            `when`(userRepository.findById(userId)).thenReturn(user.copy(deletedAt = Instant.now()))
 
             assertThrows(UserNotFoundException::class.java) {
                 useCase.getStats(userId, viewerId)

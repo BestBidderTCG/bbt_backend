@@ -60,13 +60,13 @@ interface FollowRepository {
      */
     fun findFollowerIdsByUserId(userId: UUID): List<UUID>
 
-    fun countFollowing(userId: UUID): Long
-
-    fun countFollowers(userId: UUID): Long
-
     /**
      * Subastas activas o próximas creadas por los usuarios a los que sigue [userId],
      * ordenadas por fecha de finalización.
      */
     fun getFollowingAuctions(userId: UUID): List<AuctionListItem>
+
+    fun countFollowing(userId: UUID): Long
+
+    fun countFollowers(userId: UUID): Long
 }

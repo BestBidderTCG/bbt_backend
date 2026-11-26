@@ -295,4 +295,34 @@ class FollowControllerTest {
             verify(getFollowUseCase, times(1)).getStats(otherId, userId)
         }
     }
+
+    @Nested
+    @DisplayName("GET /api/social/me/follow-stats")
+    inner class MyStatsTests {
+        @Test
+        @DisplayName("Debe retornar 200 OK con mis contadores sociales")
+        fun `should return my follow stats`() {
+            setAuthenticatedUser(userId, "paula")
+            `when`(getFollowUseCase.getStats(userId, userId))
+                .thenReturn(FollowStats(followersCount = 20, followingCount = 7, following = false))
+
+            mockMvc.perform(get("/api/social/me/follow-stats"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.followersCount").value(20))
+                .andExpect(jsonPath("$.followingCount").value(7))
+                .andExpect(jsonPath("$.following").value(false))
+
+            verify(getFollowUseCase, times(1)).getStats(userId, userId)
+        }
+
+        @Test
+        @DisplayName("Debe retornar 404 Not Found cuando el usuario autenticado no existe")
+        fun `should return 404 when authenticated user does not exist`() {
+            setAuthenticatedUser(userId, "paula")
+            `when`(getFollowUseCase.getStats(userId, userId)).thenThrow(UserNotFoundException(userId))
+
+            mockMvc.perform(get("/api/social/me/follow-stats"))
+                .andExpect(status().isNotFound)
+        }
+    }
 }

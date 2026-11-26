@@ -1400,6 +1400,32 @@ paths:
                   $ref: '#/components/schemas/CardSummaryResponse'
         '401':
           description: No autorizado.
+  
+  /api/card/user/{id}:
+    get:
+      tags:
+        - Card
+      summary: Listar las cartas del usuario cuyo id se pasa como parámetro
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resumen de cartas del propietario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardSummaryResponse'
+        '401':
+          description: No autorizado.
 
   /api/card/create:
     post:
@@ -1747,3 +1773,25 @@ paths:
                 $ref: '#/components/schemas/FollowStatsResponse'
         '401':
           description: No autorizado.
+        '404':
+          description: Usuario no encontrado.
+  
+  /api/social/me/follow-stats:
+    get:
+      tags:
+        - Social
+      summary: Obtener mis contadores sociales
+      description: Devuelve el número de seguidores y seguidos del usuario autenticado (`following` siempre será `false`).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estadísticas sociales del usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowStatsResponse'
+        '401':
+          description: No autorizado.
+        '404':
+          description: Usuario no encontrado.

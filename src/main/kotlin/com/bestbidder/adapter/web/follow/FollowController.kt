@@ -130,4 +130,15 @@ class FollowController(
         val stats = getFollowUseCase.getStats(id, principal.id)
         return ResponseEntity.ok(FollowStatsResponse.fromDomain(stats))
     }
+
+    /**
+     * Contadores sociales del perfil autenticado y si lo sigues.
+     */
+    @GetMapping("/me/follow-stats")
+    fun stats(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+    ): ResponseEntity<FollowStatsResponse> {
+        val stats = getFollowUseCase.getStats(principal.id, principal.id)
+        return ResponseEntity.ok(FollowStatsResponse.fromDomain(stats))
+    }
 }

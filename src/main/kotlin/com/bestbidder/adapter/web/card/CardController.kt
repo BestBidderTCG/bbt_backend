@@ -110,6 +110,19 @@ class CardController(
         )
     }
 
+    @GetMapping("/user/{id}")
+    fun getMyCardsSummary(
+        @PathVariable id: UUID,
+    ): ResponseEntity<List<CardSummaryResponse>> {
+        val cards = getCardUseCase.getByOwner(id)
+        return ResponseEntity.ok(
+            cards.map { card ->
+                val inAuction = cardAuctionPort.findActiveOrUpcomingByCardId(card.id) != null
+                CardSummaryResponse.fromDomain(card, inAuction)
+            },
+        )
+    }
+
     @DeleteMapping("/{id}")
     fun deleteCard(
         @PathVariable id: UUID,

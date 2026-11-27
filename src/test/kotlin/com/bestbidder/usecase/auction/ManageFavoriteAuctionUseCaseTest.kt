@@ -1,6 +1,10 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.AuctionListItem
+import com.bestbidder.domain.auction.AuctionStatus
+import com.bestbidder.domain.auction.FavoriteAuctionItem
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.usecase.port.AuctionRepository
@@ -58,9 +62,10 @@ class ManageFavoriteAuctionUseCaseTest {
         fun `should add favorite when auction exists and belongs to another user`() {
             `when`(auctionRepository.getById(auctionId)).thenReturn(sampleAuction)
 
-            useCase.addFavorite(otherUserId, auctionId)
+            useCase.addFavorite(otherUserId, auctionId, NotificationMode.ALL)
 
-            verify(favoriteAuctionRepository, times(1)).addFavorite(otherUserId, auctionId)
+            verify(favoriteAuctionRepository, times(1))
+                .addFavorite(otherUserId, auctionId, NotificationMode.ALL)
         }
 
         @Test
@@ -70,11 +75,12 @@ class ManageFavoriteAuctionUseCaseTest {
 
             val exception =
                 assertThrows(IllegalArgumentException::class.java) {
-                    useCase.addFavorite(otherUserId, auctionId)
+                    useCase.addFavorite(otherUserId, auctionId, NotificationMode.BASIC)
                 }
 
             assertEquals("No existe la subasta con ID $auctionId", exception.message)
-            verify(favoriteAuctionRepository, never()).addFavorite(otherUserId, auctionId)
+            verify(favoriteAuctionRepository, never())
+                .addFavorite(otherUserId, auctionId, NotificationMode.BASIC)
         }
 
         @Test
@@ -84,11 +90,12 @@ class ManageFavoriteAuctionUseCaseTest {
 
             val exception =
                 assertThrows(IllegalArgumentException::class.java) {
-                    useCase.addFavorite(ownerId, auctionId)
+                    useCase.addFavorite(ownerId, auctionId, NotificationMode.BASIC)
                 }
 
             assertEquals("No puedes añadir tu propia subasta a favoritos", exception.message)
-            verify(favoriteAuctionRepository, never()).addFavorite(ownerId, auctionId)
+            verify(favoriteAuctionRepository, never())
+                .addFavorite(ownerId, auctionId, NotificationMode.BASIC)
         }
     }
 
@@ -105,18 +112,61 @@ class ManageFavoriteAuctionUseCaseTest {
     }
 
     @Nested
+    @DisplayName("changeNotificationMode")
+    inner class ChangeNotificationModeTests {
+        @Test
+        @DisplayName("Debe delegar en el repositorio el cambio de modo de notificación")
+        fun `should change notification mode`() {
+            useCase.changeNotificationMode(otherUserId, auctionId, NotificationMode.NONE)
+
+            verify(favoriteAuctionRepository, times(1))
+                .changeNotificationMode(otherUserId, auctionId, NotificationMode.NONE)
+        }
+
+        @Test
+        @DisplayName("Debe propagar la excepción si la subasta no está en favoritos")
+        fun `should propagate exception when auction is not a favorite`() {
+            `when`(favoriteAuctionRepository.changeNotificationMode(otherUserId, auctionId, NotificationMode.ALL))
+                .thenThrow(IllegalArgumentException("no está en favoritos"))
+
+            assertThrows(IllegalArgumentException::class.java) {
+                useCase.changeNotificationMode(otherUserId, auctionId, NotificationMode.ALL)
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("getUserFavorites")
     inner class GetUserFavoritesTests {
+        private val favoriteItem =
+            FavoriteAuctionItem(
+                auction =
+                    AuctionListItem(
+                        id = auctionId,
+                        cardName = "Pikachu Illustrator",
+                        cardImage = "pikachu.png",
+                        currentBid = 100.0,
+                        remainingDays = 3,
+                        cardState = CardState.NEW,
+                        cardCategory = "Pokémon",
+                        cardCollection = null,
+                        cardNumber = null,
+                        status = AuctionStatus.IN_PROGRESS,
+                    ),
+                notificationMode = NotificationMode.ALL,
+            )
+
         @Test
-        @DisplayName("Debe devolver la lista de subastas favoritas del usuario")
-        fun `should return user favorite auctions`() {
+        @DisplayName("Debe devolver las subastas favoritas del usuario con su modo de notificación")
+        fun `should return user favorite auctions with notification mode`() {
             `when`(favoriteAuctionRepository.getFavoritesByUserId(otherUserId))
-                .thenReturn(listOf(sampleAuction))
+                .thenReturn(listOf(favoriteItem))
 
             val result = useCase.getUserFavorites(otherUserId)
 
             assertEquals(1, result.size)
-            assertEquals(auctionId, result[0].id)
+            assertEquals(auctionId, result[0].auction.id)
+            assertEquals(NotificationMode.ALL, result[0].notificationMode)
             verify(favoriteAuctionRepository, times(1)).getFavoritesByUserId(otherUserId)
         }
     }

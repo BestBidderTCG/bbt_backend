@@ -1,6 +1,8 @@
 package com.bestbidder.adapter.persistence.auction
 
+import com.bestbidder.domain.auction.NotificationMode
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.util.UUID
@@ -18,17 +20,24 @@ interface JpaFavoriteAuctionRepository : JpaRepository<FavoriteAuctionEntity, UU
 
     @Query(
         """
-        SELECT f.auction FROM FavoriteAuctionEntity f
-        JOIN FETCH f.auction.creator
-        JOIN FETCH f.auction.card c
-        JOIN FETCH c.owner
+        SELECT new com.bestbidder.adapter.persistence.auction.FavoriteAuctionRow(
+            a.id, c.name, c.image, COALESCE(MAX(b.amount), a.minPrize),
+            a.startedAt, a.endsAt, c.state, c.category, c.collection, c.num,
+            f.notificationMode
+        )
+        FROM FavoriteAuctionEntity f
+        JOIN f.auction a
+        JOIN a.card c
+        LEFT JOIN BidEntity b ON b.auction = a
         WHERE f.user.id = :userId
+        GROUP BY a.id, c.name, c.image, a.minPrize, a.startedAt, a.endsAt,
+                 c.state, c.category, c.collection, c.num, f.notificationMode, f.createdAt
         ORDER BY f.createdAt DESC
         """,
     )
-    fun findFavoriteAuctionsByUserId(
+    fun findFavoriteRowsByUserId(
         @Param("userId") userId: UUID,
-    ): List<AuctionEntity>
+    ): List<FavoriteAuctionRow>
 
     @Query(
         """
@@ -39,4 +48,18 @@ interface JpaFavoriteAuctionRepository : JpaRepository<FavoriteAuctionEntity, UU
     fun findUserIdsByAuctionId(
         @Param("auctionId") auctionId: UUID,
     ): List<UUID>
+
+    @Modifying(clearAutomatically = true)
+    @Query(
+        """
+        UPDATE FavoriteAuctionEntity f
+        SET f.notificationMode = :mode
+        WHERE f.user.id = :userId AND f.auction.id = :auctionId
+        """,
+    )
+    fun updateNotificationMode(
+        @Param("userId") userId: UUID,
+        @Param("auctionId") auctionId: UUID,
+        @Param("mode") mode: NotificationMode,
+    ): Int
 }

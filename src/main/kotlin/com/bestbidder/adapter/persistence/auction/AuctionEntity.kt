@@ -39,6 +39,8 @@ class AuctionEntity(
     val endsAt: Instant,
     @Column(name = "view_count", nullable = false, updatable = false)
     val viewCount: Long = 0,
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
 ) {
     fun toDomain(): Auction {
         return Auction(

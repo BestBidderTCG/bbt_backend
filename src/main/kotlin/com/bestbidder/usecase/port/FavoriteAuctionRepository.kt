@@ -1,12 +1,14 @@
 package com.bestbidder.usecase.port
 
-import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.FavoriteAuctionItem
+import com.bestbidder.domain.auction.NotificationMode
 import java.util.UUID
 
 interface FavoriteAuctionRepository {
     fun addFavorite(
         userId: UUID,
         auctionId: UUID,
+        notificationMode: NotificationMode,
     )
 
     fun removeFavorite(
@@ -19,7 +21,13 @@ interface FavoriteAuctionRepository {
         auctionId: UUID,
     ): Boolean
 
-    fun getFavoritesByUserId(userId: UUID): List<Auction>
+    fun changeNotificationMode(
+        userId: UUID,
+        auctionId: UUID,
+        notificationMode: NotificationMode,
+    )
+
+    fun getFavoritesByUserId(userId: UUID): List<FavoriteAuctionItem>
 
     fun findUserIdsByAuctionId(auctionId: UUID): List<UUID>
 }

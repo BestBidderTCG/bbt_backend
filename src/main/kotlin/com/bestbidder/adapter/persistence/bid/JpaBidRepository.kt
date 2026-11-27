@@ -33,11 +33,11 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
         a.id,
         c.name,
         c.image,
-        MAX(b.amount),
+        b.amount,
         a.startedAt,
         a.endsAt,
         CASE
-            WHEN MAX(b.amount) = (
+            WHEN b.amount = (
                 SELECT MAX(b2.amount) FROM BidEntity b2 WHERE b2.auction.id = a.id
             ) THEN true
             ELSE false
@@ -47,8 +47,7 @@ interface JpaBidRepository : JpaRepository<BidEntity, UUID> {
     JOIN b.auction a
     JOIN a.card c
     WHERE b.bidder.id = :bidderId
-    GROUP BY a.id, c.name, c.image, a.startedAt, a.endsAt
-    ORDER BY MAX(b.timestamp) DESC
+    ORDER BY b.timestamp DESC
     """,
     )
     fun findBidHistoryByBidderId(

@@ -1,10 +1,12 @@
 package com.bestbidder.adapter.persistence.auction
 
 import com.bestbidder.adapter.persistence.user.JpaUserRepository
-import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.FavoriteAuctionItem
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.util.UUID
 
 @Component
@@ -17,8 +19,10 @@ class FavoriteAuctionPersistenceAdapter(
     override fun addFavorite(
         userId: UUID,
         auctionId: UUID,
+        notificationMode: NotificationMode,
     ) {
         if (jpaFavoriteRepository.existsByUserIdAndAuctionId(userId, auctionId)) {
+            changeNotificationMode(userId, auctionId, notificationMode)
             return
         }
 
@@ -34,6 +38,7 @@ class FavoriteAuctionPersistenceAdapter(
             FavoriteAuctionEntity(
                 user = user,
                 auction = auction,
+                notificationMode = notificationMode,
             ),
         )
     }
@@ -51,9 +56,21 @@ class FavoriteAuctionPersistenceAdapter(
         auctionId: UUID,
     ): Boolean = jpaFavoriteRepository.existsByUserIdAndAuctionId(userId, auctionId)
 
+    @Transactional
+    override fun changeNotificationMode(
+        userId: UUID,
+        auctionId: UUID,
+        notificationMode: NotificationMode,
+    ) {
+        val updated = jpaFavoriteRepository.updateNotificationMode(userId, auctionId, notificationMode)
+        require(updated > 0) { "La subasta $auctionId no está en favoritos del usuario $userId" }
+    }
+
     @Transactional(readOnly = true)
-    override fun getFavoritesByUserId(userId: UUID): List<Auction> =
-        jpaFavoriteRepository.findFavoriteAuctionsByUserId(userId).map { it.toDomain() }
+    override fun getFavoritesByUserId(userId: UUID): List<FavoriteAuctionItem> {
+        val now = Instant.now()
+        return jpaFavoriteRepository.findFavoriteRowsByUserId(userId).map { it.toFavoriteItem(now) }
+    }
 
     @Transactional(readOnly = true)
     override fun findUserIdsByAuctionId(auctionId: UUID): List<UUID> =

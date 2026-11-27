@@ -208,7 +208,7 @@ components:
           example: 3
         status:
           type: string
-          enum: [UPCOMING, IN_PROGRESS, FINISHED, CANCELLED]
+          enum: [UPCOMING, IN_PROGRESS, FINISHED]
           example: "IN_PROGRESS"
 
     CreateAuctionRequest:
@@ -272,7 +272,7 @@ components:
 
     AuctionListItemResponse:
       type: object
-      description: Resumen de una subasta para el listado principal o favoritos.
+      description: Resumen de una subasta para el listado principal.
       properties:
         id:
           type: string
@@ -305,6 +305,85 @@ components:
           type: string
           nullable: true
           example: "Pokémon 151"
+        cardNumber:
+          type: integer
+          nullable: true
+          description: Número de la carta dentro de su colección; null si no tiene.
+          example: 6
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS]
+          description: Estado de la subasta (en el listado solo aparecen pendientes de empezar o en curso).
+          example: "IN_PROGRESS"
+
+    NotificationMode:
+      type: string
+      enum: [NONE, BASIC, ALL]
+      default: BASIC
+      description: |
+        Notificaciones push que el usuario quiere recibir de una subasta favorita:
+        - NONE: ninguna notificación
+        - BASIC: inicio y fin de la subasta
+        - ALL: inicio, fin y pujas
+
+    FavoriteAuctionResponse:
+      type: object
+      description: |
+        Subasta favorita del usuario autenticado. Tiene los mismos campos que `AuctionListItemResponse`
+        más `notificationMode`, que siempre está presente porque solo existe para subastas favoritas.
+        A diferencia del listado principal, también incluye subastas ya finalizadas.
+      required:
+        - id
+        - cardName
+        - cardImage
+        - currentBid
+        - remainingDays
+        - cardState
+        - cardCategory
+        - status
+        - notificationMode
+      properties:
+        id:
+          type: string
+          format: uuid
+        cardName:
+          type: string
+          example: "Charizard ex"
+        cardImage:
+          type: string
+          example: "https://res.cloudinary.com/ee6azugw/image/upload/bestbidder/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg"
+        currentBid:
+          type: number
+          format: double
+          description: Importe de la última puja, o el precio mínimo si aún no hay pujas.
+          example: 650.0
+        remainingDays:
+          type: integer
+          minimum: 0
+          maximum: 7
+          description: Días restantes (redondeado hacia arriba). 0 si la subasta ya ha terminado.
+          example: 3
+        cardState:
+          type: string
+          enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          example: "NEAR_MINT"
+        cardCategory:
+          type: string
+          example: "Pokémon"
+        cardCollection:
+          type: string
+          nullable: true
+          example: "Pokémon 151"
+        cardNumber:
+          type: integer
+          nullable: true
+          example: 6
+        status:
+          type: string
+          enum: [UPCOMING, IN_PROGRESS, FINISHED]
+          example: "IN_PROGRESS"
+        notificationMode:
+          $ref: '#/components/schemas/NotificationMode'
 
     AuctionSummaryResponse:
       type: object
@@ -372,7 +451,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [UPCOMING, IN_PROGRESS, FINISHED, CANCELLED]
+          enum: [UPCOMING, IN_PROGRESS, FINISHED]
           example: "IN_PROGRESS"
         cardName:
           type: string
@@ -676,8 +755,8 @@ components:
           type: string
           example: "user2"
         bidderAvatar:
-          type: string
-          example: "2"
+          type: integer
+          example: 2
         amount:
           type: number
           format: double
@@ -685,7 +764,7 @@ components:
 
     BidderHistoryResponse:
       type: object
-      description: Resumen de la participación del usuario autenticado en una subasta.
+      description: Una puja del usuario autenticado, con los datos de la subasta en la que se hizo.
       properties:
         auctionId:
           type: string
@@ -699,18 +778,15 @@ components:
         amount:
           type: number
           format: double
-          description: Importe de la puja más alta del usuario en esa subasta.
+          description: Importe de esta puja.
           example: 300.0
         status:
           type: string
-          enum: [UPCOMING, IN_PROGRESS, ENDED, CANCELLED]
+          enum: [UPCOMING, IN_PROGRESS, FINISHED]
           example: "IN_PROGRESS"
         iAmWinning:
           type: boolean
-          nullable: true
-          description: |
-            Si la puja más alta del usuario es también la más alta de la subasta.
-            Null si la subasta está cancelada.
+          description: Si esta puja es la más alta de la subasta en este momento.
           example: true
 
     FollowListItemResponse:
@@ -744,7 +820,8 @@ components:
         following:
           type: boolean
           example: true
-        PaymentCardRequest:
+
+    PaymentCardRequest:
       type: object
       description: |
         Datos de la tarjeta. El número completo y el CVV solo se validan, nunca se guardan:
@@ -1130,7 +1207,7 @@ paths:
     get:
       summary: Obtener el listado de subastas en curso
       description: |
-        Devuelve un resumen de las subastas no canceladas y no finalizadas, ordenadas según el parámetro `sort`.
+        Devuelve un resumen de las subastas pendientes de empezar y en curso, ordenadas según el parámetro `sort`.
         El filtrado se realiza en el cliente; el backend solo gestiona la ordenación.
       parameters:
         - name: sort
@@ -1145,10 +1222,11 @@ paths:
             - PRICE_ASC / PRICE_DESC: puja actual de menor a mayor / de mayor a menor
             - NAME_ASC / NAME_DESC: nombre de la carta de A a Z / de Z a A
             - NUMBER_ASC / NUMBER_DESC: número de carta ascendente / descendente (las cartas sin número van siempre al final)
+            - POPULARITY: las más vistas primero (valor por defecto)
           schema:
             type: string
-            enum: [ENDING_SOON, ENDING_LATE, RECENT_FIRST, OLDEST_FIRST, PRICE_ASC, PRICE_DESC, NAME_ASC, NAME_DESC, NUMBER_ASC, NUMBER_DESC]
-            default: ENDING_SOON
+            enum: [ENDING_SOON, ENDING_LATE, RECENT_FIRST, OLDEST_FIRST, PRICE_ASC, PRICE_DESC, NAME_ASC, NAME_DESC, NUMBER_ASC, NUMBER_DESC, POPULARITY]
+            default: POPULARITY
       responses:
         '200':
           description: Listado de subastas.
@@ -1167,8 +1245,8 @@ paths:
         - Auction
       summary: Listar mis subastas
       description: |
-        Devuelve las subastas creadas por el usuario autenticado, ordenadas por fecha de fin descendente.
-        Incluye las pendientes de comenzar, en curso y finalizadas. Excluye las canceladas.
+        Devuelve las subastas creadas por el usuario autenticado, de la más recientemente creada a la más antigua.
+        Incluye las pendientes de comenzar, en curso y finalizadas.
       security:
         - bearerAuth: []
       responses:
@@ -1183,22 +1261,26 @@ paths:
         '401':
           description: No autenticado o token inválido.
 
-  /api/auction/user/favorites:
+  /api/auction/favorites:
     get:
       tags:
         - Auction
       summary: Listar mis subastas favoritas
+      description: |
+        Devuelve las subastas marcadas como favoritas por el usuario autenticado, de la más recientemente
+        añadida a la más antigua. Incluye pendientes, en curso y finalizadas, y el `notificationMode`
+        elegido para cada una.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Listado de subastas marcadas como favoritas por el usuario autenticado.
+          description: Listado de favoritas (vacío si no tiene ninguna).
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AuctionListItemResponse'
+                  $ref: '#/components/schemas/FavoriteAuctionResponse'
         '401':
           description: No autorizado.
 
@@ -1277,26 +1359,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      tags:
-        - Auction
-      summary: Cancelar o eliminar una subasta
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Subasta cancelada correctamente.
-        '400':
-          description: Operación no permitida o subasta inexistente.
-        '401':
-          description: No autorizado.
 
   /api/auction/create:
     post:
@@ -1323,11 +1385,15 @@ paths:
         '401':
           description: No autorizado.
 
-  /api/auction/{id}/favorite:
+  /api/auction/{id}/favorite/{notificationMode}:
     post:
       tags:
         - Auction
       summary: Añadir subasta a favoritos
+      description: |
+        Añade la subasta a favoritos con el modo de notificación indicado.
+        Si ya estaba en favoritos, no se duplica: se actualiza su modo de notificación.
+        No se puede añadir una subasta propia.
       security:
         - bearerAuth: []
       parameters:
@@ -1337,11 +1403,46 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: notificationMode
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/NotificationMode'
       responses:
-        '204':
+        '201':
           description: Subasta añadida a favoritos.
+        '400':
+          description: La subasta no existe, es del propio usuario o `notificationMode` no es válido.
         '401':
           description: No autorizado.
+    patch:
+      tags:
+        - Auction
+      summary: Cambiar el modo de notificación de una favorita
+      description: Cambia el modo de notificación de una subasta que ya está en favoritos del usuario.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: notificationMode
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/NotificationMode'
+      responses:
+        '204':
+          description: Modo de notificación actualizado.
+        '400':
+          description: La subasta no está en favoritos del usuario o `notificationMode` no es válido.
+        '401':
+          description: No autorizado.
+
+  /api/auction/{id}/favorite:
     delete:
       tags:
         - Auction
@@ -1427,6 +1528,7 @@ paths:
       tags:
         - Bid
       summary: Obtener historial de pujas de una subasta
+      description: Devuelve las pujas de la subasta de la más reciente a la más antigua.
       parameters:
         - name: id
           in: path
@@ -1436,7 +1538,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Historial de pujas ordenado.
+          description: Historial de pujas, de la más reciente a la más antigua.
           content:
             application/json:
               schema:
@@ -1448,12 +1550,15 @@ paths:
     get:
       tags:
         - Bid
-      summary: Obtener historial de subastas en las que ha pujado el usuario autenticado
+      summary: Obtener el historial de pujas del usuario autenticado
+      description: |
+        Devuelve una entrada por cada puja del usuario, de la más reciente a la más antigua.
+        Una misma subasta puede aparecer varias veces si el usuario pujó en ella más de una vez.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Listado de participaciones del usuario.
+          description: Listado de pujas del usuario (vacío si no ha pujado).
           content:
             application/json:
               schema:
@@ -1904,8 +2009,8 @@ paths:
           description: No autorizado.
         '404':
           description: Usuario no encontrado.
-  
-    /api/payment-card:
+
+  /api/payment-card:
     get:
       tags:
         - PaymentCard

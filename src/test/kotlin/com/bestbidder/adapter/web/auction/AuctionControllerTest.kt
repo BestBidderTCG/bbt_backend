@@ -9,6 +9,8 @@ import com.bestbidder.domain.auction.AuctionDetail
 import com.bestbidder.domain.auction.AuctionListItem
 import com.bestbidder.domain.auction.AuctionStatus
 import com.bestbidder.domain.auction.AuctionSummary
+import com.bestbidder.domain.auction.FavoriteAuctionItem
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
 import com.bestbidder.infrastructure.security.AuthenticatedUser
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -254,13 +257,13 @@ class AuctionControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(summary.id.toString()))
-                .andExpect(jsonPath("$[0].card_name").value("Pikachu Illustrator"))
-                .andExpect(jsonPath("$[0].card_image").value("pikachu.png"))
-                .andExpect(jsonPath("$[0].current_bid").value(100.0))
-                .andExpect(jsonPath("$[0].remaining_days").value(3))
-                .andExpect(jsonPath("$[0].card_state").value("NEW"))
-                .andExpect(jsonPath("$[0].card_category").value("Pokémon"))
-                .andExpect(jsonPath("$[0].card_number").value(5))
+                .andExpect(jsonPath("$[0].cardName").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$[0].cardImage").value("pikachu.png"))
+                .andExpect(jsonPath("$[0].currentBid").value(100.0))
+                .andExpect(jsonPath("$[0].remainingDays").value(3))
+                .andExpect(jsonPath("$[0].cardState").value("NEW"))
+                .andExpect(jsonPath("$[0].cardCategory").value("Pokémon"))
+                .andExpect(jsonPath("$[0].cardNumber").value(5))
                 .andExpect(jsonPath("$[0].status").value("UPCOMING"))
         }
 
@@ -311,14 +314,14 @@ class AuctionControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(summary.id.toString()))
-                .andExpect(jsonPath("$[0].card_name").value("Charizard"))
-                .andExpect(jsonPath("$[0].card_image").value("charizard.png"))
+                .andExpect(jsonPath("$[0].cardName").value("Charizard"))
+                .andExpect(jsonPath("$[0].cardImage").value("charizard.png"))
                 .andExpect(jsonPath("$[0].status").value("FINISHED"))
-                .andExpect(jsonPath("$[0].min_prize").value(10.0))
-                .andExpect(jsonPath("$[0].current_bid").value(25.0))
-                .andExpect(jsonPath("$[0].started_at").value(1_700_000_000_000))
-                .andExpect(jsonPath("$[0].ends_at").value(1_700_086_400_000))
-                .andExpect(jsonPath("$[0].winner_username").value("ganador"))
+                .andExpect(jsonPath("$[0].minPrize").value(10.0))
+                .andExpect(jsonPath("$[0].currentBid").value(25.0))
+                .andExpect(jsonPath("$[0].startedAt").value(1_700_000_000_000))
+                .andExpect(jsonPath("$[0].endsAt").value(1_700_086_400_000))
+                .andExpect(jsonPath("$[0].winnerUsername").value("ganador"))
 
             verify(getAuctionUseCase, times(1)).getUserAuctions(defaultUserId)
         }
@@ -360,7 +363,7 @@ class AuctionControllerTest {
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
-                .andExpect(jsonPath("$[0].winner_username").doesNotExist())
+                .andExpect(jsonPath("$[0].winnerUsername").doesNotExist())
         }
 
         @Test
@@ -402,29 +405,77 @@ class AuctionControllerTest {
     @DisplayName("Favorite Auctions Endpoints")
     inner class FavoriteAuctionTests {
         @Test
-        @DisplayName("POST /api/auction/{id}/favorite - Debe retornar 201 Created")
+        @DisplayName("POST /api/auction/{id}/favorite/{mode} - Debe retornar 201 Created")
         fun `should add favorite auction`() {
             val auctionId = UUID.randomUUID()
 
             mockMvc.perform(
-                post("/api/auction/$auctionId/favorite")
+                post("/api/auction/$auctionId/favorite/ALL")
                     .with(authentication(authToken)),
             )
                 .andExpect(status().isCreated)
 
-            verify(manageFavoriteAuctionUseCase, times(1)).addFavorite(defaultUserId, auctionId)
+            verify(manageFavoriteAuctionUseCase, times(1))
+                .addFavorite(defaultUserId, auctionId, NotificationMode.ALL)
         }
 
         @Test
-        @DisplayName("POST /api/auction/{id}/favorite - Debe retornar 400 Bad Request si el caso de uso lo rechaza")
+        @DisplayName("POST /api/auction/{id}/favorite/{mode} - Debe retornar 400 si el caso de uso lo rechaza")
         fun `should return 400 Bad Request when adding favorite fails`() {
             val auctionId = UUID.randomUUID()
 
-            `when`(manageFavoriteAuctionUseCase.addFavorite(defaultUserId, auctionId))
-                .thenThrow(IllegalArgumentException("No puedes añadir tu propia subasta a favoritos"))
+            doThrow(IllegalArgumentException("No puedes añadir tu propia subasta a favoritos"))
+                .`when`(manageFavoriteAuctionUseCase)
+                .addFavorite(defaultUserId, auctionId, NotificationMode.BASIC)
 
             mockMvc.perform(
-                post("/api/auction/$auctionId/favorite")
+                post("/api/auction/$auctionId/favorite/BASIC")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isBadRequest)
+        }
+
+        @Test
+        @DisplayName("POST /api/auction/{id}/favorite/{mode} - Debe retornar 400 si el modo no es válido")
+        fun `should return 400 Bad Request when notification mode is invalid`() {
+            val auctionId = UUID.randomUUID()
+
+            mockMvc.perform(
+                post("/api/auction/$auctionId/favorite/INVALIDO")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isBadRequest)
+
+            verify(manageFavoriteAuctionUseCase, never())
+                .addFavorite(defaultUserId, auctionId, NotificationMode.BASIC)
+        }
+
+        @Test
+        @DisplayName("PATCH /api/auction/{id}/favorite/{mode} - Debe retornar 204 No Content")
+        fun `should change notification mode`() {
+            val auctionId = UUID.randomUUID()
+
+            mockMvc.perform(
+                patch("/api/auction/$auctionId/favorite/NONE")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isNoContent)
+
+            verify(manageFavoriteAuctionUseCase, times(1))
+                .changeNotificationMode(defaultUserId, auctionId, NotificationMode.NONE)
+        }
+
+        @Test
+        @DisplayName("PATCH /api/auction/{id}/favorite/{mode} - Debe retornar 400 si la subasta no es favorita")
+        fun `should return 400 Bad Request when changing mode of a non favorite auction`() {
+            val auctionId = UUID.randomUUID()
+
+            doThrow(IllegalArgumentException("La subasta $auctionId no está en favoritos"))
+                .`when`(manageFavoriteAuctionUseCase)
+                .changeNotificationMode(defaultUserId, auctionId, NotificationMode.ALL)
+
+            mockMvc.perform(
+                patch("/api/auction/$auctionId/favorite/ALL")
                     .with(authentication(authToken)),
             )
                 .andExpect(status().isBadRequest)
@@ -445,20 +496,28 @@ class AuctionControllerTest {
         }
 
         @Test
-        @DisplayName("GET /api/auction/favorites - Debe retornar 200 OK con las favoritas")
-        fun `should list favorite auctions`() {
-            val favoriteAuction =
-                Auction(
-                    creatorId = UUID.randomUUID(),
-                    creatorUsername = "user2",
-                    card = sampleCard,
-                    minPrize = 150.0,
-                    startedAt = now,
-                    durationInDays = 2,
+        @DisplayName("GET /api/auction/favorites - Debe retornar 200 OK con las favoritas y su modo de notificación")
+        fun `should list favorite auctions with notification mode`() {
+            val favorite =
+                FavoriteAuctionItem(
+                    auction =
+                        AuctionListItem(
+                            id = UUID.randomUUID(),
+                            cardName = "Charizard",
+                            cardImage = "charizard.png",
+                            currentBid = 150.0,
+                            remainingDays = 2,
+                            cardState = CardState.NEAR_MINT,
+                            cardCategory = "Pokémon",
+                            cardCollection = "Base Set",
+                            cardNumber = 4,
+                            status = AuctionStatus.IN_PROGRESS,
+                        ),
+                    notificationMode = NotificationMode.ALL,
                 )
 
             `when`(manageFavoriteAuctionUseCase.getUserFavorites(defaultUserId))
-                .thenReturn(listOf(favoriteAuction))
+                .thenReturn(listOf(favorite))
 
             mockMvc.perform(
                 get("/api/auction/favorites")
@@ -466,7 +525,30 @@ class AuctionControllerTest {
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].creator_username").value("user2"))
+                .andExpect(jsonPath("$[0].id").value(favorite.auction.id.toString()))
+                .andExpect(jsonPath("$[0].cardName").value("Charizard"))
+                .andExpect(jsonPath("$[0].cardImage").value("charizard.png"))
+                .andExpect(jsonPath("$[0].currentBid").value(150.0))
+                .andExpect(jsonPath("$[0].remainingDays").value(2))
+                .andExpect(jsonPath("$[0].cardState").value("NEAR_MINT"))
+                .andExpect(jsonPath("$[0].cardCategory").value("Pokémon"))
+                .andExpect(jsonPath("$[0].cardCollection").value("Base Set"))
+                .andExpect(jsonPath("$[0].cardNumber").value(4))
+                .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[0].notificationMode").value("ALL"))
+        }
+
+        @Test
+        @DisplayName("GET /api/auction/favorites - Debe retornar lista vacía si no tiene favoritas")
+        fun `should return empty list when user has no favorites`() {
+            `when`(manageFavoriteAuctionUseCase.getUserFavorites(defaultUserId)).thenReturn(emptyList())
+
+            mockMvc.perform(
+                get("/api/auction/favorites")
+                    .with(authentication(authToken)),
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(0))
         }
     }
 
@@ -505,12 +587,12 @@ class AuctionControllerTest {
             mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.id").value(detail.id.toString()))
-                .andExpect(jsonPath("$.card_name").value("Pikachu Illustrator"))
-                .andExpect(jsonPath("$.last_bid").value(150.0))
-                .andExpect(jsonPath("$.bid_count").value(3))
+                .andExpect(jsonPath("$.cardName").value("Pikachu Illustrator"))
+                .andExpect(jsonPath("$.lastBid").value(150.0))
+                .andExpect(jsonPath("$.bidCount").value(3))
                 .andExpect(jsonPath("$.creator.username").value("user2"))
-                .andExpect(jsonPath("$.creator.avatar_num").value(4))
-                .andExpect(jsonPath("$.is_favorite").value(true))
+                .andExpect(jsonPath("$.creator.avatarNum").value(4))
+                .andExpect(jsonPath("$.isFavorite").value(true))
         }
 
         @Test
@@ -522,7 +604,7 @@ class AuctionControllerTest {
             mockMvc.perform(get("/api/auction/${detail.id}").with(authentication(authToken)))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.creator").doesNotExist())
-                .andExpect(jsonPath("$.is_favorite").doesNotExist())
+                .andExpect(jsonPath("$.isFavorite").doesNotExist())
         }
 
         @Test
@@ -534,7 +616,7 @@ class AuctionControllerTest {
             mockMvc.perform(get("/api/auction/${detail.id}"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.creator.username").value("user2"))
-                .andExpect(jsonPath("$.is_favorite").doesNotExist())
+                .andExpect(jsonPath("$.isFavorite").doesNotExist())
 
             verify(getAuctionUseCase, times(1)).getDetail(detail.id, null)
         }
@@ -637,7 +719,7 @@ class AuctionControllerTest {
                 .andExpect(jsonPath("$.id").value(auctionId.toString()))
                 .andExpect(jsonPath("$.description").value("Descripción actualizada"))
                 .andExpect(jsonPath("$.min_prize").value(750.0))
-                .andExpect(jsonPath("$.duration_in_days").value(5))
+                .andExpect(jsonPath("$.durationInDays").value(5))
 
             verify(editAuctionUseCase, times(1)).edit(
                 EditAuctionCommand(

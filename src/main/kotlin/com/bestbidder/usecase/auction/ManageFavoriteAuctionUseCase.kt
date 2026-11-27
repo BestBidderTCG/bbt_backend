@@ -1,6 +1,7 @@
 package com.bestbidder.usecase.auction
 
-import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.FavoriteAuctionItem
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import org.springframework.stereotype.Service
@@ -14,6 +15,7 @@ class ManageFavoriteAuctionUseCase(
     fun addFavorite(
         userId: UUID,
         auctionId: UUID,
+        notificationMode: NotificationMode,
     ) {
         val auction =
             auctionRepository.getById(auctionId)
@@ -23,7 +25,7 @@ class ManageFavoriteAuctionUseCase(
             "No puedes añadir tu propia subasta a favoritos"
         }
 
-        favoriteAuctionRepository.addFavorite(userId, auctionId)
+        favoriteAuctionRepository.addFavorite(userId, auctionId, notificationMode)
     }
 
     fun removeFavorite(
@@ -33,5 +35,16 @@ class ManageFavoriteAuctionUseCase(
         favoriteAuctionRepository.removeFavorite(userId, auctionId)
     }
 
-    fun getUserFavorites(userId: UUID): List<Auction> = favoriteAuctionRepository.getFavoritesByUserId(userId)
+    fun changeNotificationMode(
+        userId: UUID,
+        auctionId: UUID,
+        notificationMode: NotificationMode,
+    ) {
+        favoriteAuctionRepository.changeNotificationMode(userId, auctionId, notificationMode)
+    }
+
+    fun getUserFavorites(userId: UUID): List<FavoriteAuctionItem> =
+        favoriteAuctionRepository.getFavoritesByUserId(
+            userId,
+        )
 }

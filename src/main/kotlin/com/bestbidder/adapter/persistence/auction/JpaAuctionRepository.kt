@@ -139,13 +139,13 @@ interface JpaAuctionRepository : JpaRepository<AuctionEntity, UUID> {
         a.startedAt,
         a.endsAt,
         (SELECT b2.bidder.username FROM BidEntity b2
-         WHERE b2.auction = a
-           AND b2.amount = (SELECT MAX(b3.amount) FROM BidEntity b3 WHERE b3.auction = a))
+        WHERE b2.auction = a
+        AND b2.amount = (SELECT MAX(b3.amount) FROM BidEntity b3 WHERE b3.auction = a))
         )
         FROM AuctionEntity a
         JOIN a.card c
         WHERE a.creator.id = :userId
-        ORDER BY a.endsAt DESC
+        ORDER BY a.createdAt DESC
         """,
     )
     fun findUserAuction(

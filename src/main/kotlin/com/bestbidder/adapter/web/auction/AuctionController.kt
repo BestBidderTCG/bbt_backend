@@ -6,6 +6,8 @@ import com.bestbidder.adapter.web.auction.dto.AuctionResponse
 import com.bestbidder.adapter.web.auction.dto.AuctionSummaryResponse
 import com.bestbidder.adapter.web.auction.dto.CreateAuctionRequest
 import com.bestbidder.adapter.web.auction.dto.EditAuctionRequest
+import com.bestbidder.adapter.web.auction.dto.FavoriteAuctionResponse
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.infrastructure.security.AuthenticatedUser
 import com.bestbidder.usecase.auction.AuctionSort
 import com.bestbidder.usecase.auction.CreateAuctionUseCase
@@ -135,18 +137,38 @@ class AuctionController(
     }
 
     /**
-     * Añade una subasta a la lista de favoritas del usuario autenticado.
+     * Añade una subasta a la lista de favoritas del usuario autenticado con el modo de notificación indicado.
+     * Si ya era favorita, actualiza su modo de notificación.
      */
-    @PostMapping("/{auctionId}/favorite")
+    @PostMapping("/{auctionId}/favorite/{notificationMode}")
     fun addFavorite(
         @PathVariable auctionId: UUID,
+        @PathVariable notificationMode: NotificationMode,
         @AuthenticationPrincipal principal: AuthenticatedUser,
     ): ResponseEntity<Void> {
         manageFavoriteAuctionUseCase.addFavorite(
             userId = principal.id,
             auctionId = auctionId,
+            notificationMode = notificationMode,
         )
         return ResponseEntity.status(HttpStatus.CREATED).build()
+    }
+
+    /**
+     * Cambia el modo de notificación de una subasta que ya está en favoritos del usuario autenticado.
+     */
+    @PatchMapping("/{auctionId}/favorite/{notificationMode}")
+    fun changeNotificationMode(
+        @PathVariable auctionId: UUID,
+        @PathVariable notificationMode: NotificationMode,
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+    ): ResponseEntity<Void> {
+        manageFavoriteAuctionUseCase.changeNotificationMode(
+            userId = principal.id,
+            auctionId = auctionId,
+            notificationMode = notificationMode,
+        )
+        return ResponseEntity.noContent().build()
     }
 
     /**
@@ -165,16 +187,16 @@ class AuctionController(
     }
 
     /**
-     * Obtiene todas las subastas favoritas del usuario autenticado.
+     * Obtiene todas las subastas favoritas del usuario autenticado, con su modo de notificación.
      */
     @GetMapping("/favorites")
     fun getFavorites(
         @AuthenticationPrincipal principal: AuthenticatedUser,
-    ): ResponseEntity<List<AuctionResponse>> {
+    ): ResponseEntity<List<FavoriteAuctionResponse>> {
         val favorites =
             manageFavoriteAuctionUseCase
                 .getUserFavorites(principal.id)
-                .map { AuctionResponse.fromDomain(it) }
+                .map { FavoriteAuctionResponse.fromDomain(it) }
         return ResponseEntity.ok(favorites)
     }
 }

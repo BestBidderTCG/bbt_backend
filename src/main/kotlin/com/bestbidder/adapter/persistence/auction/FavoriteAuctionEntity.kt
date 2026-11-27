@@ -1,8 +1,11 @@
 package com.bestbidder.adapter.persistence.auction
 
 import com.bestbidder.adapter.persistence.user.UserEntity
+import com.bestbidder.domain.auction.NotificationMode
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
@@ -33,4 +36,7 @@ class FavoriteAuctionEntity(
     val auction: AuctionEntity,
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notification_mode", nullable = false)
+    val notificationMode: NotificationMode = NotificationMode.BASIC,
 )

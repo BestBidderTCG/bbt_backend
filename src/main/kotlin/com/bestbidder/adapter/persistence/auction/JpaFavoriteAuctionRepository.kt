@@ -42,11 +42,14 @@ interface JpaFavoriteAuctionRepository : JpaRepository<FavoriteAuctionEntity, UU
     @Query(
         """
         SELECT f.user.id FROM FavoriteAuctionEntity f
-        WHERE f.auction.id = :auctionId AND f.user.deletedAt IS NULL
+        WHERE f.auction.id = :auctionId
+          AND f.notificationMode IN :modes
+          AND f.user.deletedAt IS NULL
         """,
     )
-    fun findUserIdsByAuctionId(
+    fun findUserIdsByAuctionIdAndModes(
         @Param("auctionId") auctionId: UUID,
+        @Param("modes") modes: Collection<NotificationMode>,
     ): List<UUID>
 
     @Modifying(clearAutomatically = true)

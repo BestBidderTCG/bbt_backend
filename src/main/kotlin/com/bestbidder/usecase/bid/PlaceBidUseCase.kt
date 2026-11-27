@@ -1,19 +1,23 @@
 package com.bestbidder.usecase.bid
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.bid.BidIncrementPolicy
 import com.bestbidder.domain.bid.exceptions.BidOutbidException
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.domain.user.User
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.domain.wallet.TransactionType
 import com.bestbidder.domain.wallet.WalletTransaction
 import com.bestbidder.domain.wallet.exceptions.InsufficientBalanceException
-import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import com.bestbidder.usecase.port.UserRepository
 import com.bestbidder.usecase.port.WalletTransactionRepository
 import org.springframework.stereotype.Service
@@ -22,13 +26,15 @@ import java.time.Instant
 import java.util.UUID
 
 @Service
+@Suppress("LongParameterList")
 class PlaceBidUseCase(
     private val auctionRepository: AuctionRepository,
     private val bidRepository: BidRepository,
-    private val notificationPort: AuctionNotificationPort,
+    private val realtimeEventPort: RealtimeEventPort,
     private val userRepository: UserRepository,
     private val walletTransactionRepository: WalletTransactionRepository,
     private val pushNotificationPort: PushNotificationPort,
+    private val favoriteAuctionRepository: FavoriteAuctionRepository,
 ) {
     @Transactional
     fun execute(
@@ -45,7 +51,7 @@ class PlaceBidUseCase(
         validateAmount(auction, previousBid, bidderId, amount)
 
         holdBidderBalance(bidder, auction, amount)
-        previousBid?.let { refundPreviousBidder(auction, it) }
+        val refundedBalance = previousBid?.let { refundPreviousBidder(auction, it) }
 
         val savedBid =
             bidRepository.save(
@@ -57,7 +63,7 @@ class PlaceBidUseCase(
                 ),
             )
 
-        notifyBidPlaced(auction, savedBid, previousBid)
+        notifyBidPlaced(auction, savedBid, previousBid, refundedBalance)
 
         return savedBid
     }
@@ -142,11 +148,11 @@ class PlaceBidUseCase(
         )
     }
 
-    /** Liberación del saldo retenido al pujador anterior. */
+    /** Liberación del saldo retenido al pujador anterior. Devuelve su nuevo saldo. */
     private fun refundPreviousBidder(
         auction: Auction,
         previousBid: Bid,
-    ) {
+    ): Double {
         val previousBidderNewBalance = userRepository.addBalance(previousBid.bidderId, previousBid.amount)
         walletTransactionRepository.save(
             WalletTransaction(
@@ -158,18 +164,25 @@ class PlaceBidUseCase(
                 description = "Devolución por puja superada en ${auction.card.name}",
             ),
         )
+        return previousBidderNewBalance
     }
 
     private fun notifyBidPlaced(
         auction: Auction,
         savedBid: Bid,
         previousBid: Bid?,
+        refundedBalance: Double?,
     ) {
-        notificationPort.notifyNewBidPlaced(
-            auctionId = auction.id,
-            newAmount = savedBid.amount,
-            bidderUsername = savedBid.bidderUsername,
+        realtimeEventPort.publish(
+            SseEvents.bidPlaced(auction.id, savedBid.amount, savedBid.bidderUsername),
+            Audience.Everyone,
         )
+        if (previousBid != null && refundedBalance != null) {
+            realtimeEventPort.publish(
+                SseEvents.balanceChanged(auction.id, refundedBalance),
+                Audience.Users(previousBid.bidderId),
+            )
+        }
 
         pushNotificationPort.send(
             listOf(auction.creatorId),
@@ -191,5 +204,18 @@ class PlaceBidUseCase(
                 ),
             )
         }
+
+        // Favoritos con modo ALL; sin el pujador ni el superado, que ya tienen su propio aviso
+        val favoriteUserIds =
+            favoriteAuctionRepository.findUserIdsByAuctionId(auction.id, NotificationMode.BIDS)
+                .filter { it != savedBid.bidderId && it != previousBid?.bidderId }
+        pushNotificationPort.send(
+            favoriteUserIds,
+            PushMessages.favoriteNewBid(
+                auctionId = auction.id,
+                cardName = auction.card.name,
+                amount = savedBid.amount,
+            ),
+        )
     }
 }

@@ -1,18 +1,23 @@
 package com.bestbidder.usecase.bid
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.bid.exceptions.BidOutbidException
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.notification.SseEvent
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.domain.user.User
 import com.bestbidder.domain.wallet.WalletTransaction
 import com.bestbidder.domain.wallet.exceptions.InsufficientBalanceException
-import com.bestbidder.usecase.port.AuctionNotificationPort
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
+import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import com.bestbidder.usecase.port.UserRepository
 import com.bestbidder.usecase.port.WalletTransactionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -33,19 +38,21 @@ import java.util.UUID
 class PlaceBidUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val bidRepository: BidRepository = mock(BidRepository::class.java)
-    private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
+    private val realtimeEventPort: RealtimeEventPort = mock(RealtimeEventPort::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
     private val walletTransactionRepository: WalletTransactionRepository =
         mock(WalletTransactionRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val favoriteAuctionRepository: FavoriteAuctionRepository = mock(FavoriteAuctionRepository::class.java)
     private val useCase =
         PlaceBidUseCase(
             auctionRepository = auctionRepository,
             bidRepository = bidRepository,
-            notificationPort = notificationPort,
+            realtimeEventPort = realtimeEventPort,
             userRepository = userRepository,
             walletTransactionRepository = walletTransactionRepository,
             pushNotificationPort = pushNotificationPort,
+            favoriteAuctionRepository = favoriteAuctionRepository,
         )
 
     private val creatorId = UUID.randomUUID()
@@ -128,10 +135,14 @@ class PlaceBidUseCaseTest {
         verify(userRepository, times(1)).addBalance(previousBidderId, 150.0)
         // Una transacción de retención (nuevo pujador) y una de devolución (anterior)
         verify(walletTransactionRepository, times(2)).save(any(WalletTransaction::class.java))
-        verify(notificationPort, times(1)).notifyNewBidPlaced(
-            auctionId = auctionId,
-            newAmount = 155.0,
-            bidderUsername = "pujador2",
+        verify(realtimeEventPort, times(1)).publish(
+            SseEvents.bidPlaced(auctionId, 155.0, "pujador2"),
+            Audience.Everyone,
+        )
+        // Solo al pujador superado, con el saldo que le devuelven
+        verify(realtimeEventPort, times(1)).publish(
+            SseEvents.balanceChanged(auctionId, 200.0),
+            Audience.Users(previousBidderId),
         )
         verify(pushNotificationPort, times(1)).send(
             listOf(creatorId),
@@ -140,6 +151,54 @@ class PlaceBidUseCaseTest {
         verify(pushNotificationPort, times(1)).send(
             listOf(previousBidderId),
             PushMessages.outbid(auctionId, sampleCard.name, 155.0),
+        )
+    }
+
+    @Test
+    @DisplayName("Sin puja previa no se emite BALANCE_CHANGED")
+    fun `should not publish balance changed when there is no previous bid`() {
+        val auctionId = UUID.randomUUID()
+        val newBidderId = UUID.randomUUID()
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(buildActiveAuction(auctionId))
+        `when`(userRepository.findById(newBidderId)).thenReturn(buildActiveUser(newBidderId, "pujador2"))
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(null)
+        `when`(userRepository.deductBalance(newBidderId, 100.0)).thenReturn(400.0)
+        `when`(bidRepository.save(any(Bid::class.java))).thenAnswer { it.arguments[0] as Bid }
+
+        useCase.execute(auctionId, newBidderId, "pujador2", 100.0)
+
+        verify(realtimeEventPort, times(1)).publish(
+            SseEvents.bidPlaced(auctionId, 100.0, "pujador2"),
+            Audience.Everyone,
+        )
+        verify(realtimeEventPort, times(1)).publish(any(SseEvent::class.java), any(Audience::class.java))
+    }
+
+    @Test
+    @DisplayName("Push FAVORITE_NEW_BID solo a favoritos en modo ALL, sin el pujador ni el superado")
+    fun `should push favorites with ALL mode excluding bidder and outbid user`() {
+        val auctionId = UUID.randomUUID()
+        val previousBidderId = UUID.randomUUID()
+        val newBidderId = UUID.randomUUID()
+        val favoriteId = UUID.randomUUID()
+        val previousBid =
+            Bid(auctionId = auctionId, bidderId = previousBidderId, bidderUsername = "pujador1", amount = 150.0)
+
+        `when`(auctionRepository.getByIdForUpdate(auctionId)).thenReturn(buildActiveAuction(auctionId))
+        `when`(userRepository.findById(newBidderId)).thenReturn(buildActiveUser(newBidderId, "pujador2"))
+        `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(previousBid)
+        `when`(userRepository.deductBalance(newBidderId, 155.0)).thenReturn(45.0)
+        `when`(userRepository.addBalance(previousBidderId, 150.0)).thenReturn(200.0)
+        `when`(bidRepository.save(any(Bid::class.java))).thenAnswer { it.arguments[0] as Bid }
+        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId, NotificationMode.BIDS))
+            .thenReturn(listOf(favoriteId, newBidderId, previousBidderId))
+
+        useCase.execute(auctionId, newBidderId, "pujador2", 155.0)
+
+        verify(pushNotificationPort, times(1)).send(
+            listOf(favoriteId),
+            PushMessages.favoriteNewBid(auctionId, sampleCard.name, 155.0),
         )
     }
 

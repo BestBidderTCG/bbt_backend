@@ -15,5 +15,11 @@ enum class NotificationMode {
 
     companion object {
         val DEFAULT = BASIC
+
+        /** Modos que quieren aviso del inicio y el fin de la subasta. */
+        val LIFECYCLE = setOf(BASIC, ALL)
+
+        /** Modos que quieren aviso de cada puja. */
+        val BIDS = setOf(ALL)
     }
 }

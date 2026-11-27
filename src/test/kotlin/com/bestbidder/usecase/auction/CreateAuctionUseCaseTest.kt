@@ -3,11 +3,14 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.domain.user.User
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.FollowRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -31,8 +34,15 @@ class CreateAuctionUseCaseTest {
     private val userRepository: UserRepository = mock(UserRepository::class.java)
     private val followRepository: FollowRepository = mock(FollowRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
+    private val realtimeEventPort: RealtimeEventPort = mock(RealtimeEventPort::class.java)
     private val useCase =
-        CreateAuctionUseCase(auctionRepository, userRepository, followRepository, pushNotificationPort)
+        CreateAuctionUseCase(
+            auctionRepository,
+            userRepository,
+            followRepository,
+            pushNotificationPort,
+            realtimeEventPort,
+        )
 
     private fun getValidFutureStart(): Instant {
         val nowUtc = ZonedDateTime.now(ZoneOffset.UTC)
@@ -98,6 +108,10 @@ class CreateAuctionUseCaseTest {
         verify(pushNotificationPort, times(1)).send(
             listOf(followerId),
             PushMessages.followeeCreatedAuction(result.id, creatorUsername, card.name),
+        )
+        verify(realtimeEventPort, times(1)).publish(
+            SseEvents.auctionCreated(result.id, creatorId),
+            Audience.Everyone,
         )
     }
 

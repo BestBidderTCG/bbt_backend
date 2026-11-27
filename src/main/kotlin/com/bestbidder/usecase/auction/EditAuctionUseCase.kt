@@ -1,7 +1,10 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.notification.Audience
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.RealtimeEventPort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -9,6 +12,7 @@ import java.time.Instant
 @Service
 class EditAuctionUseCase(
     private val auctionRepository: AuctionRepository,
+    private val realtimeEventPort: RealtimeEventPort,
 ) {
     @Transactional
     fun edit(command: EditAuctionCommand): Auction {
@@ -35,7 +39,9 @@ class EditAuctionUseCase(
                 durationInDays = command.durationInDays ?: auction.durationInDays,
             )
 
-        return auctionRepository.save(updated)
+        val saved = auctionRepository.save(updated)
+        realtimeEventPort.publish(SseEvents.auctionUpdated(saved.id), Audience.Everyone)
+        return saved
     }
 
     private fun validateChanges(

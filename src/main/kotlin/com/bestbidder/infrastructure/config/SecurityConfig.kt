@@ -1,6 +1,7 @@
 package com.bestbidder.infrastructure.config
 
 import com.bestbidder.infrastructure.security.JwtAuthFilter
+import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -27,6 +28,8 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
+                    // El SSE (SseEmitter) re-despacha la petición al completarse. JwtAuthFilter no se ejecuta
+                    .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                     .requestMatchers(
                         "/api/auth/register",
                         "/api/auth/login",

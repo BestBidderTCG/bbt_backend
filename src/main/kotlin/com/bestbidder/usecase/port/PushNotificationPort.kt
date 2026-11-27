@@ -6,7 +6,7 @@ import java.util.UUID
 /**
  * Puerto de salida para enviar notificaciones push a usuarios concretos.
  *
- * A diferencia de [AuctionNotificationPort] (SSE, broadcast a los clientes conectados),
+ * A diferencia de [RealtimeEventPort] (SSE, solo a los clientes conectados en ese momento),
  * este puerto entrega el mensaje únicamente a los dispositivos de los usuarios indicados,
  * incluso con la app cerrada.
  */

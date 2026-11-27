@@ -2,11 +2,14 @@ package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.FollowRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import com.bestbidder.usecase.port.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +24,7 @@ class CreateAuctionUseCase(
     private val userRepository: UserRepository,
     private val followRepository: FollowRepository,
     private val pushNotificationPort: PushNotificationPort,
+    private val realtimeEventPort: RealtimeEventPort,
 ) {
     private companion object {
         const val MIN_DURATION_DAYS = 1
@@ -81,6 +85,8 @@ class CreateAuctionUseCase(
             )
 
         val savedAuction = auctionRepository.save(newAuction)
+
+        realtimeEventPort.publish(SseEvents.auctionCreated(savedAuction.id, creatorId), Audience.Everyone)
 
         val followerIds = followRepository.findFollowerIdsByUserId(creatorId)
         pushNotificationPort.send(

@@ -50,4 +50,15 @@ class PushMessagesTest {
         assertTrue(message.body.contains("paula"))
         assertEquals(followerId.toString(), message.data["userId"])
     }
+
+    @Test
+    @DisplayName("El mensaje de puja en favorita incluye la carta y el importe, y no revela quién pujó")
+    fun `favorite new bid message`() {
+        val message = PushMessages.favoriteNewBid(auctionId, "Mewtwo", 75.0)
+
+        assertEquals(NotificationType.FAVORITE_NEW_BID, message.type)
+        assertTrue(message.body.contains("Mewtwo"))
+        assertTrue(message.body.contains("75,00"))
+        assertEquals(auctionId.toString(), message.data["auctionId"])
+    }
 }

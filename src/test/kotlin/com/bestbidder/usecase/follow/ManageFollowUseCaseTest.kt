@@ -1,11 +1,14 @@
 package com.bestbidder.usecase.follow
 
 import com.bestbidder.domain.follow.Follow
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.domain.user.User
 import com.bestbidder.domain.user.exceptions.UserNotFoundException
 import com.bestbidder.usecase.port.FollowRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import com.bestbidder.usecase.port.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -28,7 +31,9 @@ class ManageFollowUseCaseTest {
     private val followRepository: FollowRepository = mock(FollowRepository::class.java)
     private val userRepository: UserRepository = mock(UserRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
-    private val useCase = ManageFollowUseCase(followRepository, userRepository, pushNotificationPort)
+    private val realtimeEventPort: RealtimeEventPort = mock(RealtimeEventPort::class.java)
+    private val useCase =
+        ManageFollowUseCase(followRepository, userRepository, pushNotificationPort, realtimeEventPort)
 
     private val followerId = UUID.randomUUID()
     private val followeeId = UUID.randomUUID()
@@ -99,6 +104,22 @@ class ManageFollowUseCaseTest {
         }
 
         @Test
+        @DisplayName("Debe emitir FOLLOWERS_CHANGED solo al seguido, con su nuevo contador")
+        fun `should publish followers changed to the followee when follow is new`() {
+            `when`(userRepository.findById(followeeId)).thenReturn(followee)
+            `when`(userRepository.findById(followerId)).thenReturn(follower)
+            `when`(followRepository.follow(anyObject())).thenReturn(true)
+            `when`(followRepository.countFollowers(followeeId)).thenReturn(7L)
+
+            useCase.follow(followerId, followeeId)
+
+            verify(realtimeEventPort, times(1)).publish(
+                SseEvents.followersChanged(followeeId, followerId, followed = true, followersCount = 7L),
+                Audience.Users(followeeId),
+            )
+        }
+
+        @Test
         @DisplayName("Debe devolver false cuando ya seguía al usuario")
         fun `should return false when already following`() {
             `when`(userRepository.findById(followeeId)).thenReturn(followee)
@@ -108,6 +129,7 @@ class ManageFollowUseCaseTest {
 
             assertFalse(created)
             verify(pushNotificationPort, never()).send(anyObject(), anyObject())
+            verify(realtimeEventPort, never()).publish(anyObject(), anyObject())
         }
 
         @Test
@@ -162,11 +184,26 @@ class ManageFollowUseCaseTest {
         }
 
         @Test
+        @DisplayName("Debe emitir FOLLOWERS_CHANGED al seguido cuando deja de seguirle")
+        fun `should publish followers changed when unfollow removes the relation`() {
+            `when`(followRepository.unfollow(followerId, followeeId)).thenReturn(true)
+            `when`(followRepository.countFollowers(followeeId)).thenReturn(2L)
+
+            useCase.unfollow(followerId, followeeId)
+
+            verify(realtimeEventPort, times(1)).publish(
+                SseEvents.followersChanged(followeeId, followerId, followed = false, followersCount = 2L),
+                Audience.Users(followeeId),
+            )
+        }
+
+        @Test
         @DisplayName("Debe devolver false si no seguía al usuario")
         fun `should return false when not following`() {
             `when`(followRepository.unfollow(followerId, followeeId)).thenReturn(false)
 
             assertFalse(useCase.unfollow(followerId, followeeId))
+            verify(realtimeEventPort, never()).publish(anyObject(), anyObject())
         }
     }
 }

@@ -3,7 +3,10 @@ package com.bestbidder.usecase.auction
 import com.bestbidder.domain.auction.Auction
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.Audience
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.usecase.port.AuctionRepository
+import com.bestbidder.usecase.port.RealtimeEventPort
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,6 +17,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -21,6 +25,7 @@ import java.util.UUID
 
 class EditAuctionUseCaseTest {
     private lateinit var auctionRepository: AuctionRepository
+    private lateinit var realtimeEventPort: RealtimeEventPort
     private lateinit var useCase: EditAuctionUseCase
 
     private val creatorId = UUID.randomUUID()
@@ -29,7 +34,8 @@ class EditAuctionUseCaseTest {
     @BeforeEach
     fun setUp() {
         auctionRepository = mock(AuctionRepository::class.java)
-        useCase = EditAuctionUseCase(auctionRepository)
+        realtimeEventPort = mock(RealtimeEventPort::class.java)
+        useCase = EditAuctionUseCase(auctionRepository, realtimeEventPort)
     }
 
     private fun buildAuction(
@@ -92,6 +98,7 @@ class EditAuctionUseCaseTest {
         assertEquals(newStart, result.startedAt)
         assertEquals(3, result.durationInDays)
         assertEquals("Nueva descripción", captor.value.description)
+        verify(realtimeEventPort, times(1)).publish(SseEvents.auctionUpdated(auctionId), Audience.Everyone)
     }
 
     @Test
@@ -113,6 +120,7 @@ class EditAuctionUseCaseTest {
             useCase.edit(EditAuctionCommand(auctionId = auctionId, requesterUserId = otherUserId))
         }
         verify(auctionRepository, never()).save(any(Auction::class.java))
+        verifyNoInteractions(realtimeEventPort)
     }
 
     @Test

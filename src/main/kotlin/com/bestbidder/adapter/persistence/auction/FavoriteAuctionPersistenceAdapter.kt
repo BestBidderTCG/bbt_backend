@@ -73,8 +73,8 @@ class FavoriteAuctionPersistenceAdapter(
     }
 
     @Transactional(readOnly = true)
-    override fun findUserIdsByAuctionId(auctionId: UUID): List<UUID> =
-        jpaFavoriteRepository.findUserIdsByAuctionId(
-            auctionId,
-        )
+    override fun findUserIdsByAuctionId(
+        auctionId: UUID,
+        modes: Collection<NotificationMode>,
+    ): List<UUID> = jpaFavoriteRepository.findUserIdsByAuctionIdAndModes(auctionId, modes)
 }

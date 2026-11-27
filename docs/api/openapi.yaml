@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: BestBidder TCG API
-  version: 0.2.0
+  version: 0.3.0
   description: Contrato completo de la API de BestBidder TCG sincronizado con el código fuente.
 
 servers:
@@ -74,10 +74,29 @@ components:
           example: "Coleccionista principal"
         avatarNum:
           type: integer
+          nullable: true
           example: 1
         createdAt:
           type: string
           format: date-time
+        auctionCount:
+          type: integer
+          format: int64
+          default: 0
+          description: Número de subastas del usuario.
+          example: 3
+        bidCount:
+          type: integer
+          format: int64
+          default: 0
+          description: Número de pujas del usuario.
+          example: 12
+        cardCount:
+          type: integer
+          format: int64
+          default: 0
+          description: Número de cartas del usuario.
+          example: 25
 
     PublicUserResponse:
       type: object
@@ -119,8 +138,10 @@ components:
       properties:
         description:
           type: string
+          nullable: true
         avatarNum:
           type: integer
+          nullable: true
 
     ChangePasswordRequest:
       type: object
@@ -177,14 +198,17 @@ components:
 
     AuctionResponse:
       type: object
+      description: |
+        Respuesta de creación/edición de subasta. Ojo: `creator_id`, `creator_username` y `min_prize`
+        van en snake_case; el resto de campos en camelCase.
       properties:
         id:
           type: string
           format: uuid
-        creatorId:
+        creator_id:
           type: string
           format: uuid
-        creatorUsername:
+        creator_username:
           type: string
           example: "user1"
         card:
@@ -193,7 +217,7 @@ components:
           type: string
           nullable: true
           example: "Carta en perfecto estado, funda incluida."
-        minPrize:
+        min_prize:
           type: number
           format: double
           example: 80.0
@@ -213,20 +237,14 @@ components:
 
     CreateAuctionRequest:
       type: object
+      description: |
+        El creador (id y username) se toma del token JWT; la carta debe pertenecer al usuario autenticado.
       required:
-        - creator_id
-        - creator_username
         - card_id
         - min_prize
         - started_at
         - duration_in_days
       properties:
-        creator_id:
-          type: string
-          format: uuid
-        creator_username:
-          type: string
-          example: "user1"
         card_id:
           type: string
           format: uuid
@@ -516,7 +534,7 @@ components:
           nullable: true
           description: |
             Si la subasta está en favoritos del usuario autenticado.
-            Null si quien consulta es el propietario o no está autenticado.
+            Null si quien consulta es el propietario.
 
     CreateCardRequest:
       type: object
@@ -551,9 +569,11 @@ components:
 
     UpdateCardRequest:
       type: object
+      description: Solo se actualizan los campos enviados (los omitidos conservan su valor).
       properties:
         name:
           type: string
+          nullable: true
           example: "Charizard ex Editado"
         category:
           type: string
@@ -571,6 +591,7 @@ components:
         state:
           type: string
           enum: [NEW, NEAR_MINT, GOOD, LIGHT_PLAYED, POOR]
+          nullable: true
           example: "NEAR_MINT"
         description:
           type: string
@@ -786,6 +807,7 @@ components:
           example: "IN_PROGRESS"
         iAmWinning:
           type: boolean
+          nullable: true
           description: Si esta puja es la más alta de la subasta en este momento.
           example: true
 
@@ -921,8 +943,25 @@ components:
           type: string
           format: date-time
 
+    RegisterDeviceRequest:
+      type: object
+      required:
+        - token
+        - platform
+      properties:
+        token:
+          type: string
+          maxLength: 512
+          description: Token FCM del dispositivo.
+          example: "fcm-token-de-ejemplo"
+        platform:
+          type: string
+          description: Plataforma del dispositivo (valor del enum `DevicePlatform` del backend).
+          example: "ANDROID"
+
     ErrorResponse:
       type: object
+      description: Formato de error estándar (GlobalExceptionHandler).
       properties:
         status:
           type: integer
@@ -933,6 +972,16 @@ components:
         message:
           type: string
           example: "Mensaje descriptivo del error"
+
+    SimpleErrorResponse:
+      type: object
+      description: |
+        Formato de error alternativo, usado por los handlers de wallet, pujas y tarjeta de pago
+        (saldo insuficiente, puja superada, tarjeta inválida / duplicada / inexistente).
+      properties:
+        error:
+          type: string
+          example: "Saldo insuficiente"
 
 paths:
   /api/health:
@@ -969,8 +1018,16 @@ paths:
                 $ref: '#/components/schemas/LoginResponse'
         '400':
           description: Datos inválidos (email/username con formato incorrecto o contraseña fuera del rango 6-50).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: El email o el username ya existen.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/auth/login:
     post:
@@ -990,6 +1047,10 @@ paths:
                 $ref: '#/components/schemas/LoginResponse'
         '401':
           description: Credenciales incorrectas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/auth/refresh:
     post:
@@ -1009,6 +1070,10 @@ paths:
                 $ref: '#/components/schemas/LoginResponse'
         '401':
           description: Refresh token inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/auth/logout:
     post:
@@ -1090,6 +1155,10 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: Datos inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
     delete:
@@ -1139,6 +1208,10 @@ paths:
           description: No autorizado.
         '404':
           description: Usuario no encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/me/password:
     patch:
@@ -1156,6 +1229,10 @@ paths:
           description: Contraseña cambiada correctamente.
         '400':
           description: Nueva contraseña inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Contraseña actual incorrecta o no autorizado.
 
@@ -1290,15 +1367,16 @@ paths:
         - Auction
       summary: Obtener el detalle de una subasta por su ID
       description: |
-        Endpoint público. Si se envía un token válido, la respuesta se adapta a quien consulta:
+        Requiere autenticación. La respuesta se adapta a quien consulta:
 
         | Quién consulta | `creator` | `isFavorite` |
         |---|---|---|
         | El propietario | `null` | `null` |
         | Otro usuario autenticado | datos del creador | `true` / `false` |
-        | Sin autenticar | datos del creador | `null` |
+
+        Cuando consulta un usuario que no es el propietario, la visita se registra automáticamente
+        (para el orden por popularidad). Las visitas del propietario no cuentan.
       security:
-        - {}
         - bearerAuth: []
       parameters:
         - name: id
@@ -1314,6 +1392,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuctionDetailResponse'
+        '401':
+          description: No autorizado.
         '404':
           description: Subasta no encontrada.
     patch:
@@ -1365,6 +1445,7 @@ paths:
       tags:
         - Auction
       summary: Crear una nueva subasta
+      description: El creador se toma del token. La carta debe existir y pertenecer al usuario autenticado.
       security:
         - bearerAuth: []
       requestBody:
@@ -1381,7 +1462,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuctionResponse'
         '400':
-          description: Datos inválidos o ya existe una subasta activa para esa carta.
+          description: Datos inválidos, la carta no existe o no te pertenece, o ya existe una subasta activa para esa carta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
 
@@ -1413,6 +1498,10 @@ paths:
           description: Subasta añadida a favoritos.
         '400':
           description: La subasta no existe, es del propio usuario o `notificationMode` no es válido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
     patch:
@@ -1439,6 +1528,10 @@ paths:
           description: Modo de notificación actualizado.
         '400':
           description: La subasta no está en favoritos del usuario o `notificationMode` no es válido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
 
@@ -1462,26 +1555,7 @@ paths:
         '401':
           description: No autorizado.
 
-  /api/auction/{id}/view:
-    post:
-      tags:
-        - Auction
-      summary: Registrar visualización de una subasta
-      security:
-        - {}
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Visualización registrada.
-
-  /api/auction/{id}/bid:
+  /api/bid/{id}:
     post:
       tags:
         - Bid
@@ -1492,6 +1566,7 @@ paths:
         - name: id
           in: path
           required: true
+          description: ID de la subasta.
           schema:
             type: string
             format: uuid
@@ -1510,6 +1585,10 @@ paths:
                 $ref: '#/components/schemas/BidResponse'
         '400':
           description: Importe inferior al mínimo, subasta no activa, el creador no puede pujar o ya tienes la puja más alta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
         '409':
@@ -1521,9 +1600,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SimpleErrorResponse'
 
-  /api/auction/{id}/bids:
+  /api/bid/history/{id}:
     get:
       tags:
         - Bid
@@ -1533,6 +1612,7 @@ paths:
         - name: id
           in: path
           required: true
+          description: ID de la subasta.
           schema:
             type: string
             format: uuid
@@ -1546,7 +1626,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/AuctionHistoryResponse'
 
-  /api/bids/my-history:
+  /api/bid/user/my-bids:
     get:
       tags:
         - Bid
@@ -1580,21 +1660,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogResponse'
-
-  /api/card/all:
-    get:
-      tags:
-        - Card
-      summary: Listar todas las cartas registradas
-      responses:
-        '200':
-          description: Listado completo de cartas.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardResponse'
 
   /api/card/user/my-cards:
     get:
@@ -1665,6 +1730,9 @@ paths:
                   type: string
                   format: binary
                   description: Archivo de la imagen de la carta.
+            encoding:
+              data:
+                contentType: application/json
       responses:
         '201':
           description: Carta creada exitosamente.
@@ -1674,6 +1742,10 @@ paths:
                 $ref: '#/components/schemas/CardResponse'
         '400':
           description: Datos inválidos o combinación categoría/colección no permitida en el catálogo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
 
@@ -1696,12 +1768,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CardDetailResponse'
-        '404':
-          description: Carta no encontrada.
+        '400':
+          description: La carta no existe.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
         - Card
       summary: Editar una carta existente
+      description: Solo se actualizan los campos enviados; la imagen es opcional.
       security:
         - bearerAuth: []
       parameters:
@@ -1717,6 +1794,8 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - data
               properties:
                 data:
                   $ref: '#/components/schemas/UpdateCardRequest'
@@ -1724,6 +1803,9 @@ paths:
                   type: string
                   format: binary
                   description: Nueva imagen opcional de la carta.
+            encoding:
+              data:
+                contentType: application/json
       responses:
         '200':
           description: Carta actualizada correctamente.
@@ -1732,7 +1814,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/CardResponse'
         '400':
-          description: Datos inválidos o el usuario no es el propietario.
+          description: Datos inválidos, la carta no existe o el usuario no es el propietario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
     delete:
@@ -1753,6 +1839,10 @@ paths:
           description: Carta eliminada correctamente.
         '400':
           description: No se puede eliminar (por ejemplo, tiene subasta activa o no eres el propietario).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
   
@@ -2028,6 +2118,10 @@ paths:
           description: No autorizado.
         '404':
           description: El usuario no tiene tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
     post:
       tags:
         - PaymentCard
@@ -2050,10 +2144,18 @@ paths:
                 $ref: '#/components/schemas/PaymentCardResponse'
         '400':
           description: Datos inválidos (número, CVV, fecha o tarjeta caducada).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
         '401':
           description: No autorizado.
         '409':
           description: El usuario ya tiene una tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
     put:
       tags:
         - PaymentCard
@@ -2076,10 +2178,18 @@ paths:
                 $ref: '#/components/schemas/PaymentCardResponse'
         '400':
           description: Datos inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
         '401':
           description: No autorizado.
         '404':
           description: El usuario no tiene tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
     delete:
       tags:
         - PaymentCard
@@ -2093,6 +2203,10 @@ paths:
           description: No autorizado.
         '404':
           description: El usuario no tiene tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
 
   /api/wallet/balance:
     get:
@@ -2134,10 +2248,18 @@ paths:
                 $ref: '#/components/schemas/WalletTransactionResponse'
         '400':
           description: Importe no válido (menor o igual que 0, o superior a 1000 €).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autorizado.
         '404':
           description: El usuario no tiene tarjeta registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
 
   /api/wallet/transactions:
     get:
@@ -2158,3 +2280,130 @@ paths:
                   $ref: '#/components/schemas/WalletTransactionResponse'
         '401':
           description: No autorizado.
+
+  /api/devices:
+    post:
+      tags:
+        - Device
+      summary: Registrar o refrescar el token FCM del dispositivo
+      description: |
+        Registra el token de notificaciones push (FCM) del dispositivo del usuario autenticado.
+        Llamar tras el login y cada vez que Firebase renueve el token. Es idempotente.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDeviceRequest'
+      responses:
+        '204':
+          description: Dispositivo registrado.
+        '400':
+          description: Token vacío, demasiado largo o plataforma no válida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autorizado.
+    delete:
+      tags:
+        - Device
+      summary: Eliminar el token FCM del dispositivo
+      description: |
+        Llamar en el logout para dejar de recibir las notificaciones de este usuario en ese móvil.
+        Es idempotente.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Token FCM a eliminar.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Token eliminado.
+        '401':
+          description: No autorizado.
+
+  /api/devices/test-push:
+    post:
+      tags:
+        - Device
+      summary: "[SOLO DESARROLLO] Enviar una push de prueba"
+      description: |
+        Manda una notificación push de prueba a los dispositivos del propio usuario.
+        Solo existe si está activada la propiedad `bestbidder.push.test-endpoint-enabled=true`
+        (variable de entorno `PUSH_TEST_ENDPOINT=true`); en caso contrario el endpoint no está disponible.
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Push de prueba encolada.
+        '401':
+          description: No autorizado.
+
+  /api/stream:
+    get:
+      tags:
+        - Stream
+      summary: Abrir el canal de eventos en tiempo real (SSE)
+      description: |
+        Abre un stream Server-Sent Events del usuario autenticado. Recibe los eventos dirigidos a todos
+        los usuarios más los dirigidos solo a este usuario. El token solo se valida al conectar.
+        La respuesta incluye `Cache-Control: no-cache` y `X-Accel-Buffering: no`.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Stream abierto.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          description: No autorizado.
+
+  /api/dev/scheduler/start:
+    post:
+      tags:
+        - Dev
+      summary: "[SOLO DESARROLLO] Ejecutar el inicio de subastas pendientes"
+      description: |
+        Dispara manualmente el caso de uso que inicia las subastas pendientes.
+        Solo disponible cuando el perfil activo NO es `prod`.
+      parameters:
+        - name: at
+          in: query
+          required: false
+          description: Instante a simular (por defecto, ahora).
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Ejecutado.
+
+  /api/dev/scheduler/close:
+    post:
+      tags:
+        - Dev
+      summary: "[SOLO DESARROLLO] Ejecutar el cierre de subastas expiradas"
+      description: |
+        Dispara manualmente el caso de uso que cierra las subastas expiradas.
+        Solo disponible cuando el perfil activo NO es `prod`.
+      parameters:
+        - name: at
+          in: query
+          required: false
+          description: Instante a simular (por defecto, ahora).
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Ejecutado.

@@ -1,13 +1,16 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
-import com.bestbidder.usecase.port.AuctionNotificationPort
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -20,13 +23,13 @@ import java.util.UUID
 
 class StartPendingAuctionsUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
-    private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
+    private val realtimeEventPort: RealtimeEventPort = mock(RealtimeEventPort::class.java)
     private val favoriteAuctionRepository: FavoriteAuctionRepository = mock(FavoriteAuctionRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
     private val useCase =
         StartPendingAuctionsUseCase(
             auctionRepository,
-            notificationPort,
+            realtimeEventPort,
             favoriteAuctionRepository,
             pushNotificationPort,
         )
@@ -59,12 +62,13 @@ class StartPendingAuctionsUseCaseTest {
             )
 
         `when`(auctionRepository.getJustStarted(now)).thenReturn(listOf(auction))
-        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId)).thenReturn(listOf(favUserId))
+        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId, NotificationMode.LIFECYCLE))
+            .thenReturn(listOf(favUserId))
 
         useCase.execute(now)
 
         verify(auctionRepository, times(1)).getJustStarted(now)
-        verify(notificationPort, times(1)).notifyAuctionStarted(auctionId)
+        verify(realtimeEventPort, times(1)).publish(SseEvents.auctionStarted(auctionId), Audience.Everyone)
         verify(pushNotificationPort, times(1)).send(
             listOf(creatorId),
             PushMessages.ownAuctionStarted(auctionId, "Charizard"),

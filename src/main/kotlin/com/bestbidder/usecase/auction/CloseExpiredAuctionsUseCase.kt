@@ -1,11 +1,14 @@
 package com.bestbidder.usecase.auction
 
+import com.bestbidder.domain.auction.NotificationMode
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
-import com.bestbidder.usecase.port.AuctionNotificationPort
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
 import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -13,7 +16,7 @@ import java.time.Instant
 class CloseExpiredAuctionsUseCase(
     private val auctionRepository: AuctionRepository,
     private val bidRepository: BidRepository,
-    private val notificationPort: AuctionNotificationPort,
+    private val realtimeEventPort: RealtimeEventPort,
     private val favoriteAuctionRepository: FavoriteAuctionRepository,
     private val pushNotificationPort: PushNotificationPort,
 ) {
@@ -22,7 +25,7 @@ class CloseExpiredAuctionsUseCase(
             val winningBid = bidRepository.findHighestBidByAuctionId(auction.id)
             val cardName = auction.card.name
 
-            notificationPort.notifyAuctionExpired(auction.id, winningBid)
+            realtimeEventPort.publish(SseEvents.auctionEnded(auction.id, winningBid), Audience.Everyone)
 
             // Push al creador: subasta terminada, con ganador e importe si lo hubo
             pushNotificationPort.send(
@@ -40,7 +43,7 @@ class CloseExpiredAuctionsUseCase(
 
             // Push a quienes la tenían en favoritos (excluyendo al ganador para no duplicar aviso)
             val favoriteUserIds =
-                favoriteAuctionRepository.findUserIdsByAuctionId(auction.id)
+                favoriteAuctionRepository.findUserIdsByAuctionId(auction.id, NotificationMode.LIFECYCLE)
                     .filter { it != winningBid?.bidderId }
 
             pushNotificationPort.send(

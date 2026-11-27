@@ -29,5 +29,12 @@ interface FavoriteAuctionRepository {
 
     fun getFavoritesByUserId(userId: UUID): List<FavoriteAuctionItem>
 
-    fun findUserIdsByAuctionId(auctionId: UUID): List<UUID>
+    /**
+     * IDs de los usuarios (no eliminados) que tienen la subasta en favoritos
+     * con alguno de los [modes] de notificación.
+     */
+    fun findUserIdsByAuctionId(
+        auctionId: UUID,
+        modes: Collection<NotificationMode>,
+    ): List<UUID>
 }

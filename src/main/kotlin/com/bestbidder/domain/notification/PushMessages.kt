@@ -55,6 +55,17 @@ object PushMessages {
         data = mapOf("auctionId" to auctionId.toString()),
     )
 
+    fun favoriteNewBid(
+        auctionId: UUID,
+        cardName: String,
+        amount: Double,
+    ) = PushMessage(
+        type = NotificationType.FAVORITE_NEW_BID,
+        title = "Nueva puja en una subasta que guardaste",
+        body = "Alguien ha pujado ${money(amount)} por $cardName",
+        data = mapOf("auctionId" to auctionId.toString()),
+    )
+
     fun outbid(
         auctionId: UUID,
         cardName: String,

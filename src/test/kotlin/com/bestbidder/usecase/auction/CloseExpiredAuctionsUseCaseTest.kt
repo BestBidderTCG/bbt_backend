@@ -1,15 +1,18 @@
 package com.bestbidder.usecase.auction
 
 import com.bestbidder.domain.auction.Auction
+import com.bestbidder.domain.auction.NotificationMode
 import com.bestbidder.domain.bid.Bid
 import com.bestbidder.domain.card.Card
 import com.bestbidder.domain.card.CardState
+import com.bestbidder.domain.notification.Audience
 import com.bestbidder.domain.notification.PushMessages
-import com.bestbidder.usecase.port.AuctionNotificationPort
+import com.bestbidder.domain.notification.SseEvents
 import com.bestbidder.usecase.port.AuctionRepository
 import com.bestbidder.usecase.port.BidRepository
 import com.bestbidder.usecase.port.FavoriteAuctionRepository
 import com.bestbidder.usecase.port.PushNotificationPort
+import com.bestbidder.usecase.port.RealtimeEventPort
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
@@ -25,14 +28,14 @@ import java.util.UUID
 class CloseExpiredAuctionsUseCaseTest {
     private val auctionRepository: AuctionRepository = mock(AuctionRepository::class.java)
     private val bidRepository: BidRepository = mock(BidRepository::class.java)
-    private val notificationPort: AuctionNotificationPort = mock(AuctionNotificationPort::class.java)
+    private val realtimeEventPort: RealtimeEventPort = mock(RealtimeEventPort::class.java)
     private val favoriteAuctionRepository: FavoriteAuctionRepository = mock(FavoriteAuctionRepository::class.java)
     private val pushNotificationPort: PushNotificationPort = mock(PushNotificationPort::class.java)
     private val useCase =
         CloseExpiredAuctionsUseCase(
             auctionRepository,
             bidRepository,
-            notificationPort,
+            realtimeEventPort,
             favoriteAuctionRepository,
             pushNotificationPort,
         )
@@ -78,7 +81,8 @@ class CloseExpiredAuctionsUseCaseTest {
         useCase.execute(now)
 
         verify(auctionRepository, times(1)).getJustExpired(now)
-        verify(notificationPort, times(1)).notifyAuctionExpired(auctionId, winningBid)
+        verify(realtimeEventPort, times(1))
+            .publish(SseEvents.auctionEnded(auctionId, winningBid), Audience.Everyone)
     }
 
     @Test
@@ -89,7 +93,8 @@ class CloseExpiredAuctionsUseCaseTest {
 
         useCase.execute(now)
 
-        verify(notificationPort, times(1)).notifyAuctionExpired(auctionId, null)
+        verify(realtimeEventPort, times(1))
+            .publish(SseEvents.auctionEnded(auctionId, null), Audience.Everyone)
     }
 
     @Test
@@ -101,7 +106,8 @@ class CloseExpiredAuctionsUseCaseTest {
             Bid(auctionId = auctionId, bidderId = winnerId, bidderUsername = "carlos", amount = 75.0)
         `when`(auctionRepository.getJustExpired(now)).thenReturn(listOf(auction))
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(winningBid)
-        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId)).thenReturn(listOf(winnerId, favUserId))
+        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId, NotificationMode.LIFECYCLE))
+            .thenReturn(listOf(winnerId, favUserId))
 
         useCase.execute(now)
 
@@ -118,7 +124,8 @@ class CloseExpiredAuctionsUseCaseTest {
     fun `should push only the creator when there are no bids`() {
         `when`(auctionRepository.getJustExpired(now)).thenReturn(listOf(auction))
         `when`(bidRepository.findHighestBidByAuctionId(auctionId)).thenReturn(null)
-        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId)).thenReturn(emptyList())
+        `when`(favoriteAuctionRepository.findUserIdsByAuctionId(auctionId, NotificationMode.LIFECYCLE))
+            .thenReturn(emptyList())
 
         useCase.execute(now)
 
